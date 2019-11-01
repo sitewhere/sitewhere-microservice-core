@@ -1,2 +1,2 @@
-# sitewhere-microservice-core
-Common infrastructure used in SiteWhere microservices
+# SiteWhere Microservice Core Libraries
+This repository contains the core libraries used for building SiteWhere microservices.
