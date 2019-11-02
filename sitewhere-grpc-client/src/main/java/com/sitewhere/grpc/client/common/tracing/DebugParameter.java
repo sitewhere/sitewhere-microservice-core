@@ -9,8 +9,6 @@ package com.sitewhere.grpc.client.common.tracing;
 
 /**
  * Used to provide context for debugging parameters to GRPC calls.
- * 
- * @author Derek
  */
 public class DebugParameter {
 

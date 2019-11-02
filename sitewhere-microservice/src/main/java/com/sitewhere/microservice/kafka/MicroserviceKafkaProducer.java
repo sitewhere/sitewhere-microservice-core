@@ -42,8 +42,6 @@ import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
 /**
  * Base class for components that produce messages that are forwarded to a Kafka
  * topic.
- * 
- * @author Derek
  */
 public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleComponent
 	implements IMicroserviceKafkaProducer {

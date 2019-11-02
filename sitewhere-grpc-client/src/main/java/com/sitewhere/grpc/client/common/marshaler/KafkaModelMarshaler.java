@@ -21,8 +21,6 @@ import com.sitewhere.spi.SiteWhereException;
 
 /**
  * Methods that support marshaling/unmarshaling Kafka payloads.
- * 
- * @author Derek
  */
 public class KafkaModelMarshaler {
 

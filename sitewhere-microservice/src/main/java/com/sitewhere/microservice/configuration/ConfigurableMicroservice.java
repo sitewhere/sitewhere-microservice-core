@@ -35,8 +35,6 @@ import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 /**
  * Base class for microservices that monitor the configuration folder for
  * updates.
- * 
- * @author Derek
  */
 public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> extends Microservice<T>
 	implements IConfigurableMicroservice<T>, IInstanceConfigurationListener {

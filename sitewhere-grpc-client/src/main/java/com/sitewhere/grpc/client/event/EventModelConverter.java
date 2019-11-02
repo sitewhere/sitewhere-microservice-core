@@ -108,8 +108,6 @@ import com.sitewhere.spi.search.ISearchResults;
 
 /**
  * Convert device event entities between SiteWhere API model and GRPC model.
- * 
- * @author Derek
  */
 public class EventModelConverter {
 

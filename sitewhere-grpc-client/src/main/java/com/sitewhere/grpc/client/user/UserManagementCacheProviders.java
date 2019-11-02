@@ -16,15 +16,11 @@ import com.sitewhere.spi.user.IUser;
 
 /**
  * Cache providers for user management entities.
- * 
- * @author Derek
  */
 public class UserManagementCacheProviders {
 
     /**
      * Cache for users.
-     * 
-     * @author Derek
      */
     public static class UserByTokenCache extends CacheProvider<String, IUser> {
 
@@ -35,8 +31,6 @@ public class UserManagementCacheProviders {
 
     /**
      * Cache for user granted authorities.
-     * 
-     * @author Derek
      */
     @SuppressWarnings("rawtypes")
     public static class GrantedAuthorityByTokenCache extends CacheProvider<String, List> {

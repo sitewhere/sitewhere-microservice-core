@@ -22,8 +22,6 @@ import io.grpc.ManagedChannelBuilder;
 /**
  * Management wrapper for a GRPC channel that handles requests for multiple
  * tenants.
- * 
- * @author Derek
  *
  * @param <B>
  * @param <A>

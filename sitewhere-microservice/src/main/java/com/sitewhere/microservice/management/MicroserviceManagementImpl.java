@@ -20,8 +20,6 @@ import io.grpc.stub.StreamObserver;
 
 /**
  * Implements server logic for microservice management GRPC requests.
- * 
- * @author Derek
  */
 public class MicroserviceManagementImpl extends MicroserviceManagementGrpc.MicroserviceManagementImplBase
 	implements IGrpcApiImplementation {

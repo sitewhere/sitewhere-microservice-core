@@ -27,8 +27,6 @@ import com.sitewhere.spi.user.request.IUserCreateRequest;
 
 /**
  * Adds caching support to user management API channel.
- * 
- * @author Derek
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class CachedUserManagementApiChannel extends TenantEngineLifecycleComponent implements IUserManagement {

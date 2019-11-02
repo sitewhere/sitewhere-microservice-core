@@ -14,8 +14,6 @@ import com.sitewhere.spi.scheduling.IScheduleManagement;
 /**
  * Provides an {@link IMultitenantApiChannel} that supplies the
  * {@link IScheduleManagement}. API.
- * 
- * @author Derek
  */
 public interface IScheduleManagementApiChannel<T extends MultitenantGrpcChannel<?, ?>>
 	extends IScheduleManagement, IMultitenantApiChannel<T> {

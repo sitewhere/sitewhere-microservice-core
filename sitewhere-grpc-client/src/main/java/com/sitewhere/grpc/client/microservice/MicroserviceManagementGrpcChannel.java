@@ -18,8 +18,6 @@ import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 /**
  * Channel that allows for communication with a remote microservice mangement
  * GRPC server.
- * 
- * @author Derek
  */
 public class MicroserviceManagementGrpcChannel
 	extends GrpcChannel<MicroserviceManagementBlockingStub, MicroserviceManagementStub> {

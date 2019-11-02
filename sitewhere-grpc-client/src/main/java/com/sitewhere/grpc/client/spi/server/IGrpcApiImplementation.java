@@ -11,8 +11,6 @@ import com.sitewhere.spi.microservice.IMicroservice;
 
 /**
  * Provides a common interface for gRPC API implementations.
- * 
- * @author Derek
  */
 public interface IGrpcApiImplementation {
 

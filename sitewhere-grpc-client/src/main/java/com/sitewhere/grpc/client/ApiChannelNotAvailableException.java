@@ -11,8 +11,6 @@ import com.sitewhere.spi.SiteWhereException;
 
 /**
  * Indicates no API channel is available to complete an operation.
- * 
- * @author Derek
  */
 public class ApiChannelNotAvailableException extends SiteWhereException {
 

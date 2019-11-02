@@ -14,8 +14,6 @@ import io.grpc.BindableService;
 /**
  * Wraps a GRPC server so that its lifecycle can be managed within a
  * microservice.
- * 
- * @author Derek
  */
 public interface IGrpcServer extends ILifecycleComponent {
 

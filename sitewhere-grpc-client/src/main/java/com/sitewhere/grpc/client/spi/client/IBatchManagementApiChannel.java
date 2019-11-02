@@ -14,8 +14,6 @@ import com.sitewhere.spi.batch.IBatchManagement;
 /**
  * Provides an {@link IMultitenantApiChannel} that supplies the
  * {@link IBatchManagement}. API.
- * 
- * @author Derek
  */
 public interface IBatchManagementApiChannel<T extends MultitenantGrpcChannel<?, ?>>
 	extends IBatchManagement, IMultitenantApiChannel<T> {

@@ -15,8 +15,6 @@ import com.sitewhere.spi.server.lifecycle.ITenantEngineLifecycleComponent;
 
 /**
  * Common interface for GRPC channels that handle API calls.
- * 
- * @author Derek
  */
 public interface IApiChannel<T extends GrpcChannel<?, ?>> extends ITenantEngineLifecycleComponent {
 

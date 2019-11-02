@@ -14,8 +14,6 @@ import com.sitewhere.spi.device.state.IDeviceStateManagement;
 /**
  * Provides an {@link IMultitenantApiChannel} that supplies the
  * {@link IDeviceStateManagement}. API.
- * 
- * @author Derek
  */
 public interface IDeviceStateApiChannel<T extends MultitenantGrpcChannel<?, ?>>
 	extends IDeviceStateManagement, IMultitenantApiChannel<T> {

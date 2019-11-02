@@ -11,8 +11,6 @@ import com.sitewhere.spi.microservice.scripting.IScriptCreateRequest;
 
 /**
  * Information required to create a new script.
- * 
- * @author Derek
  */
 public class ScriptCreateRequest implements IScriptCreateRequest {
 
@@ -82,14 +80,15 @@ public class ScriptCreateRequest implements IScriptCreateRequest {
     }
 
     /*
-     * @see com.sitewhere.spi.microservice.scripting.IScriptCreateRequest#getContent()
+     * @see
+     * com.sitewhere.spi.microservice.scripting.IScriptCreateRequest#getContent()
      */
     @Override
     public String getContent() {
-        return content;
+	return content;
     }
 
     public void setContent(String content) {
-        this.content = content;
+	this.content = content;
     }
 }

@@ -15,8 +15,6 @@ import io.grpc.netty.NettyServerBuilder;
 
 /**
  * Base class for GRPC servers that handle requests for multiple tenants.
- * 
- * @author Derek
  */
 public class MultitenantGrpcServer extends GrpcServer {
 

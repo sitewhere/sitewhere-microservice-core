@@ -12,8 +12,6 @@ import io.grpc.Context;
 /**
  * Contains keys used for passing context between gRPC interceptors and
  * implementation classes.
- * 
- * @author Derek
  */
 public class GrpcContextKeys {
 

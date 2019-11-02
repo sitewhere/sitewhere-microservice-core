@@ -388,8 +388,6 @@ public class TenantEngineManager<I extends IFunctionIdentifier, T extends IMicro
 
     /**
      * Processes the list of tenants waiting for tenant engines to be started.
-     * 
-     * @author Derek
      */
     private class TenantEngineStarter extends SystemUserRunnable {
 
@@ -545,8 +543,6 @@ public class TenantEngineManager<I extends IFunctionIdentifier, T extends IMicro
 
     /**
      * Processes the list of tenants waiting for tenant engines to be stopped.
-     * 
-     * @author Derek
      */
     private class TenantEngineStopper extends SystemUserRunnable {
 

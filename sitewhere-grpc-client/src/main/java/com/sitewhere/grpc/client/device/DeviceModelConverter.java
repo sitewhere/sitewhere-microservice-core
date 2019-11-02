@@ -175,8 +175,6 @@ import com.sitewhere.spi.search.device.IZoneSearchCriteria;
 
 /**
  * Convert device entities between SiteWhere API model and GRPC model.
- * 
- * @author Derek
  */
 public class DeviceModelConverter {
 

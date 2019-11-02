@@ -27,8 +27,6 @@ import groovy.lang.Binding;
 
 /**
  * Component that leverages a Groovy script.
- * 
- * @author Derek
  */
 public class GroovyComponent extends TenantEngineLifecycleComponent implements IGroovyComponent {
 

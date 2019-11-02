@@ -15,8 +15,6 @@ import com.sitewhere.spi.microservice.scripting.IScriptVersion;
 
 /**
  * Get information about a version of a script.
- * 
- * @author Derek
  */
 public class ScriptVersion implements IScriptVersion {
 

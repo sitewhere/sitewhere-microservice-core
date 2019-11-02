@@ -14,8 +14,6 @@ import com.sitewhere.spi.device.IDeviceManagement;
 /**
  * Provides an {@link IMultitenantApiChannel} that supplies the
  * {@link IDeviceManagement}. API.
- * 
- * @author Derek
  */
 public interface IDeviceManagementApiChannel<T extends MultitenantGrpcChannel<?, ?>>
 	extends IDeviceManagement, IMultitenantApiChannel<T> {

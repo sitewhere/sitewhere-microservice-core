@@ -20,8 +20,6 @@ import io.grpc.stub.StreamObserver;
 
 /**
  * Blocks while waiting for a stream to return a single result or error.
- * 
- * @author Derek
  *
  * @param <T>
  */

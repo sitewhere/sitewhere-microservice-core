@@ -22,8 +22,6 @@ public class DeviceManagementCacheProviders {
 
     /**
      * Cache for areas.
-     * 
-     * @author Derek
      */
     public static class AreaByTokenCache extends CacheProvider<String, IArea> {
 
@@ -34,8 +32,6 @@ public class DeviceManagementCacheProviders {
 
     /**
      * Cache for areas by id.
-     * 
-     * @author Derek
      */
     public static class AreaByIdCache extends CacheProvider<UUID, IArea> {
 
@@ -46,8 +42,6 @@ public class DeviceManagementCacheProviders {
 
     /**
      * Cache for device types.
-     * 
-     * @author Derek
      */
     public static class DeviceTypeByTokenCache extends CacheProvider<String, IDeviceType> {
 
@@ -58,8 +52,6 @@ public class DeviceManagementCacheProviders {
 
     /**
      * Cache for device types by id.
-     * 
-     * @author Derek
      */
     public static class DeviceTypeByIdCache extends CacheProvider<UUID, IDeviceType> {
 
@@ -70,8 +62,6 @@ public class DeviceManagementCacheProviders {
 
     /**
      * Cache for devices by token.
-     * 
-     * @author Derek
      */
     public static class DeviceByTokenCache extends CacheProvider<String, IDevice> {
 
@@ -82,8 +72,6 @@ public class DeviceManagementCacheProviders {
 
     /**
      * Cache for devices by id.
-     * 
-     * @author Derek
      */
     public static class DeviceByIdCache extends CacheProvider<UUID, IDevice> {
 
@@ -94,8 +82,6 @@ public class DeviceManagementCacheProviders {
 
     /**
      * Cache for device assignments by token.
-     * 
-     * @author Derek
      */
     public static class DeviceAssignmentByTokenCache extends CacheProvider<String, IDeviceAssignment> {
 
@@ -106,8 +92,6 @@ public class DeviceManagementCacheProviders {
 
     /**
      * Cache for device assignments by id.
-     * 
-     * @author Derek
      */
     public static class DeviceAssignmentByIdCache extends CacheProvider<UUID, IDeviceAssignment> {
 

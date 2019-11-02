@@ -18,8 +18,6 @@ import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 /**
  * Channel that allows for communication with a remote user mangement GRPC
  * server.
- * 
- * @author Derek
  */
 public class UserManagementGrpcChannel extends GrpcChannel<UserManagementBlockingStub, UserManagementStub> {
 

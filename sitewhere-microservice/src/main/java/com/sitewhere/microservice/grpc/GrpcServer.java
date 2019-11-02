@@ -21,8 +21,6 @@ import io.grpc.netty.NettyServerBuilder;
 
 /**
  * Base class for GRPC servers used by microservices.
- * 
- * @author Derek
  */
 public class GrpcServer extends TenantEngineLifecycleComponent implements IGrpcServer {
 

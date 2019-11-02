@@ -20,8 +20,6 @@ public class AssetManagementCacheProviders {
 
     /**
      * Cache for asset types by token.
-     * 
-     * @author Derek
      */
     public static class AssetTypeByTokenCache extends CacheProvider<String, IAssetType> {
 
@@ -32,8 +30,6 @@ public class AssetManagementCacheProviders {
 
     /**
      * Cache for asset types by id.
-     * 
-     * @author Derek
      */
     public static class AssetTypeByIdCache extends CacheProvider<UUID, IAssetType> {
 
@@ -44,8 +40,6 @@ public class AssetManagementCacheProviders {
 
     /**
      * Cache for assets by token.
-     * 
-     * @author Derek
      */
     public static class AssetByTokenCache extends CacheProvider<String, IAsset> {
 
@@ -56,8 +50,6 @@ public class AssetManagementCacheProviders {
 
     /**
      * Cache for assets by id.
-     * 
-     * @author Derek
      */
     public static class AssetByIdCache extends CacheProvider<UUID, IAsset> {
 

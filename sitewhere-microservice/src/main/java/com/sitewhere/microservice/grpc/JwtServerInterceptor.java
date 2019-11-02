@@ -27,8 +27,6 @@ import io.grpc.Status;
 /**
  * Interceptor that enforces JWT authentication constraints before invoking
  * service methods.
- * 
- * @author Derek
  */
 public class JwtServerInterceptor implements ServerInterceptor {
 

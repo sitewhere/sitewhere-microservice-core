@@ -14,8 +14,6 @@ import com.sitewhere.spi.microservice.scripting.IScriptMetadata;
 
 /**
  * Manages runtime scripting support for a tenant engine.
- * 
- * @author Derek
  */
 public class TenantEngineScriptManager extends TenantEngineLifecycleComponent implements IScriptManager {
 

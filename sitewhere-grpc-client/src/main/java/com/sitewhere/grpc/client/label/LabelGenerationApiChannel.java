@@ -46,8 +46,6 @@ import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 /**
  * Supports SiteWhere label generation APIs on top of a
  * {@link LabelGenerationGrpcChannel}.
- * 
- * @author Derek
  */
 public class LabelGenerationApiChannel extends MultitenantApiChannel<LabelGenerationGrpcChannel>
 	implements ILabelGenerationApiChannel<LabelGenerationGrpcChannel> {

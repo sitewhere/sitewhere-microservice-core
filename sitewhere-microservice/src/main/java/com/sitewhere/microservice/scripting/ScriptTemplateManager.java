@@ -23,8 +23,6 @@ import com.sitewhere.spi.server.lifecycle.LifecycleComponentType;
 
 /**
  * Manages the list of script templates for a microservice.
- * 
- * @author Derek
  */
 public class ScriptTemplateManager extends LifecycleComponent implements IScriptTemplateManager {
 

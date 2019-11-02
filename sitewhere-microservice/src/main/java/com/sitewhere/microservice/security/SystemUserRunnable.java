@@ -18,8 +18,6 @@ import com.sitewhere.spi.tenant.ITenant;
  * Allows code to be run in a separate thread along with thread local security
  * credentials for the superuser account. This allows non-authenticated services
  * to interact with GRPC persistence APIs.
- * 
- * @author Derek
  */
 public abstract class SystemUserRunnable implements Runnable {
 

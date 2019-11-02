@@ -11,8 +11,6 @@ import com.sitewhere.spi.SiteWhereException;
 
 /**
  * Exception thrown when an expired JWT is used for a REST request.
- * 
- * @author Derek
  */
 public class JwtExpiredException extends SiteWhereException {
 

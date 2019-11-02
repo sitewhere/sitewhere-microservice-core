@@ -14,8 +14,6 @@ import com.sitewhere.spi.tenant.ITenant;
 
 /**
  * Provides access to a cache hosted in Hazelcast.
- * 
- * @author Derek
  *
  * @param <K>
  * @param <V>

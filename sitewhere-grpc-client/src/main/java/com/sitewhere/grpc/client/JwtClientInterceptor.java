@@ -21,8 +21,6 @@ import io.grpc.MethodDescriptor;
 /**
  * GRPC interceptor that pushes JWT from Spring Security credentials into call
  * metadata.
- * 
- * @author Derek
  */
 public class JwtClientInterceptor implements ClientInterceptor {
 

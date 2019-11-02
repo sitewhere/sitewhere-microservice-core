@@ -31,8 +31,6 @@ import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
 
 /**
  * Base class for components that consume messages from a Kafka topic.
- * 
- * @author Derek
  */
 public abstract class MicroserviceKafkaConsumer extends TenantEngineLifecycleComponent
 	implements IMicroserviceKafkaConsumer {
@@ -111,8 +109,6 @@ public abstract class MicroserviceKafkaConsumer extends TenantEngineLifecycleCom
 
     /**
      * Thread that polls Kafka for records arriving on the specified topic.
-     * 
-     * @author Derek
      */
     private class MessageConsumer implements Runnable {
 

@@ -11,8 +11,6 @@ import com.sitewhere.spi.SiteWhereException;
 
 /**
  * Exception thrown when an invalid JWT is used for a REST request.
- * 
- * @author Derek
  */
 public class InvalidJwtException extends SiteWhereException {
 

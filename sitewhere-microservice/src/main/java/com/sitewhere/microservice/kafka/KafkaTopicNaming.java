@@ -13,8 +13,6 @@ import com.sitewhere.spi.tenant.ITenant;
 
 /**
  * Class for locating SiteWhere Kafka topics.
- * 
- * @author Derek
  */
 public class KafkaTopicNaming implements IKafkaTopicNaming {
 

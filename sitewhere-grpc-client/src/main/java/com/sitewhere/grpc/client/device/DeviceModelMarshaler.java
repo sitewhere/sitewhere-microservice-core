@@ -21,8 +21,6 @@ import com.sitewhere.spi.device.event.kafka.IDeviceRegistrationPayload;
 
 /**
  * Methods that support marshaling/unmarshaling device model payloads.
- * 
- * @author Derek
  */
 public class DeviceModelMarshaler {
 

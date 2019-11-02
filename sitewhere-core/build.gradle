@@ -1,7 +1,7 @@
 description = 'SiteWhere Core Library'
 
 dependencies {
-    compile project(':sitewhere-core-lifecycle')
+    compile project(':sitewhere-core-api')
     
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
@@ -14,6 +14,10 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: "${rootProject.ext['jackson.version']}"
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${rootProject.ext['jackson.version']}"
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: "${rootProject.ext['jackson.version']}"
+          
+    // Metrics support
+    compile group: 'io.prometheus', name: 'simpleclient', version:'0.6.0'
+    compile group: 'io.prometheus', name: 'simpleclient_httpserver', version:'0.6.0'
     
     // Retry logic.
     compile "com.evanlennick:retry4j:0.15.0"

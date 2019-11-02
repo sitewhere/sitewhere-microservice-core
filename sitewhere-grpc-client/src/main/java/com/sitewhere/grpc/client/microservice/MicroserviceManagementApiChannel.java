@@ -23,8 +23,6 @@ import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 /**
  * Supports SiteWhere microservice management APIs on top of a
  * {@link MicroserviceManagementGrpcChannel}.
- * 
- * @author Derek
  */
 public class MicroserviceManagementApiChannel extends ApiChannel<MicroserviceManagementGrpcChannel>
 	implements IMicroserviceManagementApiChannel<MicroserviceManagementGrpcChannel> {

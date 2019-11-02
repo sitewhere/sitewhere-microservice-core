@@ -10,8 +10,6 @@ package com.sitewhere.grpc.client.spi.multitenant;
 /**
  * Provides information about the runtime state of a tenant engine running on a
  * remote microservice.
- * 
- * @author Derek
  */
 public interface ITenantEngineRuntimeState {
 }

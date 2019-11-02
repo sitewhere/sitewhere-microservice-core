@@ -27,8 +27,6 @@ import com.sitewhere.spi.search.ISearchResults;
 
 /**
  * Convert device stream entities between SiteWhere API model and GRPC model.
- * 
- * @author Derek
  */
 public class DeviceStreamModelConverter {
 

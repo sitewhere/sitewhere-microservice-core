@@ -38,8 +38,6 @@ import io.grpc.stub.StreamObserver;
 /**
  * Provides an {@link IMultitenantApiChannel} that supplies the
  * {@link IDeviceEventManagement}. API.
- * 
- * @author Derek
  */
 public interface IDeviceEventManagementApiChannel<T extends MultitenantGrpcChannel<?, ?>>
 	extends IMultitenantApiChannel<T> {

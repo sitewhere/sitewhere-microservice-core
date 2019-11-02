@@ -15,8 +15,6 @@ import com.sitewhere.spi.label.ILabel;
 
 /**
  * Convert label generation entities between SiteWhere API model and GRPC model.
- * 
- * @author Derek
  */
 public class LabelGenerationModelConverter {
 

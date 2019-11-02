@@ -13,8 +13,6 @@ import com.sitewhere.grpc.client.spi.IApiChannel;
 /**
  * Extends {@link IApiChannel} with support for interacting with external
  * microservices that support multiple tenants.
- * 
- * @author Derek
  *
  * @param <T>
  */

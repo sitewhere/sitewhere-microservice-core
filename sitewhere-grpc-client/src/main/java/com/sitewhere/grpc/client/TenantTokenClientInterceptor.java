@@ -17,8 +17,6 @@ import io.grpc.MethodDescriptor;
 
 /**
  * GRPC interceptor that pushes tenant token into GRPC call metadata.
- * 
- * @author Derek
  */
 public class TenantTokenClientInterceptor implements ClientInterceptor {
 

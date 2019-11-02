@@ -11,8 +11,6 @@ import com.sitewhere.grpc.client.spi.IGrpcChannel;
 
 /**
  * Extends {@link IGrpcChannel} to add support for multitenant operations.
- * 
- * @author Derek
  *
  * @param <B>
  * @param <A>

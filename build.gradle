@@ -1,7 +1,6 @@
 plugins {
     id 'java'
     id 'distribution'
-    id 'io.quarkus' version '0.26.1' 
     id 'com.github.hierynomus.license' version '0.15.0' 
     id 'org.ajoberstar.grgit' version '2.2.1' 
 }
@@ -21,7 +20,7 @@ ext['grpc.version'] = '1.21.0'
     
 allprojects {
     group = 'com.sitewhere'
-	version = '3.0.0'
+	version = '3.0.0.alpha1'
 	
     repositories {
         maven { url "http://repo.maven.apache.org/maven2" }
@@ -35,9 +34,6 @@ subprojects {
 		header rootProject.file('HEADER')
     	include "**/*.java"
 	}
-	
-	// Apply Quarkus.
-	apply plugin: 'io.quarkus'
  	
  	// Choose Java settings.
     apply plugin: 'java'

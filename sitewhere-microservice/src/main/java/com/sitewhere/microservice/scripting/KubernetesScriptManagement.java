@@ -23,9 +23,7 @@ import com.sitewhere.spi.microservice.scripting.IScriptVersion;
 
 /**
  * Default {@link IScriptManagement} implementation. Stores scripts in
- * Zookeeper.
- * 
- * @author Derek
+ * Kubernetes.
  */
 public class KubernetesScriptManagement extends LifecycleComponent implements IScriptManagement {
 

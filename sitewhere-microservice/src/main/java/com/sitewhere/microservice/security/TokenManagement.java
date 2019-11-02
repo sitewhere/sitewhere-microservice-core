@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.enterprise.context.ApplicationScoped;
+
 import com.sitewhere.rest.model.user.GrantedAuthority;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
@@ -27,9 +29,8 @@ import io.jsonwebtoken.UnsupportedJwtException;
 
 /**
  * Manages creation and validation of JWT tokens.
- * 
- * @author Derek
  */
+@ApplicationScoped
 public class TokenManagement implements ITokenManagement {
 
     /** Token issuer */
@@ -47,8 +48,7 @@ public class TokenManagement implements ITokenManagement {
     /*
      * (non-Javadoc)
      * 
-     * @see
-     * com.sitewhere.microservice.spi.security.ITokenManagement#generateToken(
+     * @see com.sitewhere.microservice.spi.security.ITokenManagement#generateToken(
      * com.sitewhere.spi.user.IUser)
      */
     public String generateToken(IUser user, int expirationInMinutes) throws SiteWhereException {

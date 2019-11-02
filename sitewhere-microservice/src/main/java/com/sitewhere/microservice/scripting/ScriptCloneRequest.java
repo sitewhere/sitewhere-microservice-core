@@ -11,8 +11,6 @@ import com.sitewhere.spi.microservice.scripting.IScriptCloneRequest;
 
 /**
  * Information required to clone a script.
- * 
- * @author Derek
  */
 public class ScriptCloneRequest implements IScriptCloneRequest {
 

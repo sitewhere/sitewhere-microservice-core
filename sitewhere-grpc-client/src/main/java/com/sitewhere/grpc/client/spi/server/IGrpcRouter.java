@@ -11,8 +11,6 @@ import io.grpc.stub.StreamObserver;
 
 /**
  * Common logic for GRPC routers.
- * 
- * @author Derek
  *
  * @param <T>
  */

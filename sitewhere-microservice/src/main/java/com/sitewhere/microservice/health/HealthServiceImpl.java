@@ -17,8 +17,6 @@ import io.grpc.stub.StreamObserver;
 
 /**
  * gRPC Health Service Protocol Implementation
- * 
- * @author Jorge Villaverde
  */
 public class HealthServiceImpl extends HealthGrpc.HealthImplBase {
 

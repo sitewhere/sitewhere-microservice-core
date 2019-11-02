@@ -29,8 +29,6 @@ import com.sitewhere.spi.search.device.IDeviceStateSearchCriteria;
 
 /**
  * Convert device state entities between SiteWhere API model and GRPC model.
- * 
- * @author Derek
  */
 public class DeviceStateModelConverter {
 

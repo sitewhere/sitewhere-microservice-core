@@ -26,8 +26,6 @@ import io.grpc.Status;
 /**
  * Pulls tenant token from call metadata and adds it to context for use in
  * implementation class.
- * 
- * @author Derek
  */
 public class TenantTokenServerInterceptor implements ServerInterceptor {
 

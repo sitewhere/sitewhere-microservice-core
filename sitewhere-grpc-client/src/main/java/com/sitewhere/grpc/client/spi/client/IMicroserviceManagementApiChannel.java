@@ -14,8 +14,6 @@ import com.sitewhere.spi.microservice.IMicroserviceManagement;
 /**
  * Provides an {@link IApiChannel} that supplies the
  * {@link IMicroserviceManagement} API.
- * 
- * @author Derek
  */
 public interface IMicroserviceManagementApiChannel<T extends GrpcChannel<?, ?>>
 	extends IMicroserviceManagement, IApiChannel<T> {

@@ -15,8 +15,6 @@ import com.sitewhere.spi.microservice.scripting.IScriptVersion;
 
 /**
  * Contains metadata about a script.
- * 
- * @author Derek
  */
 public class ScriptMetadata implements IScriptMetadata {
 

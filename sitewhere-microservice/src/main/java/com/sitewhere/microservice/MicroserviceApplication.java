@@ -77,8 +77,6 @@ public abstract class MicroserviceApplication<T extends IMicroservice<?>> implem
 
     /**
      * Runnable for starting microservice.
-     * 
-     * @author Derek
      */
     private class StartMicroservice implements Callable<Integer> {
 

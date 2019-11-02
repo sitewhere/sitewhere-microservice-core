@@ -13,8 +13,6 @@ import com.sitewhere.spi.server.lifecycle.ILifecycleComponent;
 /**
  * Manages a Hazelcast client with a near cache that is connected to remote
  * Hazelcast instance which provides the underlying data.
- * 
- * @author Derek
  */
 public interface INearCacheManager extends ILifecycleComponent {
 

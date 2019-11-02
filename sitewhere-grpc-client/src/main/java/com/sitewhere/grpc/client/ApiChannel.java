@@ -18,8 +18,6 @@ import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
 /**
  * Base class for channels that uses SiteWhere APIs to communicate with GRPC
  * services.
- * 
- * @author Derek
  *
  * @param <T>
  */

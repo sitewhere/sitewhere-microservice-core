@@ -44,8 +44,6 @@ import com.sitewhere.spi.microservice.state.IMicroserviceDetails;
 
 /**
  * Convert model objects used for interacting with microservices.
- * 
- * @author Derek
  */
 public class MicroserviceModelConverter {
 

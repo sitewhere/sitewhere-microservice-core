@@ -15,8 +15,6 @@ import com.sitewhere.spi.label.ILabelGeneration;
 /**
  * Provides an {@link IApiChannel} that supplies the {@link ILabelGeneration}.
  * API.
- * 
- * @author Derek
  */
 public interface ILabelGenerationApiChannel<T extends MultitenantGrpcChannel<?, ?>>
 	extends ILabelGeneration, IMultitenantApiChannel<T> {

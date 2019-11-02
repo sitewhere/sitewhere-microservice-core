@@ -14,8 +14,6 @@ import com.sitewhere.spi.user.IUserManagement;
 /**
  * Provides an {@link IApiChannel} that supplies the {@link IUserManagement}
  * API.
- * 
- * @author Derek
  */
 public interface IUserManagementApiChannel<T extends GrpcChannel<?, ?>> extends IUserManagement, IApiChannel<T> {
 }

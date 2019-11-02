@@ -25,8 +25,6 @@ import com.sitewhere.spi.device.event.kafka.IPreprocessedEventPayload;
 
 /**
  * Methods that support marshaling/unmarshaling event model payloads.
- * 
- * @author Derek
  */
 public class EventModelMarshaler {
 

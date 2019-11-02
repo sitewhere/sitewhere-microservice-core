@@ -42,8 +42,6 @@ import com.sitewhere.spi.search.ISearchCriteria;
 
 /**
  * Convert between SiteWhere API model and GRPC model.
- * 
- * @author Derek
  */
 public class CommonModelConverter {
 

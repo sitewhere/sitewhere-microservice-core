@@ -13,8 +13,6 @@ import io.grpc.ManagedChannel;
 
 /**
  * Connected channel to a remote GRPC server.
- * 
- * @author Derek
  *
  * @param <B>
  * @param <A>

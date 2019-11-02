@@ -14,8 +14,6 @@ import com.sitewhere.spi.asset.IAssetManagement;
 /**
  * Provides an {@link IMultitenantApiChannel} that supplies the
  * {@link IAssetManagement}. API.
- * 
- * @author Derek
  */
 public interface IAssetManagementApiChannel<T extends MultitenantGrpcChannel<?, ?>>
 	extends IAssetManagement, IMultitenantApiChannel<T> {

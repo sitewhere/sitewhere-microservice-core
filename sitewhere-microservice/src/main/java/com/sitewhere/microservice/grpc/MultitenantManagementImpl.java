@@ -19,10 +19,6 @@ import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableExcept
 
 import io.grpc.stub.StreamObserver;
 
-/**
- *
- * @author Jorge Villaverde
- */
 public class MultitenantManagementImpl extends MultitenantManagementGrpc.MultitenantManagementImplBase {
 
     /** Multitenant microservice */

@@ -41,8 +41,6 @@ import com.sitewhere.spi.search.ISearchResults;
 
 /**
  * Convert schedule entities between SiteWhere API model and GRPC model.
- * 
- * @author Derek
  */
 public class ScheduleModelConverter {
 

@@ -25,8 +25,6 @@ import com.sitewhere.spi.server.lifecycle.LifecycleStatus;
 
 /**
  * Convert model objects passed on Kafka topics.
- * 
- * @author Derek
  */
 public class KafkaModelConverter {
 

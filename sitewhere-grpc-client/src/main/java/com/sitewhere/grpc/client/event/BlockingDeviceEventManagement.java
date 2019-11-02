@@ -35,8 +35,6 @@ import com.sitewhere.spi.search.ISearchResults;
 
 /**
  * Provides a blocking wrapper around async device event management methods.
- * 
- * @author Derek
  */
 public class BlockingDeviceEventManagement extends TenantEngineLifecycleComponent implements IDeviceEventManagement {
 

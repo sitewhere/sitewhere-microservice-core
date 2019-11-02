@@ -14,8 +14,6 @@ import com.sitewhere.spi.microservice.grpc.IMicroserviceManagementGrpcServer;
 
 /**
  * Hosts a GRPC server that handles microservice management requests.
- * 
- * @author Derek
  */
 public class MicroserviceManagementGrpcServer extends GrpcServer implements IMicroserviceManagementGrpcServer {
 

@@ -16,15 +16,11 @@ import com.sitewhere.spi.tenant.ITenant;
 
 /**
  * Cache providers for tenant entities.
- * 
- * @author Derek
  */
 public class TenantManagementCacheProviders {
 
     /**
      * Cache for tenants.
-     * 
-     * @author Derek
      */
     public static class TenantByTokenCache extends CacheProvider<String, ITenant> {
 
@@ -35,8 +31,6 @@ public class TenantManagementCacheProviders {
 
     /**
      * Cache for tenants by id.
-     * 
-     * @author Derek
      */
     public static class TenantByIdCache extends CacheProvider<UUID, ITenant> {
 

@@ -40,8 +40,6 @@ import com.sitewhere.spi.user.request.IUserCreateRequest;
 
 /**
  * Convert user entities between SiteWhere API model and GRPC model.
- * 
- * @author Derek
  */
 public class UserModelConverter {
 

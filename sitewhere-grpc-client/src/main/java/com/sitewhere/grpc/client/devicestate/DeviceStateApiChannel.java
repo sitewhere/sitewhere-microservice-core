@@ -41,8 +41,6 @@ import com.sitewhere.spi.search.device.IDeviceStateSearchCriteria;
 /**
  * Supports SiteWhere device state APIs on top of a
  * {@link DeviceStateGrpcChannel}.
- * 
- * @author Derek
  */
 public class DeviceStateApiChannel extends MultitenantApiChannel<DeviceStateGrpcChannel>
 	implements IDeviceStateApiChannel<DeviceStateGrpcChannel> {

@@ -13,8 +13,6 @@ import ch.qos.cal10n.LocaleData;
 
 /**
  * Localized messages for gRPC client classes.
- * 
- * @author Derek
  */
 @BaseName("grpc-client")
 @LocaleData({ @Locale("en_US") })

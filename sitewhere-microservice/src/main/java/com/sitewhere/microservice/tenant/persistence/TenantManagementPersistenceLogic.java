@@ -19,8 +19,6 @@ import com.sitewhere.spi.tenant.request.ITenantCreateRequest;
 
 /**
  * Persistence logic for tenant management components.
- * 
- * @author Derek
  */
 public class TenantManagementPersistenceLogic extends Persistence {
 
