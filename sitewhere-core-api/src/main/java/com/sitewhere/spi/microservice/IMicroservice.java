@@ -109,7 +109,6 @@ public interface IMicroservice<T extends IFunctionIdentifier>
      * Get details that identify and describe the microservice.
      * 
      * @return
-     * @throws SiteWhereException
      */
     public IMicroserviceDetails getMicroserviceDetails();
 

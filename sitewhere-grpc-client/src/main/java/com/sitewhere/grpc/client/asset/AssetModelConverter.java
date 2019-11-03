@@ -205,7 +205,7 @@ public class AssetModelConverter {
      * Copy common asset fields from GRPC to API.
      * 
      * @param grpc
-     * @param api
+     * @return
      * @throws SiteWhereException
      */
     public static AssetCreateRequest asApiAssetCreateRequest(GAssetCreateRequest grpc) throws SiteWhereException {
@@ -302,7 +302,7 @@ public class AssetModelConverter {
     /**
      * Convert asset search criteria from API to GRPC.
      * 
-     * @param criteria
+     * @param api
      * @return
      * @throws SiteWhereException
      */

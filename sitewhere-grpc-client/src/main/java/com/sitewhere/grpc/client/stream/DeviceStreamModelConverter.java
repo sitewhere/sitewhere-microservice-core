@@ -71,7 +71,7 @@ public class DeviceStreamModelConverter {
     /**
      * Convert device stream search criteria from API to GRPC.
      * 
-     * @param code
+     * @param criteria
      * @return
      * @throws SiteWhereException
      */

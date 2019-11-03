@@ -40,7 +40,6 @@ public interface IDeviceEventManagement extends ITenantEngineLifecycleComponent 
     /**
      * Get a device event by id.
      * 
-     * @param deviceId
      * @param eventId
      * @return
      * @throws SiteWhereException
@@ -50,7 +49,6 @@ public interface IDeviceEventManagement extends ITenantEngineLifecycleComponent 
     /**
      * Get a device event by alternate (external) id.
      * 
-     * @param deviceId
      * @param alternateId
      * @return
      * @throws SiteWhereException

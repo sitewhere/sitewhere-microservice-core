@@ -88,7 +88,7 @@ public class TenantManagementRequestBuilder {
     /**
      * Indicates whether a tenant exists for the given token.
      * 
-     * @param id
+     * @param token
      * @return
      * @throws SiteWhereException
      */

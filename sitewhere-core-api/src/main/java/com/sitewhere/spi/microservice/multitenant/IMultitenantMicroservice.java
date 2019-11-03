@@ -48,7 +48,7 @@ public interface IMultitenantMicroservice<I extends IFunctionIdentifier, T exten
      * 
      * @param token
      * @return
-     * @throws SiteWhereException
+     * @throws TenantEngineNotAvailableException
      */
     public T assureTenantEngineAvailable(String token) throws TenantEngineNotAvailableException;
 }

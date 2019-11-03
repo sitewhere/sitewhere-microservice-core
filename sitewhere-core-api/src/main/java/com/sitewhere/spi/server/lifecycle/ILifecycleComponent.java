@@ -239,7 +239,6 @@ public interface ILifecycleComponent {
      * 
      * @param component
      * @param monitor
-     * @param require
      * @throws SiteWhereException
      */
     public void stopNestedComponent(ILifecycleComponent component, ILifecycleProgressMonitor monitor)

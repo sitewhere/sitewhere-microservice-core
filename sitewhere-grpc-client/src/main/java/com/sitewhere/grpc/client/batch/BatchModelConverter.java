@@ -187,7 +187,7 @@ public class BatchModelConverter {
     /**
      * Convert batch operation update request from GRPC to API.
      * 
-     * @param api
+     * @param grpc
      * @return
      * @throws SiteWhereException
      */
@@ -462,7 +462,7 @@ public class BatchModelConverter {
     /**
      * Convert batch element from API to GRPC.
      * 
-     * @param grpc
+     * @param api
      * @return
      * @throws SiteWhereException
      */

@@ -29,7 +29,7 @@ public interface ITenantEngineManager<T extends IMicroserviceTenantEngine> exten
      * 
      * @param token
      * @return
-     * @throws SiteWhereException
+     * @throws TenantEngineNotAvailableException
      */
     public T assureTenantEngineAvailable(String token) throws TenantEngineNotAvailableException;
 

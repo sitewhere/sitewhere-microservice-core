@@ -83,13 +83,10 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
     /**
      * Update an existing device type.
      * 
-     * @param token
-     *            unique device type id
+     * @param id
      * @param request
-     *            updated information
-     * @return updated device type
+     * @return
      * @throws SiteWhereException
-     *             if implementation encountered an error
      */
     public IDeviceType updateDeviceType(UUID id, IDeviceTypeCreateRequest request) throws SiteWhereException;
 

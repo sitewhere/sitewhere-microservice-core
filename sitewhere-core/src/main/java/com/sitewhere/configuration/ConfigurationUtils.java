@@ -18,8 +18,7 @@ import com.sitewhere.spi.server.lifecycle.ILifecycleComponent;
 public class ConfigurationUtils {
 
     /**
-     * Builds a Spring {@link ApplicationContext} from a byte array containing the
-     * XML configuration.
+     * Builds a context from a byte array containing the XML configuration.
      *
      * @param logProvider
      * @param configuration
@@ -48,8 +47,8 @@ public class ConfigurationUtils {
     }
 
     /**
-     * Build a Spring {@link ApplicationContext} from a byte[] containing a tenant
-     * configuration. The context will inherit from the global context.
+     * Build a context from a byte[] containing a tenant configuration. The context
+     * will inherit from the global context.
      *
      * @param configuration
      * @param properties

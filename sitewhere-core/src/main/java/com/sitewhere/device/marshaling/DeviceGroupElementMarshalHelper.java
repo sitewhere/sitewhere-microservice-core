@@ -56,7 +56,7 @@ public class DeviceGroupElementMarshalHelper {
      * Convert the SPI object to a model object for marshaling.
      * 
      * @param source
-     * @param manager
+     * @param assetManagement
      * @return
      * @throws SiteWhereException
      */

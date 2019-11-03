@@ -650,7 +650,7 @@ public class DeviceModelConverter {
     /**
      * Convert device command search criteria from API to GRPC.
      * 
-     * @param criteria
+     * @param api
      * @return
      * @throws SiteWhereException
      */
@@ -1270,7 +1270,7 @@ public class DeviceModelConverter {
     /**
      * Convert device group search criteria from API to GRPC.
      * 
-     * @param code
+     * @param criteria
      * @return
      * @throws SiteWhereException
      */
@@ -1418,7 +1418,7 @@ public class DeviceModelConverter {
     /**
      * Convert device group element search criteria from API to GRPC.
      * 
-     * @param code
+     * @param criteria
      * @return
      * @throws SiteWhereException
      */
@@ -2001,7 +2001,7 @@ public class DeviceModelConverter {
     /**
      * Convert customer type search criteria from API to GRPC.
      * 
-     * @param code
+     * @param criteria
      * @return
      * @throws SiteWhereException
      */
@@ -2136,7 +2136,7 @@ public class DeviceModelConverter {
     /**
      * Convert customer search criteria from API to GRPC.
      * 
-     * @param code
+     * @param api
      * @return
      * @throws SiteWhereException
      */
@@ -2345,7 +2345,7 @@ public class DeviceModelConverter {
     /**
      * Convert area type search criteria from API to GRPC.
      * 
-     * @param code
+     * @param criteria
      * @return
      * @throws SiteWhereException
      */
@@ -2481,7 +2481,7 @@ public class DeviceModelConverter {
     /**
      * Convert area search criteria from API to GRPC.
      * 
-     * @param code
+     * @param api
      * @return
      * @throws SiteWhereException
      */
@@ -2660,7 +2660,7 @@ public class DeviceModelConverter {
     /**
      * Convert zone search criteria from API to GRPC.
      * 
-     * @param code
+     * @param api
      * @return
      * @throws SiteWhereException
      */

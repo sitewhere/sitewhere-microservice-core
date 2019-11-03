@@ -25,7 +25,7 @@ public interface ITenantEngineLifecycleComponent extends ILifecycleComponent {
     /**
      * Set tenant engine for component.
      * 
-     * @param tenant
+     * @param tenantEngine
      */
     public void setTenantEngine(IMicroserviceTenantEngine tenantEngine);
 

@@ -66,7 +66,7 @@ public class DeviceMarshalHelper {
      * Convert an IDevice SPI object into a model object for marshaling.
      * 
      * @param source
-     * @param manager
+     * @param assetManagement
      * @return
      * @throws SiteWhereException
      */

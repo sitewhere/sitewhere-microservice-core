@@ -19,12 +19,61 @@ dependencies {
     compile group: 'ch.qos.cal10n', name: 'cal10n-api', version: '0.7.7'    
 }
 
-// Publish jar.
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
+
+// Publish jar.	
 apply plugin: 'maven-publish'
 publishing {
 	publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
+		mavenJava(MavenPublication) {
+		    from components.java
+            artifact sourcesJar
+            artifact javadocJar
+			pom {
+			    name = 'SiteWhere Core API'
+			    description = 'SiteWhere Core Runtime API'
+			    url = 'http://sitewhere.io'
+			    licenses {
+			        license {
+			            name = 'CPAL-1.0'
+			            url = 'https://opensource.org/licenses/CPAL-1.0'
+			        }
+			    }
+                developers {
+                    developer {
+                        id = 'admin'
+                        name = 'SiteWhere Admin'
+                        email = 'admin@sitewhere.com'
+                    }
+                }
+                scm {
+                    connection = 'https://github.com/sitewhere/sitewhere-microservice-core.git'
+                    url = 'https://github.com/sitewhere/sitewhere-microservice-core'
+                }
+			}	
+		}
 	}
+    repositories {
+        maven {
+            url project.nexusUrl
+            credentials {
+                username project.nexusUsername
+                password project.nexusPassword
+            }
+        }
+    }
 }
+
+apply plugin: 'signing'
+signing {
+    sign publishing.publications.mavenJava
+}
+

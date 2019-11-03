@@ -17,21 +17,21 @@ public interface ITenantEngineConfigurationListener {
     /**
      * Called when tenant engine configuration is added.
      * 
-     * @param instance
+     * @param engine
      */
     public void onConfigurationAdded(SiteWhereTenantEngine engine);
 
     /**
      * Called when tenant engine configuration is updated.
      * 
-     * @param instance
+     * @param engine
      */
     public void onConfigurationUpdated(SiteWhereTenantEngine engine);
 
     /**
      * Called when tenant engine configuration is deleted.
      * 
-     * @param instance
+     * @param engine
      */
     public void onConfigurationDeleted(SiteWhereTenantEngine engine);
 }

@@ -19,8 +19,8 @@ public interface IGrpcRouter<T> {
     /**
      * Get tenant implementation to route to.
      * 
+     * @param observer
      * @return
-     * @throws Throwable
      */
     public T getTenantImplementation(StreamObserver<?> observer);
 }

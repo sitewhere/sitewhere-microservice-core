@@ -73,7 +73,7 @@ public class LifecycleProgressUtils {
      * Recursively computes progress based on nested contexts.
      * 
      * @param stack
-     * @param parentChunk
+     * @param current
      * @return
      */
     protected static double computeSubprogressFor(Deque<ILifecycleProgressContext> stack, double current) {

@@ -149,7 +149,7 @@ public class GrpcUtils {
      * @param username
      * @param gauths
      * @param auths
-     * @param tenantId
+     * @param tenant
      */
     protected static void establishSecurityContext(String jwt, String username, List<IGrantedAuthority> gauths,
 	    List<String> auths, ITenant tenant) {
