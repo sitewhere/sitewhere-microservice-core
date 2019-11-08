@@ -9,7 +9,6 @@ package com.sitewhere.microservice;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,10 +21,8 @@ import javax.inject.Inject;
 import com.sitewhere.Version;
 import com.sitewhere.grpc.client.tenant.CachedTenantManagement;
 import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
-import com.sitewhere.microservice.management.MicroserviceManagementGrpcServer;
 import com.sitewhere.microservice.scripting.ScriptTemplateManager;
 import com.sitewhere.microservice.tenant.persistence.KubernetesTenantManagement;
-import com.sitewhere.rest.model.configuration.ConfigurationModel;
 import com.sitewhere.rest.model.microservice.state.MicroserviceDetails;
 import com.sitewhere.rest.model.microservice.state.MicroserviceState;
 import com.sitewhere.server.lifecycle.CompositeLifecycleStep;
@@ -35,10 +32,6 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceAnalytics;
-import com.sitewhere.spi.microservice.configuration.model.IConfigurationModel;
-import com.sitewhere.spi.microservice.configuration.model.IElementNode;
-import com.sitewhere.spi.microservice.configuration.model.IElementRole;
-import com.sitewhere.spi.microservice.grpc.IMicroserviceManagementGrpcServer;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
 import com.sitewhere.spi.microservice.metrics.IMetricsServer;
@@ -109,12 +102,6 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
     /** Version information */
     private IVersion version = new Version();
 
-    /** Configuration model */
-    private IConfigurationModel configurationModel;
-
-    /** Microservice management GRPC server */
-    private IMicroserviceManagementGrpcServer microserviceManagementGrpcServer;
-
     /** Script template manager instance */
     private IScriptTemplateManager scriptTemplateManager;
 
@@ -178,26 +165,14 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
      */
     @Override
     public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-	// Initialize configuration model.
-	initializeConfigurationModel();
-
 	// Initialize Kubernetes connectivity.
 	initializeK8sConnectivity();
-
-	// Initialize GRPC components.
-	initializeGrpcComponents();
 
 	// Initialize management APIs.
 	initializeManagementApis();
 
 	// Organizes steps for initializing microservice.
 	ICompositeLifecycleStep initialize = new CompositeLifecycleStep("Initialize " + getName());
-
-	// Initialize microservice management GRPC server.
-	initialize.addInitializeStep(this, getMicroserviceManagementGrpcServer(), true);
-
-	// Start microservice management GRPC server.
-	initialize.addStartStep(this, getMicroserviceManagementGrpcServer(), true);
 
 	// Initialize script template manager.
 	initialize.addInitializeStep(this, getScriptTemplateManager(), true);
@@ -239,21 +214,6 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
 	// Create controllers and start informers.
 	createKubernetesResourceControllers(getSharedInformerFactory());
 	getSharedInformerFactory().startAllRegisteredInformers();
-    }
-
-    /**
-     * Initialize configuration model.
-     */
-    protected void initializeConfigurationModel() {
-	this.configurationModel = buildConfigurationModel();
-	((ConfigurationModel) configurationModel).setMicroserviceDetails(getMicroserviceDetails());
-    }
-
-    /**
-     * Initialize GRPC components.
-     */
-    protected void initializeGrpcComponents() {
-	this.microserviceManagementGrpcServer = new MicroserviceManagementGrpcServer(this);
     }
 
     /**
@@ -305,9 +265,6 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
 
 	// Terminate script template manager.
 	stop.addStopStep(this, getScriptTemplateManager());
-
-	// Stop microservice management GRPC server.
-	stop.addStopStep(this, getMicroserviceManagementGrpcServer());
 
 	// Add step for stopping k8s client.
 	stop.addStep(new SimpleLifecycleStep("Stop Kubernetes client") {
@@ -403,12 +360,6 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
 	MicroserviceDetails details = new MicroserviceDetails();
 	details.setIdentifier(getIdentifier().getPath());
 	details.setHostname(getHostname());
-
-	IElementNode root = getRootElementNode();
-	details.setName(root.getName());
-	details.setIcon(root.getIcon());
-	details.setDescription(root.getDescription());
-	details.setGlobal(isGlobal());
 	return details;
     }
 
@@ -527,39 +478,6 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
 	return getSiteWhereKubernetesClient().getTenantEngines().createOrReplace(tenantEngine);
     }
 
-    /**
-     * Get element node for root configuration role.
-     * 
-     * @return
-     */
-    protected IElementNode getRootElementNode() {
-	IElementRole role = getConfigurationModel().getRolesById().get(getConfigurationModel().getRootRoleId());
-	if (role == null) {
-	    throw new RuntimeException("Root role was not found for configuration model.");
-	}
-	List<IElementNode> matches = getConfigurationModel().getElementsByRole()
-		.get(getConfigurationModel().getRootRoleId());
-	if (matches == null) {
-	    throw new RuntimeException("Configuration had no elements for root role.");
-	}
-	if (matches.size() != 1) {
-	    throw new RuntimeException("Configuration model had " + matches.size() + " elements for root role.");
-	}
-	return matches.get(0);
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.IMicroservice#getConfigurationModel()
-     */
-    @Override
-    public IConfigurationModel getConfigurationModel() {
-	return configurationModel;
-    }
-
-    public void setConfigurationModel(IConfigurationModel configurationModel) {
-	this.configurationModel = configurationModel;
-    }
-
     /*
      * @see com.sitewhere.spi.microservice.IMicroservice#getMetricsServer()
      */
@@ -630,20 +548,6 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
 
     public void setKafkaTopicNaming(IKafkaTopicNaming kafkaTopicNaming) {
 	this.kafkaTopicNaming = kafkaTopicNaming;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.IMicroservice#
-     * getMicroserviceManagementGrpcServer()
-     */
-    @Override
-    public IMicroserviceManagementGrpcServer getMicroserviceManagementGrpcServer() {
-	return microserviceManagementGrpcServer;
-    }
-
-    public void setMicroserviceManagementGrpcServer(
-	    IMicroserviceManagementGrpcServer microserviceManagementGrpcServer) {
-	this.microserviceManagementGrpcServer = microserviceManagementGrpcServer;
     }
 
     /*

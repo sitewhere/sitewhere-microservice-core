@@ -15,6 +15,9 @@ dependencies {
     
     // Google Analytics
 	compile 'com.brsanthu:google-analytics-java:2.0.0'
+	
+	// Graal runtime support.
+	compile group: 'com.oracle.substratevm', name: 'svm', version: '19.2.1'
 }
 
 task sourcesJar(type: Jar) {
@@ -70,7 +73,9 @@ publishing {
     }
 }
 
-apply plugin: 'signing'
-signing {
-    sign publishing.publications.mavenJava
+if (project.hasProperty("signing.keyId")) {
+	apply plugin: 'signing'
+	signing {
+	    sign publishing.publications.mavenJava
+	}
 }

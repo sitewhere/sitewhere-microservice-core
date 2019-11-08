@@ -12,8 +12,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 import com.sitewhere.spi.SiteWhereException;
-import com.sitewhere.spi.microservice.configuration.model.IConfigurationModel;
-import com.sitewhere.spi.microservice.grpc.IMicroserviceManagementGrpcServer;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
 import com.sitewhere.spi.microservice.metrics.IMetricsServer;
@@ -92,20 +90,6 @@ public interface IMicroservice<T extends IFunctionIdentifier>
     public Map<String, Object> getSpringProperties();
 
     /**
-     * Build configuration model.
-     * 
-     * @return
-     */
-    public IConfigurationModel buildConfigurationModel();
-
-    /**
-     * Get configuration model.
-     * 
-     * @return
-     */
-    public IConfigurationModel getConfigurationModel();
-
-    /**
      * Get details that identify and describe the microservice.
      * 
      * @return
@@ -168,13 +152,6 @@ public interface IMicroservice<T extends IFunctionIdentifier>
      * @return
      */
     public IKafkaTopicNaming getKafkaTopicNaming();
-
-    /**
-     * Get microservice management GRPC server.
-     * 
-     * @return
-     */
-    public IMicroserviceManagementGrpcServer getMicroserviceManagementGrpcServer();
 
     /**
      * Get manager for script templates which provide examples of

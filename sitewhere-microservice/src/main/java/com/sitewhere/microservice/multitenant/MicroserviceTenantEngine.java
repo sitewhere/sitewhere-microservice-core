@@ -9,7 +9,6 @@ package com.sitewhere.microservice.multitenant;
 
 import java.util.Map;
 
-import com.sitewhere.configuration.ConfigurationUtils;
 import com.sitewhere.microservice.groovy.GroovyConfiguration;
 import com.sitewhere.microservice.scripting.ScriptSynchronizer;
 import com.sitewhere.microservice.scripting.TenantEngineScriptContext;
@@ -140,12 +139,15 @@ public abstract class MicroserviceTenantEngine extends TenantEngineLifecycleComp
      */
     protected void loadModuleConfiguration() throws SiteWhereException {
 	try {
+	    @SuppressWarnings("unused")
 	    byte[] data = getModuleConfiguration();
 	    Map<String, Object> properties = ((IConfigurableMicroservice<?>) getMicroservice()).getSpringProperties();
 	    properties.put("tenant.id", getTenant().getToken());
 	    properties.put("tenant.token", getTenant().getToken());
-	    this.moduleContext = ConfigurationUtils.buildSubcontext(data, properties,
-		    ((IConfigurableMicroservice<?>) getMicroservice()).getGlobalApplicationContext());
+	    // this.moduleContext = ConfigurationUtils.buildSubcontext(data, properties,
+	    // ((IConfigurableMicroservice<?>)
+	    // getMicroservice()).getGlobalApplicationContext());
+	    this.moduleContext = null;
 	} catch (Exception e) {
 	    throw new SiteWhereException("Unable to load module configuration.", e);
 	}

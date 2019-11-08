@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import com.sitewhere.configuration.ConfigurationUtils;
 import com.sitewhere.microservice.Microservice;
 import com.sitewhere.microservice.scripting.KubernetesScriptManagement;
 import com.sitewhere.server.lifecycle.CompositeLifecycleStep;
@@ -370,15 +369,20 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 	    if (instance == null || instance.getSpec() == null || instance.getSpec().getConfiguration() == null) {
 		throw new SiteWhereException("Global instance configuration not set. Unable to start microservice.");
 	    }
+	    @SuppressWarnings("unused")
 	    byte[] globalConfig = instance.getSpec().getConfiguration().getBytes();
-	    Object globalContext = ConfigurationUtils.buildGlobalContext(this, globalConfig,
-		    getMicroservice().getSpringProperties());
+	    // Object globalContext = ConfigurationUtils.buildGlobalContext(this,
+	    // globalConfig,
+	    // getMicroservice().getSpringProperties());
+	    Object globalContext = null;
 
 	    Object localContext = null;
 	    byte[] localConfig = getLocalConfiguration(instance);
 	    if (localConfig != null) {
-		localContext = ConfigurationUtils.buildSubcontext(localConfig, getMicroservice().getSpringProperties(),
-			globalContext);
+		// localContext = ConfigurationUtils.buildSubcontext(localConfig,
+		// getMicroservice().getSpringProperties(),
+		// globalContext);
+		localContext = null;
 	    }
 
 	    // Store contexts for later use.
