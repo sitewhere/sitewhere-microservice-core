@@ -19,7 +19,6 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.sitewhere.Version;
-import com.sitewhere.grpc.client.tenant.CachedTenantManagement;
 import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.scripting.ScriptTemplateManager;
 import com.sitewhere.microservice.tenant.persistence.KubernetesTenantManagement;
@@ -95,9 +94,6 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
 
     /** Tenant management implementation */
     private ITenantManagement tenantManagement;
-
-    /** Cached version of tenant management API */
-    private ITenantManagement cachedTenantManagement;
 
     /** Version information */
     private IVersion version = new Version();
@@ -180,17 +176,17 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
 	// Start script template manager.
 	initialize.addStartStep(this, getScriptTemplateManager(), true);
 
-	// Initialize tenant management API.
-	initialize.addInitializeStep(this, getCachedTenantManagement(), true);
-
-	// Start HTTP tenant management API.
-	initialize.addStartStep(this, getCachedTenantManagement(), true);
-
 	// Initialize HTTP metrics server.
 	initialize.addInitializeStep(this, getMetricsServer(), true);
 
 	// Start HTTP metrics server.
 	initialize.addStartStep(this, getMetricsServer(), true);
+
+	// Initialize tenant management.
+	initialize.addInitializeStep(this, getTenantManagement(), true);
+
+	// Start tenant management.
+	initialize.addStartStep(this, getTenantManagement(), true);
 
 	// Execute initialization steps.
 	initialize.execute(monitor);
@@ -221,8 +217,6 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
      */
     protected void initializeManagementApis() {
 	this.tenantManagement = new KubernetesTenantManagement();
-	this.cachedTenantManagement = new CachedTenantManagement(this.tenantManagement,
-		new CachedTenantManagement.CacheSettings());
     }
 
     /*
@@ -257,11 +251,11 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
 	// Create step that will stop components.
 	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Stop " + getComponentName());
 
+	// Stop tenant management.
+	stop.addStopStep(this, getTenantManagement());
+
 	// HTTP metrics server.
 	stop.addStopStep(this, getMetricsServer());
-
-	// Tenant management API.
-	stop.addStopStep(this, getCachedTenantManagement());
 
 	// Terminate script template manager.
 	stop.addStopStep(this, getScriptTemplateManager());
@@ -512,18 +506,6 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
 
     public void setTenantManagement(ITenantManagement tenantManagement) {
 	this.tenantManagement = tenantManagement;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.IMicroservice#getCachedTenantManagement()
-     */
-    @Override
-    public ITenantManagement getCachedTenantManagement() {
-	return cachedTenantManagement;
-    }
-
-    public void setCachedTenantManagement(ITenantManagement cachedTenantManagement) {
-	this.cachedTenantManagement = cachedTenantManagement;
     }
 
     /*

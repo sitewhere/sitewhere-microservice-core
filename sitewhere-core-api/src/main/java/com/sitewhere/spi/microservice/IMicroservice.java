@@ -133,13 +133,6 @@ public interface IMicroservice<T extends IFunctionIdentifier>
     public ITenantManagement getTenantManagement();
 
     /**
-     * Get tenant management API with caching enabled.
-     * 
-     * @return
-     */
-    public ITenantManagement getCachedTenantManagement();
-
-    /**
      * Get system superuser.
      * 
      * @return

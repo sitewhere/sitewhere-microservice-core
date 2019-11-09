@@ -14,8 +14,6 @@ dependencies {
     compile group: 'com.sitewhere', name: 'sitewhere-grpc-stream-management', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
     compile group: 'com.sitewhere', name: 'sitewhere-grpc-tenant-management', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
     compile group: 'com.sitewhere', name: 'sitewhere-grpc-user-management', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
-	
-    compile group: 'org.ehcache', name: 'ehcache', version: '3.6.1'
 }
 
 license {

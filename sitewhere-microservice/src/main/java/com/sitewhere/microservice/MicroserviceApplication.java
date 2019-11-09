@@ -42,14 +42,10 @@ public abstract class MicroserviceApplication<T extends IMicroservice<?>> implem
      */
     void onStart(@Observes StartupEvent ev) {
 	getMicroservice().getLogger().info("Starting microservice...");
-	Future<Integer> futureCode = executor.submit(new StartMicroservice());
+	Future<Void> starting = executor.submit(new StartMicroservice());
 	try {
-	    int code = futureCode.get();
-	    getMicroservice().getLogger().info(String.format("Microservice startup returned with code %d.", code));
-	    if (code != 0) {
-		getMicroservice().getLogger().info("Exiting due to non-zero return code.");
-		System.exit(code);
-	    }
+	    starting.get();
+	    getMicroservice().getLogger().info("Microservice startup completed.");
 	} catch (InterruptedException | ExecutionException e) {
 	    getMicroservice().getLogger().info("Exiting due to interrupted startup.");
 	    System.exit(1);
@@ -61,14 +57,10 @@ public abstract class MicroserviceApplication<T extends IMicroservice<?>> implem
      */
     void onStop(@Observes ShutdownEvent ev) {
 	getMicroservice().getLogger().info("Shutdown signal received. Stopping microservice...");
-	Future<Integer> futureCode = executor.submit(new StopMicroservice());
+	Future<Void> stopping = executor.submit(new StopMicroservice());
 	try {
-	    int code = futureCode.get();
-	    getMicroservice().getLogger().info(String.format("Microservice shutdown returned with code %d.", code));
-	    if (code != 0) {
-		getMicroservice().getLogger().info("Exiting due to non-zero return code.");
-		System.exit(code);
-	    }
+	    stopping.get();
+	    getMicroservice().getLogger().info("Microservice shutdown complete.");
 	} catch (InterruptedException | ExecutionException e) {
 	    getMicroservice().getLogger().info("Exiting due to interrupted shutdown.");
 	    System.exit(1);
@@ -78,14 +70,13 @@ public abstract class MicroserviceApplication<T extends IMicroservice<?>> implem
     /**
      * Runnable for starting microservice.
      */
-    private class StartMicroservice implements Callable<Integer> {
+    private class StartMicroservice implements Callable<Void> {
 
 	/*
 	 * @see java.util.concurrent.Callable#call()
 	 */
 	@Override
-	public Integer call() throws Exception {
-	    int errorCode = 0;
+	public Void call() throws Exception {
 	    try {
 		startMicroservice();
 	    } catch (SiteWhereException e) {
@@ -95,7 +86,7 @@ public abstract class MicroserviceApplication<T extends IMicroservice<?>> implem
 		builder.append("\n");
 		builder.append("Error: " + e.getMessage() + "\n");
 		getMicroservice().getLogger().info("\n" + builder.toString() + "\n");
-		errorCode = 2;
+		System.exit(2);
 	    } catch (Throwable e) {
 		getMicroservice().getLogger().error("Unhandled exception in microservice startup.", e);
 		StringBuilder builder = new StringBuilder();
@@ -103,9 +94,9 @@ public abstract class MicroserviceApplication<T extends IMicroservice<?>> implem
 		builder.append("\n");
 		builder.append("Error: " + e.getMessage() + "\n");
 		getMicroservice().getLogger().info("\n" + builder.toString() + "\n");
-		errorCode = 3;
+		System.exit(3);
 	    }
-	    return errorCode;
+	    return null;
 	}
 
 	/**
@@ -162,14 +153,13 @@ public abstract class MicroserviceApplication<T extends IMicroservice<?>> implem
     /**
      * Stop the microservice.
      */
-    private class StopMicroservice implements Callable<Integer> {
+    private class StopMicroservice implements Callable<Void> {
 
 	/*
 	 * @see java.util.concurrent.Callable#call()
 	 */
 	@Override
-	public Integer call() throws Exception {
-	    int errorCode = 0;
+	public Void call() throws Exception {
 	    try {
 		stopMicroservice();
 	    } catch (SiteWhereException e) {
@@ -179,7 +169,7 @@ public abstract class MicroserviceApplication<T extends IMicroservice<?>> implem
 		builder.append("\n");
 		builder.append("Error: " + e.getMessage() + "\n");
 		getMicroservice().getLogger().info("\n" + builder.toString() + "\n");
-		errorCode = 2;
+		System.exit(2);
 	    } catch (Throwable e) {
 		getMicroservice().getLogger().error("Unhandled exception in microservice shutdown.", e);
 		StringBuilder builder = new StringBuilder();
@@ -187,9 +177,9 @@ public abstract class MicroserviceApplication<T extends IMicroservice<?>> implem
 		builder.append("\n");
 		builder.append("Error: " + e.getMessage() + "\n");
 		getMicroservice().getLogger().info("\n" + builder.toString() + "\n");
-		errorCode = 3;
+		System.exit(3);
 	    }
-	    return errorCode;
+	    return null;
 	}
 
 	/**
