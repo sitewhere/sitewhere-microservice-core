@@ -11,7 +11,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.sitewhere.common.MarshalUtils;
 import com.sitewhere.microservice.Microservice;
+import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
 import com.sitewhere.microservice.scripting.KubernetesScriptManagement;
 import com.sitewhere.server.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.server.lifecycle.LifecycleProgressContext;
@@ -50,8 +53,8 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
     /** Local microservice application context */
     private Object localApplicationContext;
 
-    /** Latest instance configuration */
-    private SiteWhereInstance lastInstanceConfiguration;
+    /** Latest instance resource */
+    private SiteWhereInstance lastInstanceResource;
 
     /** Latch for instance config availability */
     private CountDownLatch instanceConfigAvailable = new CountDownLatch(1);
@@ -73,31 +76,43 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
     public void onConfigurationUpdated(SiteWhereInstance instance) {
 	// Skip partially configured instance.
 	if (instance.getSpec().getConfiguration() == null) {
+	    getLogger().info("Skipping instance configuration which has not yet been bootstrapped.");
 	    return;
 	}
 
-	boolean wasConfigured = getLastInstanceConfiguration() != null
-		&& getLastInstanceConfiguration().getSpec().getConfiguration() != null;
-	boolean configUpdated = wasConfigured && getLastInstanceConfiguration().getSpec().getConfiguration()
+	boolean wasConfigured = getLastInstanceResource() != null
+		&& getLastInstanceResource().getSpec().getConfiguration() != null;
+	boolean configUpdated = wasConfigured && !getLastInstanceResource().getSpec().getConfiguration()
 		.equals(instance.getSpec().getConfiguration());
 
 	// Save updated instance.
-	this.lastInstanceConfiguration = instance;
+	this.lastInstanceResource = instance;
 
 	// If configuration was not updated, skip context restart.
 	if (wasConfigured && !configUpdated) {
 	    return;
 	}
 
-	getLogger().info("Detected configuration update. Reloading context...");
+	// Show updated configuration if there was a change.
+	if (configUpdated) {
+	    InstanceConfiguration before = MarshalUtils.unmarshalJsonNode(
+		    getLastInstanceResource().getSpec().getConfiguration(), InstanceConfiguration.class);
+	    InstanceConfiguration after = MarshalUtils.unmarshalJsonNode(instance.getSpec().getConfiguration(),
+		    InstanceConfiguration.class);
+	    getLogger().info(String.format("\nUPDATED CONFIG:\n\nBEFORE:\n\n%s\nAFTER:\n\n%s\n",
+		    MarshalUtils.marshalJsonAsPrettyString(before), MarshalUtils.marshalJsonAsPrettyString(after)));
+	}
+
 	getMicroserviceOperationsService().execute(new Runnable() {
 
 	    @Override
 	    public void run() {
 		try {
 		    if (!wasConfigured) {
+			getLogger().info("Detected new configuration. Starting context...");
 			initializeAndStart();
 		    } else {
+			getLogger().info("Detected configuration updated. Restarting context...");
 			restartConfiguration();
 		    }
 		    getInstanceConfigAvailable().countDown();
@@ -126,16 +141,16 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 	    }
 	});
 
-	this.lastInstanceConfiguration = null;
+	this.lastInstanceResource = null;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * getLastInstanceConfiguration()
+     * getLastInstanceResource()
      */
     @Override
-    public SiteWhereInstance getLastInstanceConfiguration() {
-	return lastInstanceConfiguration;
+    public SiteWhereInstance getLastInstanceResource() {
+	return this.lastInstanceResource;
     }
 
     /*
@@ -190,6 +205,7 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 	// Add shared informer for instance configuration monitoring.
 	this.configurationMonitor = new InstanceConfigurationMonitor(getKubernetesClient(), informers);
 	getConfigurationMonitor().getListeners().add(this);
+	getConfigurationMonitor().start();
     }
 
     /*
@@ -365,16 +381,19 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
     public void initializeConfiguration() throws SiteWhereException {
 	try {
 	    // Load microservice configuration.
-	    SiteWhereInstance instance = getLastInstanceConfiguration();
+	    SiteWhereInstance instance = getLastInstanceResource();
 	    if (instance == null || instance.getSpec() == null || instance.getSpec().getConfiguration() == null) {
 		throw new SiteWhereException("Global instance configuration not set. Unable to start microservice.");
 	    }
-	    @SuppressWarnings("unused")
-	    byte[] globalConfig = instance.getSpec().getConfiguration().getBytes();
-	    // Object globalContext = ConfigurationUtils.buildGlobalContext(this,
-	    // globalConfig,
-	    // getMicroservice().getSpringProperties());
-	    Object globalContext = null;
+
+	    // Load instance YAML configuration as JSON.
+	    JsonNode instanceJson = instance.getSpec().getConfiguration();
+	    InstanceConfiguration instanceConfiguration = MarshalUtils.unmarshalJsonNode(instanceJson,
+		    InstanceConfiguration.class);
+	    if (getLogger().isDebugEnabled()) {
+		getLogger().debug(String.format("\nINSTANCE CONFIG:\n\n%s\n",
+			MarshalUtils.marshalJsonAsPrettyString(instanceConfiguration)));
+	    }
 
 	    Object localContext = null;
 	    byte[] localConfig = getLocalConfiguration(instance);
@@ -386,7 +405,6 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 	    }
 
 	    // Store contexts for later use.
-	    setGlobalApplicationContext(globalContext);
 	    setLocalApplicationContext(localContext);
 
 	    ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(

@@ -17,6 +17,11 @@ import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 public interface IInstanceConfigurationMonitor {
 
     /**
+     * Start configuration monitoring event loop.
+     */
+    public void start();
+
+    /**
      * Get instance-wide configuration.
      * 
      * @return

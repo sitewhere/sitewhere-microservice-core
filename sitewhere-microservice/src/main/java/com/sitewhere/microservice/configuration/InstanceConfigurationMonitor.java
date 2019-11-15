@@ -51,12 +51,23 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
 
     public InstanceConfigurationMonitor(KubernetesClient client, SharedInformerFactory informerFactory) {
 	super(client, informerFactory);
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.configuration.IInstanceConfigurationMonitor#
+     * start()
+     */
+    @Override
+    public void start() {
 	getQueueProcessor().execute(createEventLoop());
     }
 
-    /**
-     * Create informer.
+    /*
+     * @see
+     * io.sitewhere.k8s.crd.controller.SiteWhereResourceController#createInformer()
      */
+    @Override
     public SharedIndexInformer<SiteWhereInstance> createInformer() {
 	return getInformerFactory().sharedIndexInformerForCustomResource(ResourceContexts.INSTANCE_CONTEXT,
 		SiteWhereInstance.class, SiteWhereInstanceList.class, RESYNC_PERIOD_MS);

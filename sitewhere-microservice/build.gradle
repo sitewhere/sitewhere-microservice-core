@@ -12,6 +12,9 @@ dependencies {
 	
 	// GRPC server components.
 	compile group: 'io.grpc', name: 'grpc-netty', version: "${rootProject.ext['grpc.version']}"
+	
+	// Google Guice for configuration management.
+	compile group: 'com.google.inject', name: 'guice', version: '4.2.2'
     
     // Google Analytics
 	compile 'com.brsanthu:google-analytics-java:2.0.0'

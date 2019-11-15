@@ -8,6 +8,7 @@
 package com.sitewhere.common;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -76,6 +77,22 @@ public class MarshalUtils {
     public static <T> T unmarshalJson(byte[] json, Class<T> type) {
 	try {
 	    return MAPPER.readValue(json, type);
+	} catch (Throwable e) {
+	    throw new RuntimeException("Unable to parse JSON.", e);
+	}
+    }
+
+    /**
+     * Unmarshal a {@link JsonNode} to an object.
+     * 
+     * @param <T>
+     * @param json
+     * @param type
+     * @return
+     */
+    public static <T> T unmarshalJsonNode(JsonNode json, Class<T> type) {
+	try {
+	    return MAPPER.treeToValue(json, type);
 	} catch (Throwable e) {
 	    throw new RuntimeException("Unable to parse JSON.", e);
 	}

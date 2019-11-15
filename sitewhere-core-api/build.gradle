@@ -3,7 +3,7 @@ description = 'SiteWhere Core API'
 dependencies {
 	// SiteWhere model/API.
     compile group: 'com.sitewhere', name: 'sitewhere-java-model', version: '3.0.0.alpha1'
-	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: '0.0.9'
+	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: '0.0.10'
 	
 	// Apache Kafka for reliable data pipeline.
     compile group: 'org.apache.kafka', name: 'kafka-clients', version: "${rootProject.ext['kafka.version']}"
