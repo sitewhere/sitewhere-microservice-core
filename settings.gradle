@@ -1,10 +1,8 @@
 rootProject.name = 'sitewhere-microservice-core'
-include ':sitewhere-core'
-include ':sitewhere-core-api'
 include ':sitewhere-grpc-client'
 include ':sitewhere-microservice'
+include ':sitewhere-microservice-api'
 
-project(':sitewhere-core').projectDir = "$rootDir/sitewhere-core" as File
-project(':sitewhere-core-api').projectDir = "$rootDir/sitewhere-core-api" as File
 project(':sitewhere-grpc-client').projectDir = "$rootDir/sitewhere-grpc-client" as File
 project(':sitewhere-microservice').projectDir = "$rootDir/sitewhere-microservice" as File
+project(':sitewhere-microservice-api').projectDir = "$rootDir/sitewhere-microservice-api" as File

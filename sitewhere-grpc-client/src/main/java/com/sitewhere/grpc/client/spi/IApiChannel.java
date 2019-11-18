@@ -11,7 +11,7 @@ import com.sitewhere.grpc.client.GrpcChannel;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.grpc.IGrpcServiceIdentifier;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
-import com.sitewhere.spi.server.lifecycle.ITenantEngineLifecycleComponent;
+import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 
 /**
  * Common interface for GRPC channels that handle API calls.

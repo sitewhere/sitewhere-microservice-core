@@ -18,21 +18,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import com.sitewhere.Version;
 import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
+import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
+import com.sitewhere.microservice.lifecycle.LifecycleComponent;
+import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.microservice.scripting.ScriptTemplateManager;
 import com.sitewhere.microservice.tenant.persistence.KubernetesTenantManagement;
-import com.sitewhere.rest.model.microservice.state.MicroserviceDetails;
-import com.sitewhere.rest.model.microservice.state.MicroserviceState;
-import com.sitewhere.server.lifecycle.CompositeLifecycleStep;
-import com.sitewhere.server.lifecycle.LifecycleComponent;
-import com.sitewhere.server.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceAnalytics;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
+import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.metrics.IMetricsServer;
 import com.sitewhere.spi.microservice.scripting.IScriptTemplateManager;
 import com.sitewhere.spi.microservice.security.ISystemUser;
@@ -40,10 +39,8 @@ import com.sitewhere.spi.microservice.security.ITokenManagement;
 import com.sitewhere.spi.microservice.state.IMicroserviceDetails;
 import com.sitewhere.spi.microservice.state.IMicroserviceState;
 import com.sitewhere.spi.microservice.state.ITenantEngineState;
-import com.sitewhere.spi.server.lifecycle.ICompositeLifecycleStep;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 import com.sitewhere.spi.system.IVersion;
-import com.sitewhere.spi.tenant.ITenantManagement;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
@@ -111,6 +108,7 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
     private UUID id = UUID.randomUUID();
 
     /** Timestamp in milliseconds when service started */
+    @SuppressWarnings("unused")
     private long startTime;
 
     public Microservice() {
@@ -351,10 +349,7 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
      */
     @Override
     public IMicroserviceDetails getMicroserviceDetails() {
-	MicroserviceDetails details = new MicroserviceDetails();
-	details.setIdentifier(getIdentifier().getPath());
-	details.setHostname(getHostname());
-	return details;
+	return null;
     }
 
     /*
@@ -362,11 +357,7 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
      */
     @Override
     public IMicroserviceState getCurrentState() throws SiteWhereException {
-	MicroserviceState state = new MicroserviceState();
-	state.setMicroservice(getMicroserviceDetails());
-	state.setLifecycleStatus(getLifecycleStatus());
-	state.setUptime(System.currentTimeMillis() - startTime);
-	return state;
+	return null;
     }
 
     /*

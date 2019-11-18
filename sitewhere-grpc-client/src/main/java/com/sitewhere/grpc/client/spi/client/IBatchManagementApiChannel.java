@@ -9,7 +9,7 @@ package com.sitewhere.grpc.client.spi.client;
 
 import com.sitewhere.grpc.client.MultitenantGrpcChannel;
 import com.sitewhere.grpc.client.spi.multitenant.IMultitenantApiChannel;
-import com.sitewhere.spi.batch.IBatchManagement;
+import com.sitewhere.microservice.api.batch.IBatchManagement;
 
 /**
  * Provides an {@link IMultitenantApiChannel} that supplies the

@@ -8,12 +8,12 @@
 package com.sitewhere.grpc.client;
 
 import com.sitewhere.grpc.client.spi.IApiChannel;
-import com.sitewhere.server.lifecycle.TenantEngineLifecycleComponent;
+import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.grpc.IGrpcServiceIdentifier;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 
 /**
  * Base class for channels that uses SiteWhere APIs to communicate with GRPC

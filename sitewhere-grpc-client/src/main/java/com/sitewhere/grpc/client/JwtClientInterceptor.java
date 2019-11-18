@@ -27,9 +27,6 @@ public class JwtClientInterceptor implements ClientInterceptor {
     /** Static logger instance */
     private static Logger LOGGER = LoggerFactory.getLogger(JwtClientInterceptor.class);
 
-    /** JWT metadata key */
-    public static final Metadata.Key<String> JWT_KEY = Metadata.Key.of("jwt", Metadata.ASCII_STRING_MARSHALLER);
-
     /*
      * (non-Javadoc)
      * 

@@ -1,17 +1,29 @@
 description = 'SiteWhere Common Microservice Library'
 
 dependencies {
-	compile project(':sitewhere-core')
-	
 	// Quarkus dependencies.
     compile enforcedPlatform('io.quarkus:quarkus-bom:0.26.1')
     compile 'io.quarkus:quarkus-kubernetes-client'
+    
+	// SiteWhere model/API.
+    compile group: 'com.sitewhere', name: 'sitewhere-java-model', version: '3.0.0.alpha1'
+	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: '0.0.10'
 	
-	// GRPC dependencies.
-	compile project(':sitewhere-grpc-client')
+	// Apache Kafka for reliable data pipeline.
+    compile group: 'org.apache.kafka', name: 'kafka-clients', version: "${rootProject.ext['kafka.version']}"
+    
+    // Groovy for dynamic processing.
+    compile group: 'org.codehaus.groovy', name: 'groovy', version: "${rootProject.ext['groovy.version']}"
+    
+    // JSON web token support.
+    compile group: 'io.jsonwebtoken', name: 'jjwt', version:'0.7.0'
+    
+    // SLF4J Extension for i18n
+    compile group: 'org.slf4j', name: 'slf4j-ext', version: '1.7.25'
+    compile group: 'ch.qos.cal10n', name: 'cal10n-api', version: '0.7.7'    
 	
-	// GRPC server components.
-	compile group: 'io.grpc', name: 'grpc-netty', version: "${rootProject.ext['grpc.version']}"
+	// GRPC common components.
+	compile group: 'com.sitewhere', name: 'sitewhere-grpc-common', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
 	
 	// Google Guice for configuration management.
 	compile group: 'com.google.inject', name: 'guice', version: '4.2.2'
@@ -21,6 +33,31 @@ dependencies {
 	
 	// Graal runtime support.
 	compile group: 'com.oracle.substratevm', name: 'svm', version: '19.2.1'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
+    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+    compile group: 'commons-io', name: 'commons-io', version: '2.6'
+	
+	// Date/time conversions.
+    compile group: 'joda-time', name: 'joda-time', version:'2.9.1'
+	
+	// Jackson JSON processing.
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: "${rootProject.ext['jackson.version']}"
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${rootProject.ext['jackson.version']}"
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: "${rootProject.ext['jackson.version']}"
+          
+    // Metrics support
+    compile group: 'io.prometheus', name: 'simpleclient', version:'0.6.0'
+    compile group: 'io.prometheus', name: 'simpleclient_httpserver', version:'0.6.0'
+    
+    // Retry logic.
+    compile "com.evanlennick:retry4j:0.15.0"
+    
+    // Geolocation classes made available to scripts.
+	compile group: 'com.vividsolutions', name: 'jts', version:'1.13'
+}
+
+license {
+	exclude "**/util/Base58*"
 }
 
 task sourcesJar(type: Jar) {

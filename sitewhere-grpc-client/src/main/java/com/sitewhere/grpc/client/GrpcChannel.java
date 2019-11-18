@@ -17,14 +17,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.sitewhere.common.MarshalUtils;
 import com.sitewhere.grpc.client.spi.IGrpcChannel;
-import com.sitewhere.server.lifecycle.TenantEngineLifecycleComponent;
+import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
+import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.grpc.IGrpcServiceIdentifier;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;

@@ -10,8 +10,6 @@ package com.sitewhere.microservice.grpc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.sitewhere.grpc.client.GrpcContextKeys;
-import com.sitewhere.grpc.client.TenantTokenClientInterceptor;
 import com.sitewhere.spi.microservice.IMicroservice;
 
 import io.grpc.Context;
@@ -48,10 +46,10 @@ public class TenantTokenServerInterceptor implements ServerInterceptor {
     @Override
     public <ReqT, RespT> Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call, Metadata headers,
 	    ServerCallHandler<ReqT, RespT> next) {
-	if (headers.containsKey(TenantTokenClientInterceptor.TENANT_TOKEN_KEY)) {
-	    String tenantToken = headers.get(TenantTokenClientInterceptor.TENANT_TOKEN_KEY);
+	if (headers.containsKey(GrpcKeys.TENANT_KEY)) {
+	    String tenantToken = headers.get(GrpcKeys.TENANT_KEY);
 	    LOGGER.trace("Server received tenant token key: " + tenantToken);
-	    Context ctx = Context.current().withValue(GrpcContextKeys.TENANT_TOKEN_KEY, tenantToken);
+	    Context ctx = Context.current().withValue(GrpcKeys.TENANT_CONTEXT_KEY, tenantToken);
 	    return Contexts.interceptCall(ctx, call, headers, next);
 	} else {
 	    call.close(Status.UNAUTHENTICATED.withDescription("Tenant token not passed in metadata."), headers);

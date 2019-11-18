@@ -9,7 +9,7 @@ package com.sitewhere.grpc.client.spi.client;
 
 import com.sitewhere.grpc.client.GrpcChannel;
 import com.sitewhere.grpc.client.spi.IApiChannel;
-import com.sitewhere.spi.tenant.ITenantManagement;
+import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 
 /**
  * Provides an {@link IApiChannel} that supplies the {@link ITenantManagement}

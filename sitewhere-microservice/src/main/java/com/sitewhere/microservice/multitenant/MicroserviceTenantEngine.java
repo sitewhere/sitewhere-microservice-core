@@ -10,26 +10,25 @@ package com.sitewhere.microservice.multitenant;
 import java.util.Map;
 
 import com.sitewhere.microservice.groovy.GroovyConfiguration;
+import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
+import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
+import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.microservice.scripting.ScriptSynchronizer;
 import com.sitewhere.microservice.scripting.TenantEngineScriptContext;
 import com.sitewhere.microservice.scripting.TenantEngineScriptManager;
-import com.sitewhere.rest.model.microservice.state.TenantEngineState;
-import com.sitewhere.server.lifecycle.CompositeLifecycleStep;
-import com.sitewhere.server.lifecycle.SimpleLifecycleStep;
-import com.sitewhere.server.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
 import com.sitewhere.spi.microservice.groovy.IGroovyConfiguration;
+import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
+import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice;
 import com.sitewhere.spi.microservice.scripting.IScriptContext;
 import com.sitewhere.spi.microservice.scripting.IScriptSynchronizer;
 import com.sitewhere.spi.microservice.state.ITenantEngineState;
-import com.sitewhere.spi.server.lifecycle.ICompositeLifecycleStep;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
-import com.sitewhere.spi.server.lifecycle.ILifecycleStep;
-import com.sitewhere.spi.server.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.tenant.ITenant;
 
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
@@ -344,11 +343,7 @@ public abstract class MicroserviceTenantEngine extends TenantEngineLifecycleComp
      */
     @Override
     public ITenantEngineState getCurrentState() throws SiteWhereException {
-	TenantEngineState state = new TenantEngineState();
-	state.setMicroservice(getMicroservice().getMicroserviceDetails());
-	state.setTenantId(null);
-	state.setComponentState(getComponentState());
-	return state;
+	return null;
     }
 
     /*

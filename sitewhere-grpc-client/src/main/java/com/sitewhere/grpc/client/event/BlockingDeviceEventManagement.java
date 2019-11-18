@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.UUID;
 
 import com.sitewhere.grpc.client.spi.client.IDeviceEventManagementApiChannel;
-import com.sitewhere.server.lifecycle.TenantEngineLifecycleComponent;
+import com.sitewhere.microservice.api.event.IDeviceEventManagement;
+import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.device.event.DeviceEventIndex;
 import com.sitewhere.spi.device.event.IDeviceAlert;
@@ -20,7 +21,6 @@ import com.sitewhere.spi.device.event.IDeviceCommandResponse;
 import com.sitewhere.spi.device.event.IDeviceEvent;
 import com.sitewhere.spi.device.event.IDeviceEventBatch;
 import com.sitewhere.spi.device.event.IDeviceEventBatchResponse;
-import com.sitewhere.spi.device.event.IDeviceEventManagement;
 import com.sitewhere.spi.device.event.IDeviceLocation;
 import com.sitewhere.spi.device.event.IDeviceMeasurement;
 import com.sitewhere.spi.device.event.IDeviceStateChange;

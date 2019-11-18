@@ -9,11 +9,11 @@ package com.sitewhere.microservice.grpc;
 
 import java.io.IOException;
 
-import com.sitewhere.grpc.client.spi.server.IGrpcServer;
 import com.sitewhere.microservice.health.HealthServiceImpl;
-import com.sitewhere.server.lifecycle.TenantEngineLifecycleComponent;
+import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.grpc.IGrpcServer;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 
 import io.grpc.BindableService;
 import io.grpc.Server;
@@ -144,7 +144,7 @@ public class GrpcServer extends TenantEngineLifecycleComponent implements IGrpcS
 
     /*
      * @see
-     * com.sitewhere.grpc.client.spi.server.IGrpcServer#getServiceImplementation()
+     * com.sitewhere.spi.microservice.grpc.IGrpcServer#getServiceImplementation()
      */
     @Override
     public BindableService getServiceImplementation() {

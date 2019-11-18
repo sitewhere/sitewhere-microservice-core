@@ -9,7 +9,7 @@ package com.sitewhere.grpc.client.spi.client;
 
 import com.sitewhere.grpc.client.MultitenantGrpcChannel;
 import com.sitewhere.grpc.client.spi.multitenant.IMultitenantApiChannel;
-import com.sitewhere.spi.asset.IAssetManagement;
+import com.sitewhere.microservice.api.asset.IAssetManagement;
 
 /**
  * Provides an {@link IMultitenantApiChannel} that supplies the

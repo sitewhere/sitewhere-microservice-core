@@ -14,12 +14,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sitewhere.server.lifecycle.LifecycleComponent;
+import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
 import com.sitewhere.spi.microservice.scripting.IScriptTemplate;
 import com.sitewhere.spi.microservice.scripting.IScriptTemplateManager;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
-import com.sitewhere.spi.server.lifecycle.LifecycleComponentType;
 
 /**
  * Manages the list of script templates for a microservice.

@@ -9,7 +9,7 @@ package com.sitewhere.grpc.client.spi.client;
 
 import com.sitewhere.grpc.client.MultitenantGrpcChannel;
 import com.sitewhere.grpc.client.spi.multitenant.IMultitenantApiChannel;
-import com.sitewhere.spi.scheduling.IScheduleManagement;
+import com.sitewhere.microservice.api.schedule.IScheduleManagement;
 
 /**
  * Provides an {@link IMultitenantApiChannel} that supplies the

@@ -12,10 +12,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.sitewhere.server.lifecycle.TenantEngineLifecycleComponent;
+import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.multitenant.IDatasetBootstrapManager;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
 
 /**
  * Handles process of bootstrapping tenant engine with data based on the dataset

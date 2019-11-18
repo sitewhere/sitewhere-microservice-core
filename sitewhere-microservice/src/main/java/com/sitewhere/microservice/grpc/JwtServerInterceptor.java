@@ -10,8 +10,6 @@ package com.sitewhere.microservice.grpc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.sitewhere.grpc.client.GrpcContextKeys;
-import com.sitewhere.grpc.client.JwtClientInterceptor;
 import com.sitewhere.spi.microservice.IMicroservice;
 
 import io.grpc.BindableService;
@@ -53,10 +51,10 @@ public class JwtServerInterceptor implements ServerInterceptor {
     @Override
     public <ReqT, RespT> Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call, Metadata headers,
 	    ServerCallHandler<ReqT, RespT> next) {
-	if (headers.containsKey(JwtClientInterceptor.JWT_KEY)) {
-	    String jwt = headers.get(JwtClientInterceptor.JWT_KEY);
+	if (headers.containsKey(GrpcKeys.JWT_KEY)) {
+	    String jwt = headers.get(GrpcKeys.JWT_KEY);
 	    LOGGER.trace("Server received jwt key: " + jwt);
-	    Context ctx = Context.current().withValue(GrpcContextKeys.JWT_KEY, jwt);
+	    Context ctx = Context.current().withValue(GrpcKeys.JWT_CONTEXT_KEY, jwt);
 	    return Contexts.interceptCall(ctx, call, headers, next);
 	} else {
 	    call.close(Status.UNAUTHENTICATED.withDescription("JWT not passed in metadata."), headers);

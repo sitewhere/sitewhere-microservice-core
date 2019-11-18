@@ -7,7 +7,7 @@
  */
 package com.sitewhere.microservice.scripting;
 
-import com.sitewhere.server.lifecycle.TenantEngineLifecycleComponent;
+import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.scripting.IScriptManager;
 import com.sitewhere.spi.microservice.scripting.IScriptMetadata;

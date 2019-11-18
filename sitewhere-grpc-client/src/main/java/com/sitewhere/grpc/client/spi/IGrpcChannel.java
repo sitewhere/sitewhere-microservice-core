@@ -7,7 +7,7 @@
  */
 package com.sitewhere.grpc.client.spi;
 
-import com.sitewhere.spi.server.lifecycle.ITenantEngineLifecycleComponent;
+import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 
 import io.grpc.ManagedChannel;
 

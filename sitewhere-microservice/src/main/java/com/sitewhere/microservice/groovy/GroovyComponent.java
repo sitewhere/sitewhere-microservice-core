@@ -12,16 +12,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.sitewhere.groovy.IGroovyVariables;
+import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.microservice.security.SystemUserCallable;
-import com.sitewhere.server.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.groovy.IGroovyComponent;
+import com.sitewhere.spi.microservice.groovy.IGroovyVariables;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
+import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
 import com.sitewhere.spi.microservice.scripting.IScriptMetadata;
-import com.sitewhere.spi.server.lifecycle.ILifecycleComponent;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
-import com.sitewhere.spi.server.lifecycle.ITenantEngineLifecycleComponent;
-import com.sitewhere.spi.server.lifecycle.LifecycleComponentType;
 
 import groovy.lang.Binding;
 

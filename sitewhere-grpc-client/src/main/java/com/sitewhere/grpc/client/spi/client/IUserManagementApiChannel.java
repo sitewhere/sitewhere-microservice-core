@@ -9,7 +9,7 @@ package com.sitewhere.grpc.client.spi.client;
 
 import com.sitewhere.grpc.client.GrpcChannel;
 import com.sitewhere.grpc.client.spi.IApiChannel;
-import com.sitewhere.spi.user.IUserManagement;
+import com.sitewhere.microservice.api.user.IUserManagement;
 
 /**
  * Provides an {@link IApiChannel} that supplies the {@link IUserManagement}

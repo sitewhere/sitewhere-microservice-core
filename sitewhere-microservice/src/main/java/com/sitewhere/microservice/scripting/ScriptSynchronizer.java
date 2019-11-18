@@ -18,12 +18,12 @@ import java.nio.file.Paths;
 
 import org.apache.commons.io.IOUtils;
 
-import com.sitewhere.server.lifecycle.LifecycleComponent;
+import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.scripting.IScriptContext;
 import com.sitewhere.spi.microservice.scripting.IScriptSynchronizer;
 import com.sitewhere.spi.microservice.scripting.ScriptType;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
 
 /**
  * Handles process of copying script artifacts onto the local container

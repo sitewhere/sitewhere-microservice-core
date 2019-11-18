@@ -15,12 +15,13 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sitewhere.common.MarshalUtils;
 import com.sitewhere.grpc.client.common.security.NotAuthorizedException;
 import com.sitewhere.grpc.client.common.security.UnauthenticatedException;
 import com.sitewhere.grpc.client.common.tracing.DebugParameter;
 import com.sitewhere.grpc.client.spi.IApiChannel;
 import com.sitewhere.grpc.client.spi.server.IGrpcApiImplementation;
+import com.sitewhere.microservice.grpc.GrpcKeys;
+import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.rest.model.user.User;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.SiteWhereSystemException;
@@ -88,14 +89,14 @@ public class GrpcUtils {
     public static void handleServerMethodEntry(IGrpcApiImplementation api, MethodDescriptor<?, ?> method) {
 	LOGGER.debug("Server received call to  " + method.getFullMethodName() + ".");
 	displaySecurityContext();
-	String jwt = GrpcContextKeys.JWT_KEY.get();
+	String jwt = GrpcKeys.JWT_CONTEXT_KEY.get();
 	if (jwt == null) {
 	    throw new RuntimeException("JWT not found in server request.");
 	}
 	ITenant tenant = null;
 	try {
 	    if (api.getMicroservice() instanceof IMultitenantMicroservice) {
-		String tenantId = GrpcContextKeys.TENANT_TOKEN_KEY.get();
+		String tenantId = GrpcKeys.TENANT_CONTEXT_KEY.get();
 		if (tenantId != null) {
 		    IMicroserviceTenantEngine engine = ((IMultitenantMicroservice<?, ?>) api.getMicroservice())
 			    .assureTenantEngineAvailable(tenantId);

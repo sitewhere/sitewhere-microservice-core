@@ -20,10 +20,6 @@ import io.grpc.MethodDescriptor;
  */
 public class TenantTokenClientInterceptor implements ClientInterceptor {
 
-    /** Tenant token metadata key */
-    public static final Metadata.Key<String> TENANT_TOKEN_KEY = Metadata.Key.of("tenant",
-	    Metadata.ASCII_STRING_MARSHALLER);
-
     /*
      * (non-Javadoc)
      * 

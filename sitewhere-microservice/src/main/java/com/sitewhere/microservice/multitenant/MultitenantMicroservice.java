@@ -8,15 +8,15 @@
 package com.sitewhere.microservice.multitenant;
 
 import com.sitewhere.microservice.configuration.ConfigurableMicroservice;
-import com.sitewhere.server.lifecycle.CompositeLifecycleStep;
+import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineManager;
 import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableException;
-import com.sitewhere.spi.server.lifecycle.ICompositeLifecycleStep;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
 
 /**
  * Microservice that contains engines for multiple tenants.

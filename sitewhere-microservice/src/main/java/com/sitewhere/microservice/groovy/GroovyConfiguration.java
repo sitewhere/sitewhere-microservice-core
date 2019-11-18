@@ -12,15 +12,15 @@ import java.net.URL;
 
 import org.codehaus.groovy.control.CompilationFailedException;
 
-import com.sitewhere.server.lifecycle.LifecycleComponent;
+import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.groovy.IGroovyConfiguration;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
 import com.sitewhere.spi.microservice.scripting.IScriptContext;
 import com.sitewhere.spi.microservice.scripting.IScriptMetadata;
 import com.sitewhere.spi.microservice.scripting.IScriptSynchronizer;
 import com.sitewhere.spi.microservice.scripting.ScriptType;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
-import com.sitewhere.spi.server.lifecycle.LifecycleComponentType;
 
 import groovy.lang.Binding;
 import groovy.util.GroovyScriptEngine;

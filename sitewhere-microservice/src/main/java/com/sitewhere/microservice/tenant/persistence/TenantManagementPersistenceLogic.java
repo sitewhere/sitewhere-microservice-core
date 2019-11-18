@@ -9,7 +9,7 @@ package com.sitewhere.microservice.tenant.persistence;
 
 import java.util.List;
 
-import com.sitewhere.persistence.Persistence;
+import com.sitewhere.microservice.persistence.Persistence;
 import com.sitewhere.rest.model.tenant.Tenant;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.error.ErrorCode;

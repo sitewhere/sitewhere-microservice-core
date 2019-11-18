@@ -9,10 +9,10 @@ package com.sitewhere.microservice.metrics;
 
 import java.io.IOException;
 
-import com.sitewhere.server.lifecycle.LifecycleComponent;
+import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.metrics.IMetricsServer;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
 
 import io.prometheus.client.exporter.HTTPServer;
 

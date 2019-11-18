@@ -11,7 +11,7 @@ import com.sitewhere.microservice.configuration.ConfigurableMicroservice;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IGlobalMicroservice;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 
 /**
  * Microservice that serves a global function in a SiteWhere instance.

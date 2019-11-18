@@ -16,10 +16,10 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.MapMaker;
+import com.sitewhere.microservice.lifecycle.LifecycleComponent;
+import com.sitewhere.microservice.lifecycle.LifecycleProgressContext;
+import com.sitewhere.microservice.lifecycle.LifecycleProgressMonitor;
 import com.sitewhere.microservice.security.SystemUserRunnable;
-import com.sitewhere.server.lifecycle.LifecycleComponent;
-import com.sitewhere.server.lifecycle.LifecycleProgressContext;
-import com.sitewhere.server.lifecycle.LifecycleProgressMonitor;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.SiteWhereSystemException;
 import com.sitewhere.spi.error.ErrorCode;
@@ -27,13 +27,13 @@ import com.sitewhere.spi.error.ErrorLevel;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.ServiceNotAvailableException;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineManager;
 import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableException;
-import com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor;
-import com.sitewhere.spi.server.lifecycle.LifecycleStatus;
+import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 import com.sitewhere.spi.tenant.ITenant;
-import com.sitewhere.spi.tenant.ITenantManagement;
 
 /**
  * Tenant engine manager implementation.

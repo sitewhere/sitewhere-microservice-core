@@ -7,8 +7,6 @@
  */
 package com.sitewhere.microservice.grpc;
 
-import com.sitewhere.grpc.client.GrpcContextKeys;
-import com.sitewhere.grpc.client.GrpcUtils;
 import com.sitewhere.grpc.service.GCheckTenantEngineAvailableRequest;
 import com.sitewhere.grpc.service.GCheckTenantEngineAvailableResponse;
 import com.sitewhere.grpc.service.MultitenantManagementGrpc;
@@ -40,7 +38,7 @@ public class MultitenantManagementImpl extends MultitenantManagementGrpc.Multite
 	    StreamObserver<GCheckTenantEngineAvailableResponse> responseObserver) {
 	GCheckTenantEngineAvailableResponse.Builder response = GCheckTenantEngineAvailableResponse.newBuilder();
 	try {
-	    String token = GrpcContextKeys.TENANT_TOKEN_KEY.get();
+	    String token = GrpcKeys.TENANT_CONTEXT_KEY.get();
 	    if (token == null) {
 		throw new RuntimeException("Tenant token not found in request.");
 	    }

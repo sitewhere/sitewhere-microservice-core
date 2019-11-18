@@ -12,8 +12,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import com.sitewhere.core.Base58;
-import com.sitewhere.server.lifecycle.LifecycleComponent;
+import com.sitewhere.microservice.lifecycle.LifecycleComponent;
+import com.sitewhere.microservice.util.Base58;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.scripting.IScriptCreateRequest;

@@ -18,13 +18,13 @@ import java.util.concurrent.ThreadFactory;
 
 import javax.enterprise.event.Observes;
 
-import com.sitewhere.core.Boilerplate;
-import com.sitewhere.server.lifecycle.LifecycleProgressContext;
-import com.sitewhere.server.lifecycle.LifecycleProgressMonitor;
+import com.sitewhere.microservice.lifecycle.LifecycleProgressContext;
+import com.sitewhere.microservice.lifecycle.LifecycleProgressMonitor;
+import com.sitewhere.microservice.util.Boilerplate;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceApplication;
-import com.sitewhere.spi.server.lifecycle.LifecycleStatus;
+import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
