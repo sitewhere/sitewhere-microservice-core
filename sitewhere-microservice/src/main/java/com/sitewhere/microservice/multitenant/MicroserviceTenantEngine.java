@@ -7,8 +7,6 @@
  */
 package com.sitewhere.microservice.multitenant;
 
-import java.util.Map;
-
 import com.sitewhere.microservice.groovy.GroovyConfiguration;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
@@ -18,14 +16,13 @@ import com.sitewhere.microservice.scripting.TenantEngineScriptContext;
 import com.sitewhere.microservice.scripting.TenantEngineScriptManager;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
-import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
 import com.sitewhere.spi.microservice.groovy.IGroovyConfiguration;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
-import com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice;
+import com.sitewhere.spi.microservice.multitenant.ITenantEngineConfiguration;
 import com.sitewhere.spi.microservice.scripting.IScriptContext;
 import com.sitewhere.spi.microservice.scripting.IScriptSynchronizer;
 import com.sitewhere.spi.microservice.state.ITenantEngineState;
@@ -36,11 +33,13 @@ import io.sitewhere.k8s.crd.tenant.engine.configuration.TenantEngineConfiguratio
 import io.sitewhere.k8s.crd.tenant.engine.dataset.TenantEngineDatasetTemplate;
 
 /**
- * Specialized tenant engine that runs within an
- * {@link IMultitenantMicroservice}.
+ * Component within microservice which runs for a specific tenant. Each tenant
+ * engine has its own configuration and data model.
+ * 
+ * @param <T>
  */
-public abstract class MicroserviceTenantEngine extends TenantEngineLifecycleComponent
-	implements IMicroserviceTenantEngine {
+public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfiguration>
+	extends TenantEngineLifecycleComponent implements IMicroserviceTenantEngine<T> {
 
     /** Hosted tenant */
     private ITenant tenant;
@@ -73,12 +72,11 @@ public abstract class MicroserviceTenantEngine extends TenantEngineLifecycleComp
     }
 
     /*
-     * @see
-     * com.sitewhere.server.lifecycle.TenantEngineLifecycleComponent#getTenantEngine
-     * ()
+     * @see com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent#
+     * getTenantEngine()
      */
     @Override
-    public IMicroserviceTenantEngine getTenantEngine() {
+    public IMicroserviceTenantEngine<T> getTenantEngine() {
 	return this;
     }
 
@@ -90,8 +88,6 @@ public abstract class MicroserviceTenantEngine extends TenantEngineLifecycleComp
      */
     @Override
     public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-	loadModuleConfiguration();
-
 	// Create step that will initialize components.
 	ICompositeLifecycleStep init = new CompositeLifecycleStep("Initialize tenant engine " + getTenant().getName());
 
@@ -129,27 +125,6 @@ public abstract class MicroserviceTenantEngine extends TenantEngineLifecycleComp
      */
     @Override
     public void updateModuleConfiguration(byte[] content) throws SiteWhereException {
-    }
-
-    /**
-     * Load Spring configuration into module context.
-     * 
-     * @throws SiteWhereException
-     */
-    protected void loadModuleConfiguration() throws SiteWhereException {
-	try {
-	    @SuppressWarnings("unused")
-	    byte[] data = getModuleConfiguration();
-	    Map<String, Object> properties = ((IConfigurableMicroservice<?>) getMicroservice()).getSpringProperties();
-	    properties.put("tenant.id", getTenant().getToken());
-	    properties.put("tenant.token", getTenant().getToken());
-	    // this.moduleContext = ConfigurationUtils.buildSubcontext(data, properties,
-	    // ((IConfigurableMicroservice<?>)
-	    // getMicroservice()).getGlobalApplicationContext());
-	    this.moduleContext = null;
-	} catch (Exception e) {
-	    throw new SiteWhereException("Unable to load module configuration.", e);
-	}
     }
 
     /*

@@ -34,11 +34,9 @@ public class ScriptTemplateManager extends LifecycleComponent implements IScript
     }
 
     /*
-     * (non-Javadoc)
-     * 
      * @see
-     * com.sitewhere.server.lifecycle.LifecycleComponent#start(com.sitewhere.spi
-     * .server.lifecycle.ILifecycleProgressMonitor)
+     * com.sitewhere.microservice.lifecycle.LifecycleComponent#start(com.sitewhere.
+     * spi.microservice.lifecycle.ILifecycleProgressMonitor)
      */
     @Override
     public void start(ILifecycleProgressMonitor monitor) throws SiteWhereException {

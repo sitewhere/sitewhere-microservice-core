@@ -22,8 +22,10 @@ import com.sitewhere.microservice.lifecycle.LifecycleProgressContext;
 import com.sitewhere.microservice.lifecycle.LifecycleProgressMonitor;
 import com.sitewhere.microservice.util.Boilerplate;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceApplication;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 
 import io.quarkus.runtime.ShutdownEvent;
@@ -32,7 +34,8 @@ import io.quarkus.runtime.StartupEvent;
 /**
  * Base class for SiteWhere microservice application lifecycle.
  */
-public abstract class MicroserviceApplication<T extends IMicroservice<?>> implements IMicroserviceApplication<T> {
+public abstract class MicroserviceApplication<T extends IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration>>
+	implements IMicroserviceApplication<T> {
 
     /** Executor for background thread */
     private ExecutorService executor = Executors.newSingleThreadExecutor(new MicroserviceThreadFactory());

@@ -7,7 +7,6 @@
  */
 package com.sitewhere.spi.microservice;
 
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
@@ -37,8 +36,8 @@ import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 /**
  * Functionality common to all SiteWhere microservices.
  */
-public interface IMicroservice<T extends IFunctionIdentifier>
-	extends ILifecycleComponent, IMicroserviceClassification<T> {
+public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration>
+	extends ILifecycleComponent, IMicroserviceClassification<F> {
 
     /**
      * Get unique id.
@@ -66,7 +65,7 @@ public interface IMicroservice<T extends IFunctionIdentifier>
      * 
      * @return
      */
-    T getIdentifier();
+    F getIdentifier();
 
     /**
      * Get assigned hostname.
@@ -74,20 +73,6 @@ public interface IMicroservice<T extends IFunctionIdentifier>
      * @return
      */
     String getHostname();
-
-    /**
-     * Indicates whether the microservice is global in scope.
-     * 
-     * @return
-     */
-    boolean isGlobal();
-
-    /**
-     * Get properties that should be passed into Spring context.
-     * 
-     * @return
-     */
-    Map<String, Object> getSpringProperties();
 
     /**
      * Get details that identify and describe the microservice.
@@ -195,22 +180,6 @@ public interface IMicroservice<T extends IFunctionIdentifier>
      * @return
      */
     IMetricsServer getMetricsServer();
-
-    /**
-     * Get local microservice configuration.
-     * 
-     * @param instance
-     * @return
-     */
-    byte[] getLocalConfiguration(SiteWhereInstance instance);
-
-    /**
-     * Wait for SiteWhere instance configuration metadata to become initialized
-     * before proceeding.
-     * 
-     * @throws SiteWhereException
-     */
-    void waitForInstanceInitialization() throws SiteWhereException;
 
     /**
      * Get executor service that handles long-running microservice operations.

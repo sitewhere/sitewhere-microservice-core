@@ -22,12 +22,14 @@ import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
+import com.sitewhere.microservice.metrics.MetricsServer;
 import com.sitewhere.microservice.scripting.ScriptTemplateManager;
 import com.sitewhere.microservice.tenant.persistence.KubernetesTenantManagement;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceAnalytics;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
@@ -61,8 +63,8 @@ import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineList;
 /**
  * Common base class for all SiteWhere microservices.
  */
-public abstract class Microservice<T extends IFunctionIdentifier> extends LifecycleComponent
-	implements IMicroservice<T> {
+public abstract class Microservice<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration>
+	extends LifecycleComponent implements IMicroservice<F, C> {
 
     /** Instance settings */
     @Inject
@@ -117,6 +119,9 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
 
 	// Create script template manager.
 	this.scriptTemplateManager = new ScriptTemplateManager();
+
+	// Create Prometheus metrics server.
+	this.metricsServer = new MetricsServer();
     }
 
     /*
@@ -128,10 +133,11 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
     }
 
     /*
-     * @see com.sitewhere.server.lifecycle.LifecycleComponent#getMicroservice()
+     * @see
+     * com.sitewhere.microservice.lifecycle.LifecycleComponent#getMicroservice()
      */
     @Override
-    public IMicroservice<T> getMicroservice() {
+    public IMicroservice<F, C> getMicroservice() {
 	return this;
     }
 
@@ -152,10 +158,8 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
     }
 
     /*
-     * (non-Javadoc)
-     * 
-     * @see com.sitewhere.server.lifecycle.LifecycleComponent#initialize(com.
-     * sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor)
+     * @see com.sitewhere.microservice.lifecycle.LifecycleComponent#initialize(com.
+     * sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
      */
     @Override
     public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
@@ -236,11 +240,8 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
     }
 
     /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.sitewhere.server.lifecycle.LifecycleComponent#terminate(com.sitewhere
-     * .spi.server.lifecycle.ILifecycleProgressMonitor)
+     * @see com.sitewhere.microservice.lifecycle.LifecycleComponent#terminate(com.
+     * sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
      */
     @Override
     public void terminate(ILifecycleProgressMonitor monitor) throws SiteWhereException {
@@ -269,37 +270,6 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
 
 	// Execute shutdown steps.
 	stop.execute(monitor);
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.sitewhere.microservice.spi.IMicroservice#
-     * waitForInstanceInitialization()
-     */
-    @Override
-    public void waitForInstanceInitialization() throws SiteWhereException {
-	// getLogger().info("Verifying that instance has been bootstrapped...");
-	// Callable<Boolean> bootstrapCheck = () -> {
-	// return getZookeeperManager().getCurator().checkExists()
-	// .forPath(getInstanceConfigBootstrappedMarker()) == null ? false : true;
-	// };
-	// RetryConfig config = new
-	// RetryConfigBuilder().retryOnReturnValue(Boolean.FALSE).retryIndefinitely()
-	// .withDelayBetweenTries(Duration.ofSeconds(2)).withRandomBackoff().build();
-	// RetryListener listener = new RetryListener<Boolean>() {
-	//
-	// @Override
-	// public void onEvent(Status<Boolean> status) {
-	// getLogger().info(String.format(
-	// "Unable to locate bootstrap marker on attempt %d (total wait so far %dms).
-	// Retrying after fallback...",
-	// status.getTotalTries(), status.getTotalElapsedDuration().toMillis()));
-	// }
-	// };
-	// new
-	// CallExecutorBuilder().config(config).afterFailedTryListener(listener).build().execute(bootstrapCheck);
-	// getLogger().info("Confirmed that instance was bootstrapped.");
     }
 
     /*
@@ -333,15 +303,6 @@ public abstract class Microservice<T extends IFunctionIdentifier> extends Lifecy
     @Override
     public ISiteWhereKubernetesClient getSiteWhereKubernetesClient() {
 	return this.sitewhereKubernetesClient;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.IMicroservice#getLocalConfiguration(io.
-     * sitewhere.k8s.crd.instance.SiteWhereInstance)
-     */
-    @Override
-    public byte[] getLocalConfiguration(SiteWhereInstance instance) {
-	return null;
     }
 
     /*

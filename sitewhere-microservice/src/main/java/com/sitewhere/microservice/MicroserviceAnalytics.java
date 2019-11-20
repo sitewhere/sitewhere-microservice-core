@@ -9,8 +9,10 @@ package com.sitewhere.microservice;
 
 import com.brsanthu.googleanalytics.GoogleAnalytics;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceAnalytics;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 
 /**
  * Implementation of {@link IMicroserviceAnalytics} that sends information to
@@ -34,7 +36,9 @@ public class MicroserviceAnalytics implements IMicroserviceAnalytics {
      * (com.sitewhere.spi.microservice.IMicroservice)
      */
     @Override
-    public void sendMicroserviceStarted(IMicroservice<?> microservice) throws SiteWhereException {
+    public void sendMicroserviceStarted(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice)
+	    throws SiteWhereException {
 	// try {
 	// getGoogleAnalytics().event().eventCategory("Microservice_" +
 	// microservice.getIdentifier().getShortName())
@@ -51,7 +55,9 @@ public class MicroserviceAnalytics implements IMicroserviceAnalytics {
      * com.sitewhere.spi.microservice.IMicroservice)
      */
     @Override
-    public void sendMicroserviceUptime(IMicroservice<?> microservice) throws SiteWhereException {
+    public void sendMicroserviceUptime(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice)
+	    throws SiteWhereException {
 	// try {
 	// getGoogleAnalytics().event().eventCategory("Microservice_" +
 	// microservice.getIdentifier().getShortName())
@@ -69,7 +75,9 @@ public class MicroserviceAnalytics implements IMicroserviceAnalytics {
      * (com.sitewhere.spi.microservice.IMicroservice)
      */
     @Override
-    public void sendMicroserviceStopped(IMicroservice<?> microservice) throws SiteWhereException {
+    public void sendMicroserviceStopped(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice)
+	    throws SiteWhereException {
 	// try {
 	// getGoogleAnalytics().event().eventCategory("Microservice_" +
 	// microservice.getIdentifier().getShortName())

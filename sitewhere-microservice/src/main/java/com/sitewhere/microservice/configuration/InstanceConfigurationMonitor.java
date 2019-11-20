@@ -40,8 +40,8 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
     /** Resync period in milliseconds */
     private static final int RESYNC_PERIOD_MS = 10 * 60 * 1000;
 
-    /** Get current instance configuration */
-    private SiteWhereInstance instanceConfiguration;
+    /** Get current instance resource */
+    private SiteWhereInstance instanceResource;
 
     /** Handles processing of queued updates */
     private ExecutorService queueProcessor = Executors.newSingleThreadExecutor(new MonitorThreadFactory());
@@ -84,18 +84,18 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
 		instance.getMetadata().getName()));
 	switch (type) {
 	case CREATE: {
-	    this.instanceConfiguration = instance;
-	    getListeners().forEach(listener -> listener.onConfigurationAdded(instance));
+	    this.instanceResource = instance;
+	    getListeners().forEach(listener -> listener.onInstanceAdded(instance));
 	    break;
 	}
 	case UPDATE: {
-	    this.instanceConfiguration = instance;
-	    getListeners().forEach(listener -> listener.onConfigurationUpdated(instance));
+	    this.instanceResource = instance;
+	    getListeners().forEach(listener -> listener.onInstanceUpdated(instance));
 	    break;
 	}
 	case DELETE: {
-	    this.instanceConfiguration = null;
-	    getListeners().forEach(listener -> listener.onConfigurationDeleted(instance));
+	    this.instanceResource = null;
+	    getListeners().forEach(listener -> listener.onInstanceDeleted(instance));
 	    break;
 	}
 	}
@@ -107,8 +107,8 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
      * getInstanceConfiguration()
      */
     @Override
-    public SiteWhereInstance getInstanceConfiguration() {
-	return this.instanceConfiguration;
+    public SiteWhereInstance getInstanceResource() {
+	return this.instanceResource;
     }
 
     /*

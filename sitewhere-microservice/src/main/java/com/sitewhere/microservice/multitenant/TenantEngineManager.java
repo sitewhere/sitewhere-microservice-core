@@ -26,6 +26,7 @@ import com.sitewhere.spi.error.ErrorCode;
 import com.sitewhere.spi.error.ErrorLevel;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.ServiceNotAvailableException;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
@@ -38,10 +39,11 @@ import com.sitewhere.spi.tenant.ITenant;
 /**
  * Tenant engine manager implementation.
  * 
- * @param <I>
+ * @param <F>
+ * @param <C>
  * @param <T>
  */
-public class TenantEngineManager<I extends IFunctionIdentifier, T extends IMicroserviceTenantEngine>
+public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration, T extends IMicroserviceTenantEngine<?>>
 	extends LifecycleComponent implements ITenantEngineManager<T> {
 
     /** Number of seconds between fallback attempts for checking tenant bootstrap */
@@ -298,7 +300,7 @@ public class TenantEngineManager<I extends IFunctionIdentifier, T extends IMicro
      */
     @Override
     public void removeTenantEngine(String token) throws SiteWhereException {
-	IMicroserviceTenantEngine engine = getInitializedTenantEngines().get(token);
+	IMicroserviceTenantEngine<?> engine = getInitializedTenantEngines().get(token);
 	if (engine != null) {
 	    // Remove initialized engine if one exists.
 	    getTenantShutdownQueue().add(token);
@@ -391,7 +393,8 @@ public class TenantEngineManager<I extends IFunctionIdentifier, T extends IMicro
      */
     private class TenantEngineStarter extends SystemUserRunnable {
 
-	public TenantEngineStarter(IMicroservice<?> microservice) {
+	public TenantEngineStarter(
+		IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice) {
 	    super(microservice, null);
 	}
 
@@ -546,7 +549,8 @@ public class TenantEngineManager<I extends IFunctionIdentifier, T extends IMicro
      */
     private class TenantEngineStopper extends SystemUserRunnable {
 
-	public TenantEngineStopper(IMicroservice<?> microservice) {
+	public TenantEngineStopper(
+		IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice) {
 	    super(microservice, null);
 	}
 
@@ -611,8 +615,8 @@ public class TenantEngineManager<I extends IFunctionIdentifier, T extends IMicro
     }
 
     @SuppressWarnings("unchecked")
-    protected MultitenantMicroservice<I, T> getMultitenantMicroservice() {
-	return ((MultitenantMicroservice<I, T>) getMicroservice());
+    protected MultitenantMicroservice<F, C, T> getMultitenantMicroservice() {
+	return ((MultitenantMicroservice<F, C, T>) getMicroservice());
     }
 
     protected ITenantManagement getTenantManagement() {

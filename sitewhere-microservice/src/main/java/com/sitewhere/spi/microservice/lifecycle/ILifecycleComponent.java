@@ -17,6 +17,7 @@ import org.slf4j.cal10n.LocLogger;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 
 /**
  * Lifecycle methods used in SiteWhere components.
@@ -49,14 +50,15 @@ public interface ILifecycleComponent {
      * 
      * @return
      */
-    IMicroservice<? extends IFunctionIdentifier> getMicroservice();
+    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> getMicroservice();
 
     /**
      * Set microservice that owns the component.
      * 
      * @param microservice
      */
-    void setMicroservice(IMicroservice<? extends IFunctionIdentifier> microservice);
+    void setMicroservice(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice);
 
     /**
      * Get current lifecycle status.

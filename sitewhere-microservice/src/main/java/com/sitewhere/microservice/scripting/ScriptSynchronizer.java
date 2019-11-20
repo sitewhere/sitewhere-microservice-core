@@ -35,9 +35,8 @@ public class ScriptSynchronizer extends LifecycleComponent implements IScriptSyn
     private File fileSystemRoot;
 
     /*
-     * @see
-     * com.sitewhere.server.lifecycle.LifecycleComponent#initialize(com.sitewhere.
-     * spi.server.lifecycle.ILifecycleProgressMonitor)
+     * @see com.sitewhere.microservice.lifecycle.LifecycleComponent#initialize(com.
+     * sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
      */
     @Override
     public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
@@ -49,8 +48,8 @@ public class ScriptSynchronizer extends LifecycleComponent implements IScriptSyn
 
     /*
      * @see
-     * com.sitewhere.server.lifecycle.LifecycleComponent#start(com.sitewhere.spi.
-     * server.lifecycle.ILifecycleProgressMonitor)
+     * com.sitewhere.microservice.lifecycle.LifecycleComponent#start(com.sitewhere.
+     * spi.microservice.lifecycle.ILifecycleProgressMonitor)
      */
     @Override
     public void start(ILifecycleProgressMonitor monitor) throws SiteWhereException {

@@ -9,14 +9,15 @@ package com.sitewhere.spi.microservice.multitenant;
 
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
 import com.sitewhere.spi.tenant.ITenant;
 
 /**
  * Microservice that contains engines for multiple tenants.
  */
-public interface IMultitenantMicroservice<I extends IFunctionIdentifier, T extends IMicroserviceTenantEngine>
-	extends IConfigurableMicroservice<I> {
+public interface IMultitenantMicroservice<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration, T extends IMicroserviceTenantEngine<?>>
+	extends IConfigurableMicroservice<F, C> {
 
     /**
      * Get tenant engine manager.

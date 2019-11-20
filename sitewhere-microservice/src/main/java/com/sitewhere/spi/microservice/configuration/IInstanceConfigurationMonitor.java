@@ -22,11 +22,11 @@ public interface IInstanceConfigurationMonitor {
     void start();
 
     /**
-     * Get instance-wide configuration.
+     * Get instance resource.
      * 
      * @return
      */
-    SiteWhereInstance getInstanceConfiguration();
+    SiteWhereInstance getInstanceResource();
 
     /**
      * Get list of listeners.

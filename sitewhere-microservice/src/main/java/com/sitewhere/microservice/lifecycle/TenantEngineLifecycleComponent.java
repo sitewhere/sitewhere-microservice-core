@@ -41,7 +41,7 @@ public abstract class TenantEngineLifecycleComponent extends LifecycleComponent
     private static final String LABEL_TENANT_ID = "tenant";
 
     /** Tenant engine associated with component */
-    private IMicroserviceTenantEngine tenantEngine;
+    private IMicroserviceTenantEngine<?> tenantEngine;
 
     public TenantEngineLifecycleComponent() {
 	super(LifecycleComponentType.Other);
@@ -150,21 +150,23 @@ public abstract class TenantEngineLifecycleComponent extends LifecycleComponent
     }
 
     /*
-     * @see com.sitewhere.spi.server.lifecycle.ITenantEngineLifecycleComponent#
+     * @see
+     * com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent#
      * getTenantEngine()
      */
     @Override
-    public IMicroserviceTenantEngine getTenantEngine() {
+    public IMicroserviceTenantEngine<?> getTenantEngine() {
 	return tenantEngine;
     }
 
     /*
-     * @see com.sitewhere.spi.server.lifecycle.ITenantEngineLifecycleComponent#
+     * @see
+     * com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent#
      * setTenantEngine(com.sitewhere.spi.microservice.multitenant.
      * IMicroserviceTenantEngine)
      */
     @Override
-    public void setTenantEngine(IMicroserviceTenantEngine tenantEngine) {
+    public void setTenantEngine(IMicroserviceTenantEngine<?> tenantEngine) {
 	this.tenantEngine = tenantEngine;
     }
 }

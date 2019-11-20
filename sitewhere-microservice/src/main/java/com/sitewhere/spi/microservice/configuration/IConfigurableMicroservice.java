@@ -7,27 +7,45 @@
  */
 package com.sitewhere.spi.microservice.configuration;
 
+import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.lifecycle.IDiscoverableTenantLifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
 import com.sitewhere.spi.microservice.scripting.IScriptManagement;
 
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
+import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 
 /**
  * Microservice that supports dynamic monitoring of configuration.
  */
-public interface IConfigurableMicroservice<T extends IFunctionIdentifier> extends IMicroservice<T> {
+public interface IConfigurableMicroservice<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration>
+	extends IMicroservice<F, C> {
 
     /**
-     * Get configuration monitor.
+     * Get microservice configuration class.
      * 
      * @return
      */
-    IInstanceConfigurationMonitor getConfigurationMonitor();
+    Class<C> getConfigurationClass();
+
+    /**
+     * Get instance configuration monitor.
+     * 
+     * @return
+     */
+    IInstanceConfigurationMonitor getInstanceConfigurationMonitor();
+
+    /**
+     * Get microservice configuration monitor.
+     * 
+     * @return
+     */
+    IMicroserviceConfigurationMonitor getMicroserviceConfigurationMonitor();
 
     /**
      * Get scripting management interface.
@@ -51,78 +69,69 @@ public interface IConfigurableMicroservice<T extends IFunctionIdentifier> extend
     SiteWhereInstance getLastInstanceResource();
 
     /**
+     * Get instance configuration (loaded from instance k8s resource).
+     * 
+     * @return
+     */
+    InstanceConfiguration getInstanceConfiguration();
+
+    /**
+     * Get most recent k8s microservice resource.
+     * 
+     * @return
+     */
+    SiteWhereMicroservice getLastMicroserviceResource();
+
+    /**
+     * Get microservice configuration (loaded from microservice k8s resource).
+     * 
+     * @return
+     */
+    C getMicroserviceConfiguration();
+
+    /**
      * Initialize configurable components.
      * 
-     * @param global
-     * @param local
+     * @param instance
+     * @param microservice
      * @param monitor
      * @throws SiteWhereException
      */
-    void configurationInitialize(Object global, Object local, ILifecycleProgressMonitor monitor)
+    void configurationInitialize(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
 	    throws SiteWhereException;
 
     /**
      * Start configurable components.
      * 
-     * @param global
-     * @param local
+     * @param instance
+     * @param microservice
      * @param monitor
      * @throws SiteWhereException
      */
-    void configurationStart(Object global, Object local, ILifecycleProgressMonitor monitor) throws SiteWhereException;
+    void configurationStart(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
+	    throws SiteWhereException;
 
     /**
      * Stop configurable components.
      * 
-     * @param global
-     * @param local
+     * @param instance
+     * @param microservice
      * @param monitor
      * @throws SiteWhereException
      */
-    void configurationStop(Object global, Object local, ILifecycleProgressMonitor monitor) throws SiteWhereException;
+    void configurationStop(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
+	    throws SiteWhereException;
 
     /**
      * Terminate configurable components.
      * 
-     * @param global
-     * @param local
+     * @param instance
+     * @param microservice
      * @param monitor
      * @throws SiteWhereException
      */
-    void configurationTerminate(Object global, Object local, ILifecycleProgressMonitor monitor)
+    void configurationTerminate(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
 	    throws SiteWhereException;
-
-    /**
-     * Get global application context.
-     * 
-     * @return
-     * @throws SiteWhereException
-     */
-    Object getGlobalApplicationContext() throws SiteWhereException;
-
-    /**
-     * Set the global application context.
-     * 
-     * @param context
-     * @throws SiteWhereException
-     */
-    void setGlobalApplicationContext(Object context) throws SiteWhereException;
-
-    /**
-     * Get local microservice application context.
-     * 
-     * @return
-     * @throws SiteWhereException
-     */
-    Object getLocalApplicationContext() throws SiteWhereException;
-
-    /**
-     * Set the local application context.
-     * 
-     * @param context
-     * @throws SiteWhereException
-     */
-    void setLocalApplicationContext(Object context) throws SiteWhereException;
 
     /**
      * Perform microservice initialization.

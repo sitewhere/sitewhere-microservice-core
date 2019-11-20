@@ -7,8 +7,6 @@
  */
 package com.sitewhere.microservice.configuration;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,9 +20,12 @@ import com.sitewhere.microservice.scripting.KubernetesScriptManagement;
 import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
 import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener;
 import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationMonitor;
+import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationListener;
+import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
@@ -33,47 +34,57 @@ import com.sitewhere.spi.microservice.scripting.IScriptManagement;
 
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
+import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 
 /**
  * Base class for microservices that monitor the configuration folder for
  * updates.
  */
-public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> extends Microservice<T>
-	implements IConfigurableMicroservice<T>, IInstanceConfigurationListener {
+public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration>
+	extends Microservice<F, C>
+	implements IConfigurableMicroservice<F, C>, IInstanceConfigurationListener, IMicroserviceConfigurationListener {
 
-    /** Configuration monitor */
-    private IInstanceConfigurationMonitor configurationMonitor;
+    /** Instance configuration monitor */
+    private IInstanceConfigurationMonitor instanceMonitor;
+
+    /** Microservice configuration monitor */
+    private IMicroserviceConfigurationMonitor microserviceMonitor;
 
     /** Script management implementation */
     private IScriptManagement scriptManagement;
 
-    /** Global instance application context */
-    private Object globalApplicationContext;
-
-    /** Local microservice application context */
-    private Object localApplicationContext;
-
     /** Latest instance resource */
     private SiteWhereInstance lastInstanceResource;
 
-    /** Latch for instance config availability */
-    private CountDownLatch instanceConfigAvailable = new CountDownLatch(1);
+    /** Latest microservice resource */
+    private SiteWhereMicroservice lastMicroserviceResource;
+
+    /** Instance configuration */
+    private InstanceConfiguration instanceConfiguration;
+
+    /** Microservice configuration */
+    private C microserviceConfiguration;
+
+    /** Latch for configuration availability */
+    private CountDownLatch configurationAvailable = new CountDownLatch(1);
 
     /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurationListener#
-     * onConfigurationAdded(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
+     * @see
+     * com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener#
+     * onInstanceAdded(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
      */
     @Override
-    public void onConfigurationAdded(SiteWhereInstance instance) {
-	onConfigurationUpdated(instance);
+    public void onInstanceAdded(SiteWhereInstance instance) {
+	onInstanceUpdated(instance);
     }
 
     /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurationListener#
-     * onConfigurationUpdated(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
+     * @see
+     * com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener#
+     * onInstanceUpdated(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
      */
     @Override
-    public void onConfigurationUpdated(SiteWhereInstance instance) {
+    public void onInstanceUpdated(SiteWhereInstance instance) {
 	// Skip partially configured instance.
 	if (instance.getSpec().getConfiguration() == null) {
 	    getLogger().info("Skipping instance configuration which has not yet been bootstrapped.");
@@ -85,22 +96,101 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 	boolean configUpdated = wasConfigured && !getLastInstanceResource().getSpec().getConfiguration()
 		.equals(instance.getSpec().getConfiguration());
 
-	// Save updated instance.
+	getLogger().info(String.format("Handling instance resource update. configured=%s updated=%s",
+		String.valueOf(wasConfigured), String.valueOf(configUpdated)));
+
+	// Save updated resource and parse configuration.
 	this.lastInstanceResource = instance;
+	InstanceConfiguration configuration = MarshalUtils.unmarshalJsonNode(instance.getSpec().getConfiguration(),
+		InstanceConfiguration.class);
+	this.instanceConfiguration = configuration;
 
 	// If configuration was not updated, skip context restart.
 	if (wasConfigured && !configUpdated) {
 	    return;
 	}
 
-	// Show updated configuration if there was a change.
-	if (configUpdated) {
-	    InstanceConfiguration before = MarshalUtils.unmarshalJsonNode(
-		    getLastInstanceResource().getSpec().getConfiguration(), InstanceConfiguration.class);
-	    InstanceConfiguration after = MarshalUtils.unmarshalJsonNode(instance.getSpec().getConfiguration(),
-		    InstanceConfiguration.class);
-	    getLogger().info(String.format("\nUPDATED CONFIG:\n\nBEFORE:\n\n%s\nAFTER:\n\n%s\n",
-		    MarshalUtils.marshalJsonAsPrettyString(before), MarshalUtils.marshalJsonAsPrettyString(after)));
+	// Handle updated configuration.
+	if (!wasConfigured || configUpdated) {
+	    onConfigurationUpdated();
+	}
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener#
+     * onInstanceDeleted(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
+     */
+    @Override
+    public void onInstanceDeleted(SiteWhereInstance instance) {
+	this.lastInstanceResource = null;
+	onConfigurationDeleted();
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.
+     * IMicroserviceConfigurationListener#onMicroserviceAdded(io.sitewhere.k8s.crd.
+     * microservice.SiteWhereMicroservice)
+     */
+    @Override
+    public void onMicroserviceAdded(SiteWhereMicroservice microservice) {
+	onMicroserviceUpdated(microservice);
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.
+     * IMicroserviceConfigurationListener#onMicroserviceUpdated(io.sitewhere.k8s.crd
+     * .microservice.SiteWhereMicroservice)
+     */
+    @Override
+    public void onMicroserviceUpdated(SiteWhereMicroservice microservice) {
+	boolean wasConfigured = getLastMicroserviceResource() != null
+		&& getLastMicroserviceResource().getSpec().getConfiguration() != null;
+	boolean configUpdated = wasConfigured && !getLastMicroserviceResource().getSpec().getConfiguration()
+		.equals(microservice.getSpec().getConfiguration());
+
+	getLogger().info(String.format("Handling microservice resource update. configured=%s updated=%s",
+		String.valueOf(wasConfigured), String.valueOf(configUpdated)));
+
+	// Save updated resource and parse configuration.
+	this.lastMicroserviceResource = microservice;
+	C configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
+		getConfigurationClass());
+	this.microserviceConfiguration = configuration;
+
+	// If configuration was not updated, skip context restart.
+	if (wasConfigured && !configUpdated) {
+	    return;
+	}
+
+	// Handle updated configuration.
+	if (!wasConfigured || configUpdated) {
+	    onConfigurationUpdated();
+	}
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.
+     * IMicroserviceConfigurationListener#onMicroserviceDeleted(io.sitewhere.k8s.crd
+     * .microservice.SiteWhereMicroservice)
+     */
+    @Override
+    public void onMicroserviceDeleted(SiteWhereMicroservice microservice) {
+	this.lastMicroserviceResource = null;
+	onConfigurationDeleted();
+    }
+
+    /**
+     * Called when configuration is added or updated.
+     */
+    protected void onConfigurationUpdated() {
+	if (getInstanceConfiguration() == null) {
+	    getLogger().info("Waiting for instance configuration to be loaded before starting.");
+	    return;
+	}
+	if (getMicroserviceConfiguration() == null) {
+	    getLogger().info("Waiting for microservice configuration to be loaded before starting.");
+	    return;
 	}
 
 	getMicroserviceOperationsService().execute(new Runnable() {
@@ -108,14 +198,14 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 	    @Override
 	    public void run() {
 		try {
-		    if (!wasConfigured) {
-			getLogger().info("Detected new configuration. Starting context...");
+		    if (getLifecycleStatus() == LifecycleStatus.Stopped) {
+			getLogger().info("Initializing and starting microservice configuration...");
 			initializeAndStart();
 		    } else {
-			getLogger().info("Detected configuration updated. Restarting context...");
+			getLogger().info("Detected configuration update. Restarting configuration...");
 			restartConfiguration();
 		    }
-		    getInstanceConfigAvailable().countDown();
+		    getConfigurationAvailable().countDown();
 		} catch (SiteWhereException e) {
 		    getLogger().error("Unable to restart microservice.", e);
 		}
@@ -123,12 +213,10 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 	});
     }
 
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurationListener#
-     * onConfigurationDeleted(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
+    /**
+     * Called when configuration for instance or microservice has been deleted.
      */
-    @Override
-    public void onConfigurationDeleted(SiteWhereInstance instance) {
+    protected void onConfigurationDeleted() {
 	getMicroserviceOperationsService().execute(new Runnable() {
 
 	    @Override
@@ -140,8 +228,6 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 		}
 	    }
 	});
-
-	this.lastInstanceResource = null;
     }
 
     /*
@@ -154,13 +240,12 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
     }
 
     /*
-     * @see com.sitewhere.spi.microservice.IMicroservice#getSpringProperties()
+     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
+     * getLastMicroserviceResource()
      */
     @Override
-    public Map<String, Object> getSpringProperties() {
-	Map<String, Object> properties = new HashMap<>();
-	properties.put("sitewhere.edition", getVersion().getEditionIdentifier().toLowerCase());
-	return properties;
+    public SiteWhereMicroservice getLastMicroserviceResource() {
+	return this.lastMicroserviceResource;
     }
 
     /*
@@ -172,13 +257,12 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
     @Override
     public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
 	super.initialize(monitor);
-	getLogger().info("Shutting down configurable microservice components...");
 
 	// Create script management support.
 	this.scriptManagement = new KubernetesScriptManagement();
 
-	// Make sure that instance is bootstrapped before configuring.
-	waitForInstanceInitialization();
+	// Wait for instance/microservice config available.
+	waitForConfigurationReady();
 
 	// Organizes steps for initializing microservice.
 	ICompositeLifecycleStep initialize = new CompositeLifecycleStep("Initialize " + getName());
@@ -203,61 +287,92 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 	super.createKubernetesResourceControllers(informers);
 
 	// Add shared informer for instance configuration monitoring.
-	this.configurationMonitor = new InstanceConfigurationMonitor(getKubernetesClient(), informers);
-	getConfigurationMonitor().getListeners().add(this);
-	getConfigurationMonitor().start();
+	this.instanceMonitor = new InstanceConfigurationMonitor(getKubernetesClient(), informers);
+	getInstanceConfigurationMonitor().getListeners().add(this);
+	getInstanceConfigurationMonitor().start();
+
+	// Add shared informer for microservice configuration monitoring.
+	this.microserviceMonitor = new MicroserviceConfigurationMonitor(getKubernetesClient(), informers);
+	getMicroserviceConfigurationMonitor().getListeners().add(this);
+	getMicroserviceConfigurationMonitor().start();
     }
 
     /*
      * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * configurationInitialize(java.lang.Object, java.lang.Object,
-     * com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor)
+     * getInstanceConfiguration()
      */
     @Override
-    public void configurationInitialize(Object global, Object local, ILifecycleProgressMonitor monitor)
-	    throws SiteWhereException {
-	if (local != null) {
-	    initializeDiscoverableBeans(local).execute(monitor);
-	}
+    public InstanceConfiguration getInstanceConfiguration() {
+	return this.instanceConfiguration;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * configurationStart(java.lang.Object, java.lang.Object,
-     * com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor)
+     * getMicroserviceConfiguration()
      */
     @Override
-    public void configurationStart(Object global, Object local, ILifecycleProgressMonitor monitor)
-	    throws SiteWhereException {
-	if (local != null) {
-	    startDiscoverableBeans(local).execute(monitor);
-	}
+    public C getMicroserviceConfiguration() {
+	return this.microserviceConfiguration;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * configurationStop(java.lang.Object, java.lang.Object,
-     * com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor)
+     * configurationInitialize(com.sitewhere.microservice.configuration.model.
+     * instance.InstanceConfiguration,
+     * com.sitewhere.spi.microservice.IMicroserviceConfiguration,
+     * com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
      */
     @Override
-    public void configurationStop(Object global, Object local, ILifecycleProgressMonitor monitor)
-	    throws SiteWhereException {
-	if (local != null) {
-	    stopDiscoverableBeans(local).execute(monitor);
-	}
+    public void configurationInitialize(InstanceConfiguration instance, C microservice,
+	    ILifecycleProgressMonitor monitor) throws SiteWhereException {
+	// if (local != null) {
+	// initializeDiscoverableBeans(local).execute(monitor);
+	// }
     }
 
     /*
      * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * configurationTerminate(java.lang.Object, java.lang.Object,
-     * com.sitewhere.spi.server.lifecycle.ILifecycleProgressMonitor)
+     * configurationStart(com.sitewhere.microservice.configuration.model.instance.
+     * InstanceConfiguration,
+     * com.sitewhere.spi.microservice.IMicroserviceConfiguration,
+     * com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
      */
     @Override
-    public void configurationTerminate(Object global, Object local, ILifecycleProgressMonitor monitor)
+    public void configurationStart(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
 	    throws SiteWhereException {
-	if (local != null) {
-	    terminateDiscoverableBeans(local).execute(monitor);
-	}
+	// if (local != null) {
+	// startDiscoverableBeans(local).execute(monitor);
+	// }
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
+     * configurationStop(com.sitewhere.microservice.configuration.model.instance.
+     * InstanceConfiguration,
+     * com.sitewhere.spi.microservice.IMicroserviceConfiguration,
+     * com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
+     */
+    @Override
+    public void configurationStop(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
+	    throws SiteWhereException {
+	// if (local != null) {
+	// stopDiscoverableBeans(local).execute(monitor);
+	// }
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
+     * configurationTerminate(com.sitewhere.microservice.configuration.model.
+     * instance.InstanceConfiguration,
+     * com.sitewhere.spi.microservice.IMicroserviceConfiguration,
+     * com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
+     */
+    @Override
+    public void configurationTerminate(InstanceConfiguration instance, C microservice,
+	    ILifecycleProgressMonitor monitor) throws SiteWhereException {
+	// if (local != null) {
+	// terminateDiscoverableBeans(local).execute(monitor);
+	// }
     }
 
     /*
@@ -395,23 +510,11 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 			MarshalUtils.marshalJsonAsPrettyString(instanceConfiguration)));
 	    }
 
-	    Object localContext = null;
-	    byte[] localConfig = getLocalConfiguration(instance);
-	    if (localConfig != null) {
-		// localContext = ConfigurationUtils.buildSubcontext(localConfig,
-		// getMicroservice().getSpringProperties(),
-		// globalContext);
-		localContext = null;
-	    }
-
-	    // Store contexts for later use.
-	    setLocalApplicationContext(localContext);
-
 	    ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
 		    new LifecycleProgressContext(1, "Initialize microservice configuration."), getMicroservice());
 	    long start = System.currentTimeMillis();
 	    getLogger().info("Initializing from updated configuration...");
-	    configurationInitialize(getGlobalApplicationContext(), getLocalApplicationContext(), monitor);
+	    configurationInitialize(getInstanceConfiguration(), getMicroserviceConfiguration(), monitor);
 	    if (getLifecycleStatus() == LifecycleStatus.LifecycleError) {
 		throw getMicroservice().getLifecycleError();
 	    }
@@ -435,7 +538,7 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 	    ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
 		    new LifecycleProgressContext(1, "Start microservice configuration."), getMicroservice());
 	    long start = System.currentTimeMillis();
-	    configurationStart(getGlobalApplicationContext(), getLocalApplicationContext(), monitor);
+	    configurationStart(getInstanceConfiguration(), getMicroserviceConfiguration(), monitor);
 	    if (getMicroservice().getLifecycleStatus() == LifecycleStatus.LifecycleError) {
 		throw getMicroservice().getLifecycleError();
 	    }
@@ -459,7 +562,7 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 		ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
 			new LifecycleProgressContext(1, "Stop microservice configuration."), getMicroservice());
 		long start = System.currentTimeMillis();
-		configurationStop(getGlobalApplicationContext(), getLocalApplicationContext(), monitor);
+		configurationStop(getInstanceConfiguration(), getMicroserviceConfiguration(), monitor);
 		if (getLifecycleStatus() == LifecycleStatus.LifecycleError) {
 		    throw getMicroservice().getLifecycleError();
 		}
@@ -484,7 +587,7 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 		ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
 			new LifecycleProgressContext(1, "Terminate microservice configuration."), this);
 		long start = System.currentTimeMillis();
-		configurationTerminate(getGlobalApplicationContext(), getLocalApplicationContext(), monitor);
+		configurationTerminate(getInstanceConfiguration(), getMicroserviceConfiguration(), monitor);
 		if (getLifecycleStatus() == LifecycleStatus.LifecycleError) {
 		    throw getMicroservice().getLifecycleError();
 		}
@@ -535,12 +638,12 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
      */
     @Override
     public void waitForConfigurationReady() throws SiteWhereException {
-	if (getInstanceConfigAvailable().getCount() == 0) {
+	if (getConfigurationAvailable().getCount() == 0) {
 	    return;
 	}
 	try {
 	    getLogger().info("Waiting for configuration to be loaded...");
-	    getInstanceConfigAvailable().await();
+	    getConfigurationAvailable().await();
 	} catch (InterruptedException e) {
 	    throw new SiteWhereException("Interrupted while waiting for instance configuration to become available.");
 	}
@@ -574,17 +677,21 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
     }
 
     /*
-     * (non-Javadoc)
-     * 
-     * @see com.sitewhere.microservice.Microservice#getConfigurationMonitor()
+     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
+     * getInstanceConfigurationMonitor()
      */
     @Override
-    public IInstanceConfigurationMonitor getConfigurationMonitor() {
-	return configurationMonitor;
+    public IInstanceConfigurationMonitor getInstanceConfigurationMonitor() {
+	return instanceMonitor;
     }
 
-    protected void setConfigurationMonitor(IInstanceConfigurationMonitor configurationMonitor) {
-	this.configurationMonitor = configurationMonitor;
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
+     * getMicroserviceConfigurationMonitor()
+     */
+    @Override
+    public IMicroserviceConfigurationMonitor getMicroserviceConfigurationMonitor() {
+	return microserviceMonitor;
     }
 
     /*
@@ -596,39 +703,7 @@ public abstract class ConfigurableMicroservice<T extends IFunctionIdentifier> ex
 	return scriptManagement;
     }
 
-    public void setScriptManagement(IScriptManagement scriptManagement) {
-	this.scriptManagement = scriptManagement;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * getGlobalApplicationContext()
-     */
-    @Override
-    public Object getGlobalApplicationContext() {
-	return globalApplicationContext;
-    }
-
-    @Override
-    public void setGlobalApplicationContext(Object globalApplicationContext) {
-	this.globalApplicationContext = globalApplicationContext;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * getLocalApplicationContext()
-     */
-    @Override
-    public Object getLocalApplicationContext() {
-	return localApplicationContext;
-    }
-
-    @Override
-    public void setLocalApplicationContext(Object localApplicationContext) {
-	this.localApplicationContext = localApplicationContext;
-    }
-
-    protected CountDownLatch getInstanceConfigAvailable() {
-	return instanceConfigAvailable;
+    protected CountDownLatch getConfigurationAvailable() {
+	return configurationAvailable;
     }
 }

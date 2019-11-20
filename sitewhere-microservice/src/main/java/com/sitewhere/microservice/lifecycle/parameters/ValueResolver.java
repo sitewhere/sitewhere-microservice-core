@@ -39,7 +39,7 @@ public class ValueResolver {
      * @throws SiteWhereException
      */
     public static String resolve(String value, ILifecycleComponent context) throws SiteWhereException {
-	IMicroserviceTenantEngine engine = (context instanceof ITenantEngineLifecycleComponent)
+	IMicroserviceTenantEngine<?> engine = (context instanceof ITenantEngineLifecycleComponent)
 		? ((ITenantEngineLifecycleComponent) context).getTenantEngine()
 		: null;
 	if ((engine == null) && (value.indexOf(asVariable(TENANT_ID)) != -1)) {

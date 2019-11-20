@@ -11,7 +11,6 @@ import java.util.UUID;
 
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
-import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 import com.sitewhere.spi.search.ISearchResults;
@@ -57,9 +56,5 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
     @Override
     public ITenant deleteTenant(UUID tenantId) throws SiteWhereException {
 	throw new RuntimeException("Not implemented yet.");
-    }
-
-    protected IConfigurableMicroservice<?> getConfigurableMicroservice() {
-	return (IConfigurableMicroservice<?>) getMicroservice();
     }
 }

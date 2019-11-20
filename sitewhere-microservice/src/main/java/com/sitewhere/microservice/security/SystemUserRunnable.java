@@ -11,7 +11,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.tenant.ITenant;
 
 /**
@@ -25,12 +27,14 @@ public abstract class SystemUserRunnable implements Runnable {
     private static Log LOGGER = LogFactory.getLog(SystemUserRunnable.class);
 
     /** Tenant engine if tenant operation */
-    private IMicroservice<?> microservice;
+    private IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice;
 
     /** Tenant */
     private ITenant tenant;
 
-    public SystemUserRunnable(IMicroservice<?> microservice, ITenant tenant) {
+    public SystemUserRunnable(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice,
+	    ITenant tenant) {
 	this.microservice = microservice;
 	this.tenant = tenant;
     }
@@ -73,11 +77,12 @@ public abstract class SystemUserRunnable implements Runnable {
 	}
     }
 
-    protected IMicroservice<?> getMicroservice() {
+    protected IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> getMicroservice() {
 	return microservice;
     }
 
-    protected void setMicroservice(IMicroservice<?> microservice) {
+    protected void setMicroservice(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice) {
 	this.microservice = microservice;
     }
 

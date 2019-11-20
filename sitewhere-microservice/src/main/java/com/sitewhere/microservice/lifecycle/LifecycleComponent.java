@@ -23,6 +23,7 @@ import org.slf4j.cal10n.LocLoggerFactory;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.ServerStartupException;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponentParameter;
@@ -56,7 +57,7 @@ public class LifecycleComponent implements ILifecycleComponent {
     private LifecycleComponentType componentType;
 
     /** Owning microservice */
-    private IMicroservice<?> microservice;
+    private IMicroservice<?, ?> microservice;
 
     /** Date/time component was created */
     private Date createdDate = new Date();
@@ -655,7 +656,7 @@ public class LifecycleComponent implements ILifecycleComponent {
      * @see com.sitewhere.spi.server.lifecycle.ILifecycleComponent#getMicroservice()
      */
     @Override
-    public IMicroservice<? extends IFunctionIdentifier> getMicroservice() {
+    public IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> getMicroservice() {
 	return microservice;
     }
 
@@ -665,7 +666,8 @@ public class LifecycleComponent implements ILifecycleComponent {
      * sitewhere.spi.microservice.IMicroservice)
      */
     @Override
-    public void setMicroservice(IMicroservice<? extends IFunctionIdentifier> microservice) {
+    public void setMicroservice(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice) {
 	this.microservice = microservice;
     }
 

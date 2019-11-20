@@ -11,18 +11,20 @@ import com.sitewhere.microservice.configuration.ConfigurableMicroservice;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice;
+import com.sitewhere.spi.microservice.multitenant.ITenantEngineConfiguration;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineManager;
 import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableException;
 
 /**
  * Microservice that contains engines for multiple tenants.
  */
-public abstract class MultitenantMicroservice<I extends IFunctionIdentifier, T extends IMicroserviceTenantEngine>
-	extends ConfigurableMicroservice<I> implements IMultitenantMicroservice<I, T> {
+public abstract class MultitenantMicroservice<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration, T extends IMicroserviceTenantEngine<? extends ITenantEngineConfiguration>>
+	extends ConfigurableMicroservice<F, C> implements IMultitenantMicroservice<F, C, T> {
 
     /** Tenant engine manager */
     private ITenantEngineManager<T> tenantEngineManager = new TenantEngineManager<>();

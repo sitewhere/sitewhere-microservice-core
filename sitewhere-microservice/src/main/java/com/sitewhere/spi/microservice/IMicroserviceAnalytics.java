@@ -20,7 +20,9 @@ public interface IMicroserviceAnalytics {
      * @param microservice
      * @throws SiteWhereException
      */
-    void sendMicroserviceStarted(IMicroservice<?> microservice) throws SiteWhereException;
+    void sendMicroserviceStarted(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice)
+	    throws SiteWhereException;
 
     /**
      * Send event indicating time since microservice started.
@@ -28,7 +30,9 @@ public interface IMicroserviceAnalytics {
      * @param microservice
      * @throws SiteWhereException
      */
-    void sendMicroserviceUptime(IMicroservice<?> microservice) throws SiteWhereException;
+    void sendMicroserviceUptime(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice)
+	    throws SiteWhereException;
 
     /**
      * Send event indicating microservice stopped.
@@ -36,5 +40,7 @@ public interface IMicroserviceAnalytics {
      * @param microservice
      * @throws SiteWhereException
      */
-    void sendMicroserviceStopped(IMicroservice<?> microservice) throws SiteWhereException;
+    void sendMicroserviceStopped(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice)
+	    throws SiteWhereException;
 }

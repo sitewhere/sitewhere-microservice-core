@@ -10,7 +10,9 @@ package com.sitewhere.microservice.grpc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 
 import io.grpc.BindableService;
 import io.grpc.Context;
@@ -32,12 +34,14 @@ public class JwtServerInterceptor implements ServerInterceptor {
     private static Log LOGGER = LogFactory.getLog(JwtServerInterceptor.class);
 
     /** Parent microservice */
-    private IMicroservice<?> microservice;
+    private IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice;
 
     /** Service implementation */
     private Class<? extends BindableService> implementation;
 
-    public JwtServerInterceptor(IMicroservice<?> microservice, Class<? extends BindableService> implementation) {
+    public JwtServerInterceptor(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice,
+	    Class<? extends BindableService> implementation) {
 	this.microservice = microservice;
 	this.implementation = implementation;
     }
@@ -63,7 +67,7 @@ public class JwtServerInterceptor implements ServerInterceptor {
 	}
     }
 
-    protected IMicroservice<?> getMicroservice() {
+    protected IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> getMicroservice() {
 	return microservice;
     }
 

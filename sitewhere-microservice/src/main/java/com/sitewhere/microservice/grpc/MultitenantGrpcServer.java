@@ -7,8 +7,6 @@
  */
 package com.sitewhere.microservice.grpc;
 
-import com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice;
-
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.netty.NettyServerBuilder;
@@ -35,7 +33,6 @@ public class MultitenantGrpcServer extends GrpcServer {
 	NettyServerBuilder builder = NettyServerBuilder.forPort(getApiPort());
 	builder.addService(getServiceImplementation()).intercept(getTenantTokenInterceptor())
 		.intercept(getJwtInterceptor());
-	builder.addService(new MultitenantManagementImpl((IMultitenantMicroservice<?, ?>) getMicroservice()));
 	return builder.build();
     }
 

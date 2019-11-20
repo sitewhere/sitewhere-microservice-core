@@ -14,7 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressContext;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleProgressUtils;
@@ -33,9 +35,10 @@ public class LifecycleProgressMonitor implements ILifecycleProgressMonitor {
     private Deque<ILifecycleProgressContext> contextStack = new ArrayDeque<ILifecycleProgressContext>();
 
     /** Microservice associated with component */
-    private IMicroservice<?> microservice;
+    private IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice;
 
-    public LifecycleProgressMonitor(ILifecycleProgressContext initialContext, IMicroservice<?> microservice) {
+    public LifecycleProgressMonitor(ILifecycleProgressContext initialContext,
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice) {
 	this.microservice = microservice;
 	contextStack.push(initialContext);
 	try {
@@ -135,11 +138,12 @@ public class LifecycleProgressMonitor implements ILifecycleProgressMonitor {
      * getMicroservice()
      */
     @Override
-    public IMicroservice<?> getMicroservice() {
+    public IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> getMicroservice() {
 	return microservice;
     }
 
-    public void setMicroservice(IMicroservice<?> microservice) {
+    public void setMicroservice(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice) {
 	this.microservice = microservice;
     }
 }

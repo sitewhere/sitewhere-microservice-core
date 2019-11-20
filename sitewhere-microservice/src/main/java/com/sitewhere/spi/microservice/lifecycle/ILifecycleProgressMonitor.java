@@ -10,7 +10,9 @@ package com.sitewhere.spi.microservice.lifecycle;
 import java.util.Deque;
 
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.monitoring.IProgressReporter;
 
 /**
@@ -62,5 +64,5 @@ public interface ILifecycleProgressMonitor extends IProgressReporter {
      * 
      * @return
      */
-    IMicroservice<?> getMicroservice();
+    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> getMicroservice();
 }

@@ -27,12 +27,12 @@ public interface ITenantEngineLifecycleComponent extends ILifecycleComponent {
      * 
      * @param tenantEngine
      */
-    void setTenantEngine(IMicroserviceTenantEngine tenantEngine);
+    void setTenantEngine(IMicroserviceTenantEngine<?> tenantEngine);
 
     /**
      * Get tenant engine for component.
      * 
      * @return
      */
-    IMicroserviceTenantEngine getTenantEngine();
+    IMicroserviceTenantEngine<?> getTenantEngine();
 }

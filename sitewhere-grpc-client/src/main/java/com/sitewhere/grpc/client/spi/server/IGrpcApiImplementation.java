@@ -7,7 +7,9 @@
  */
 package com.sitewhere.grpc.client.spi.server;
 
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 
 /**
  * Provides a common interface for gRPC API implementations.
@@ -19,5 +21,5 @@ public interface IGrpcApiImplementation {
      * 
      * @return
      */
-    public IMicroservice<?> getMicroservice();
+    public IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> getMicroservice();
 }

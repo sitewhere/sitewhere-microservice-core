@@ -98,7 +98,7 @@ public class GrpcUtils {
 	    if (api.getMicroservice() instanceof IMultitenantMicroservice) {
 		String tenantId = GrpcKeys.TENANT_CONTEXT_KEY.get();
 		if (tenantId != null) {
-		    IMicroserviceTenantEngine engine = ((IMultitenantMicroservice<?, ?>) api.getMicroservice())
+		    IMicroserviceTenantEngine<?> engine = ((IMultitenantMicroservice<?, ?, ?>) api.getMicroservice())
 			    .assureTenantEngineAvailable(tenantId);
 		    tenant = engine.getTenant();
 		}

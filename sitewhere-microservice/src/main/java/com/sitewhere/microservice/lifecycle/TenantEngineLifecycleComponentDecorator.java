@@ -18,7 +18,8 @@ public class TenantEngineLifecycleComponentDecorator<T extends ITenantEngineLife
     }
 
     /*
-     * @see com.sitewhere.spi.server.lifecycle.ITenantEngineLifecycleComponent#
+     * @see
+     * com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent#
      * buildLabels(java.lang.String[])
      */
     @Override
@@ -27,21 +28,23 @@ public class TenantEngineLifecycleComponentDecorator<T extends ITenantEngineLife
     }
 
     /*
-     * @see com.sitewhere.spi.server.lifecycle.ITenantEngineLifecycleComponent#
+     * @see
+     * com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent#
      * setTenantEngine(com.sitewhere.spi.microservice.multitenant.
      * IMicroserviceTenantEngine)
      */
     @Override
-    public void setTenantEngine(IMicroserviceTenantEngine tenantEngine) {
+    public void setTenantEngine(IMicroserviceTenantEngine<?> tenantEngine) {
 	getDelegate().setTenantEngine(tenantEngine);
     }
 
     /*
-     * @see com.sitewhere.spi.server.lifecycle.ITenantEngineLifecycleComponent#
+     * @see
+     * com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent#
      * getTenantEngine()
      */
     @Override
-    public IMicroserviceTenantEngine getTenantEngine() {
+    public IMicroserviceTenantEngine<?> getTenantEngine() {
 	return getDelegate().getTenantEngine();
     }
 }

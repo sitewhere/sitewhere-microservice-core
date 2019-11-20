@@ -13,7 +13,7 @@ import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 /**
  * Manages tenant engines for a multitenant microservice.
  */
-public interface ITenantEngineManager<T extends IMicroserviceTenantEngine> extends ILifecycleComponent {
+public interface ITenantEngineManager<T extends IMicroserviceTenantEngine<?>> extends ILifecycleComponent {
 
     /**
      * Get tenant engine corresponding to the given id.

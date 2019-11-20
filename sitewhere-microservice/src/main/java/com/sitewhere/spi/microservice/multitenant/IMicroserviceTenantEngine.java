@@ -28,7 +28,8 @@ import io.sitewhere.k8s.crd.tenant.engine.dataset.TenantEngineDatasetTemplate;
  * Engine that manages operations for a single tenant within an
  * {@link IMultitenantMicroservice}.
  */
-public interface IMicroserviceTenantEngine extends ITenantEngineLifecycleComponent, ITenantEngineConfigurationListener {
+public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
+	extends ITenantEngineLifecycleComponent, ITenantEngineConfigurationListener {
 
     /**
      * Get tenant hosted by engine.
@@ -36,13 +37,6 @@ public interface IMicroserviceTenantEngine extends ITenantEngineLifecycleCompone
      * @return
      */
     ITenant getTenant();
-
-    /**
-     * Get current engine state.
-     * 
-     * @return
-     */
-    ITenantEngineState getCurrentState() throws SiteWhereException;
 
     /**
      * Get tenant engine configuration template.
@@ -59,6 +53,13 @@ public interface IMicroserviceTenantEngine extends ITenantEngineLifecycleCompone
      * @throws SiteWhereException
      */
     TenantEngineDatasetTemplate getDatasetTemplate() throws SiteWhereException;
+
+    /**
+     * Get current engine state.
+     * 
+     * @return
+     */
+    ITenantEngineState getCurrentState() throws SiteWhereException;
 
     /**
      * Get script synchronizer for copying/locating scripts.

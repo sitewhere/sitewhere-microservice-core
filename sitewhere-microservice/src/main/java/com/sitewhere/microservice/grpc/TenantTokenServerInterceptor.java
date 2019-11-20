@@ -10,7 +10,9 @@ package com.sitewhere.microservice.grpc;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
+import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 
 import io.grpc.Context;
 import io.grpc.Contexts;
@@ -31,9 +33,10 @@ public class TenantTokenServerInterceptor implements ServerInterceptor {
     private static Log LOGGER = LogFactory.getLog(TenantTokenServerInterceptor.class);
 
     /** Parent microservice */
-    private IMicroservice<?> microservice;
+    private IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice;
 
-    public TenantTokenServerInterceptor(IMicroservice<?> microservice) {
+    public TenantTokenServerInterceptor(
+	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice) {
 	this.microservice = microservice;
     }
 
@@ -58,11 +61,7 @@ public class TenantTokenServerInterceptor implements ServerInterceptor {
 	}
     }
 
-    public IMicroservice<?> getMicroservice() {
+    protected IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> getMicroservice() {
 	return microservice;
-    }
-
-    public void setMicroservice(IMicroservice<?> microservice) {
-	this.microservice = microservice;
     }
 }

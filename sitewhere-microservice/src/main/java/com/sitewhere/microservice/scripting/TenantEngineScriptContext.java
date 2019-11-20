@@ -20,12 +20,12 @@ public class TenantEngineScriptContext implements IScriptContext {
     private static final String TENANT_PATH = "tenant";
 
     /** Tenant engine for context */
-    private IMicroserviceTenantEngine tenantEngine;
+    private IMicroserviceTenantEngine<?> tenantEngine;
 
     /** Computed base path */
     private String basePath;
 
-    public TenantEngineScriptContext(IMicroserviceTenantEngine tenantEngine) {
+    public TenantEngineScriptContext(IMicroserviceTenantEngine<?> tenantEngine) {
 	this.tenantEngine = tenantEngine;
 	String subpath = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL,
 		getTenantEngine().getMicroservice().getIdentifier().getPath());
@@ -41,7 +41,7 @@ public class TenantEngineScriptContext implements IScriptContext {
 	return basePath;
     }
 
-    protected IMicroserviceTenantEngine getTenantEngine() {
+    protected IMicroserviceTenantEngine<?> getTenantEngine() {
 	return tenantEngine;
     }
 }

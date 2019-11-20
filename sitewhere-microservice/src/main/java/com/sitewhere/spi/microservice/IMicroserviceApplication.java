@@ -13,7 +13,7 @@ package com.sitewhere.spi.microservice;
  *
  * @param <T>
  */
-public interface IMicroserviceApplication<T extends IMicroservice<?>> {
+public interface IMicroserviceApplication<T extends IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration>> {
 
     /**
      * Get wrapped microservice.

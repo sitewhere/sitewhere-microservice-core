@@ -19,19 +19,19 @@ public interface IInstanceConfigurationListener {
      * 
      * @param instance
      */
-    void onConfigurationAdded(SiteWhereInstance instance);
+    void onInstanceAdded(SiteWhereInstance instance);
 
     /**
      * Called when instance configuration is updated.
      * 
      * @param instance
      */
-    void onConfigurationUpdated(SiteWhereInstance instance);
+    void onInstanceUpdated(SiteWhereInstance instance);
 
     /**
      * Called when instance configuration is deleted.
      * 
      * @param instance
      */
-    void onConfigurationDeleted(SiteWhereInstance instance);
+    void onInstanceDeleted(SiteWhereInstance instance);
 }
