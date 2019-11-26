@@ -7,9 +7,12 @@
  */
 package com.sitewhere.microservice.configuration.model.instance;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 /**
  * Details of an instance-level relational database configuration.
  */
+@RegisterForReflection
 public class RdbConfiguration {
 
     /** Hostname */

@@ -7,9 +7,12 @@
  */
 package com.sitewhere.microservice.configuration.model.instance;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 /**
  * Top level of instance configuration hierarchy.
  */
+@RegisterForReflection
 public class InstanceConfiguration {
 
     /** Persistence configurations */

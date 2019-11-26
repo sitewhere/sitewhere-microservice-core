@@ -7,16 +7,10 @@
  */
 package com.sitewhere.spi.microservice.scripting;
 
-/**
- * Provides context used by an {@link IScriptSynchronizer} to properly
- * load/store script data.
- */
-public interface IScriptContext {
+import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 
-    /**
-     * Get base path (relative to root) where scripts are stored.
-     * 
-     * @return
-     */
-    String getBasePath();
+/**
+ * Common interface for scripting components.
+ */
+public interface IScriptingComponent extends ITenantEngineLifecycleComponent {
 }

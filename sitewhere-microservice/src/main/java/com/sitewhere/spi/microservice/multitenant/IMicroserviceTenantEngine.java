@@ -10,14 +10,11 @@ package com.sitewhere.spi.microservice.multitenant;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationListener;
-import com.sitewhere.spi.microservice.groovy.IGroovyConfiguration;
 import com.sitewhere.spi.microservice.lifecycle.IDiscoverableTenantLifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
-import com.sitewhere.spi.microservice.scripting.IScriptContext;
 import com.sitewhere.spi.microservice.scripting.IScriptManager;
-import com.sitewhere.spi.microservice.scripting.IScriptSynchronizer;
 import com.sitewhere.spi.microservice.state.ITenantEngineState;
 import com.sitewhere.spi.tenant.ITenant;
 
@@ -62,14 +59,6 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
     ITenantEngineState getCurrentState() throws SiteWhereException;
 
     /**
-     * Get script synchronizer for copying/locating scripts.
-     * 
-     * @return
-     * @throws SiteWhereException
-     */
-    IScriptSynchronizer getScriptSynchronizer() throws SiteWhereException;
-
-    /**
      * Get script manager.
      * 
      * @return
@@ -78,27 +67,12 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
     IScriptManager getScriptManager() throws SiteWhereException;
 
     /**
-     * Gets a script context for this engine.
-     * 
-     * @return
-     */
-    IScriptContext getScriptContext();
-
-    /**
      * Get bootstrap manager.
      * 
      * @return
      * @throws SiteWhereException
      */
     IDatasetBootstrapManager getBootstrapManager() throws SiteWhereException;
-
-    /**
-     * Get Groovy configuration.
-     * 
-     * @return
-     * @throws SiteWhereException
-     */
-    IGroovyConfiguration getGroovyConfiguration() throws SiteWhereException;
 
     /**
      * Get Spring context that provides beans for module.

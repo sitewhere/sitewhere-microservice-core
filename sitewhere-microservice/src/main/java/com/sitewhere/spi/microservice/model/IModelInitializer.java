@@ -11,11 +11,4 @@ package com.sitewhere.spi.microservice.model;
  * Common interface for model initializers.
  */
 public interface IModelInitializer {
-
-    /**
-     * Indicates if the initializer is enabled.
-     * 
-     * @return
-     */
-    boolean isEnabled();
 }

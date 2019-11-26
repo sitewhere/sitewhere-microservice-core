@@ -5,15 +5,13 @@
  * license, a copy of which has been included with this distribution in the
  * LICENSE.txt file.
  */
-package com.sitewhere.spi.microservice.scripting;
+package com.sitewhere.microservice.scripting;
 
 /**
- * Categories of scripts.
+ * Placeholder for variable binding.
  */
-public enum ScriptType {
-    /** Initializer logic */
-    Initializer,
+public class Binding {
 
-    /** Managed script */
-    ManagedScript;
+    public void setVariable(String name, Object value) {
+    }
 }

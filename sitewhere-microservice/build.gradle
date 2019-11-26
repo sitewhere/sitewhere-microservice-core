@@ -2,18 +2,12 @@ description = 'SiteWhere Common Microservice Library'
 
 dependencies {
 	// Quarkus dependencies.
-    compile enforcedPlatform('io.quarkus:quarkus-bom:0.26.1')
     compile 'io.quarkus:quarkus-kubernetes-client'
+    compile 'io.quarkus:quarkus-kafka-client'
     
 	// SiteWhere model/API.
     compile group: 'com.sitewhere', name: 'sitewhere-java-model', version: '3.0.0.alpha1'
-	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: '0.0.11'
-	
-	// Apache Kafka for reliable data pipeline.
-    compile group: 'org.apache.kafka', name: 'kafka-clients', version: "${rootProject.ext['kafka.version']}"
-    
-    // Groovy for dynamic processing.
-    compile group: 'org.codehaus.groovy', name: 'groovy', version: "${rootProject.ext['groovy.version']}"
+	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: '0.0.12'
     
     // JSON web token support.
     compile group: 'io.jsonwebtoken', name: 'jjwt', version:'0.7.0'
@@ -32,7 +26,8 @@ dependencies {
 	compile 'com.brsanthu:google-analytics-java:2.0.0'
 	
 	// Graal runtime support.
-	compile group: 'com.oracle.substratevm', name: 'svm', version: '19.2.1'
+	compile group: 'com.oracle.substratevm', name: 'svm'
+	
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     compile group: 'commons-io', name: 'commons-io', version: '2.6'

@@ -22,15 +22,23 @@ import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationMonito
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.sitewhere.k8s.crd.ResourceContexts;
+import io.sitewhere.k8s.crd.common.BootstrapState;
+import io.sitewhere.k8s.crd.common.ComponentHelmSpec;
 import io.sitewhere.k8s.crd.controller.ResourceChangeType;
 import io.sitewhere.k8s.crd.controller.SiteWhereResourceController;
+import io.sitewhere.k8s.crd.instance.DoneableSiteWhereInstance;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstanceList;
+import io.sitewhere.k8s.crd.instance.SiteWhereInstanceSpec;
+import io.sitewhere.k8s.crd.instance.SiteWhereInstanceStatus;
 
 /**
  * Monitors instance resources for changes.
  */
+@RegisterForReflection(targets = { SiteWhereInstance.class, SiteWhereInstanceList.class, SiteWhereInstanceSpec.class,
+	SiteWhereInstanceStatus.class, DoneableSiteWhereInstance.class, ComponentHelmSpec.class, BootstrapState.class })
 public class InstanceConfigurationMonitor extends SiteWhereResourceController<SiteWhereInstance>
 	implements IInstanceConfigurationMonitor {
 

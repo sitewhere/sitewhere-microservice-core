@@ -7,9 +7,12 @@
  */
 package com.sitewhere.microservice.configuration.model.instance;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
 /**
  * Details of an instance-level Cassandra configuration.
  */
+@RegisterForReflection
 public class CassandraConfiguration {
 
     /** Contact points */

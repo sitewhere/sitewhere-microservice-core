@@ -26,15 +26,26 @@ import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationMo
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.sitewhere.k8s.crd.ResourceContexts;
 import io.sitewhere.k8s.crd.controller.ResourceChangeType;
 import io.sitewhere.k8s.crd.controller.SiteWhereResourceController;
+import io.sitewhere.k8s.crd.microservice.DoneableSiteWhereMicroservice;
+import io.sitewhere.k8s.crd.microservice.MicroserviceDebugSpecification;
+import io.sitewhere.k8s.crd.microservice.MicroservicePodSpecification;
+import io.sitewhere.k8s.crd.microservice.MicroserviceServiceSpecification;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroserviceList;
+import io.sitewhere.k8s.crd.microservice.SiteWhereMicroserviceSpec;
+import io.sitewhere.k8s.crd.microservice.SiteWhereMicroserviceStatus;
 
 /**
  * Monitors microservice resources for changes.
  */
+@RegisterForReflection(targets = { SiteWhereMicroservice.class, SiteWhereMicroserviceList.class,
+	SiteWhereMicroserviceSpec.class, SiteWhereMicroserviceStatus.class, DoneableSiteWhereMicroservice.class,
+	MicroserviceDebugSpecification.class, MicroservicePodSpecification.class,
+	MicroserviceServiceSpecification.class })
 public class MicroserviceConfigurationMonitor extends SiteWhereResourceController<SiteWhereMicroservice>
 	implements IMicroserviceConfigurationMonitor {
 

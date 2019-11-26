@@ -5,12 +5,12 @@
  * license, a copy of which has been included with this distribution in the
  * LICENSE.txt file.
  */
-package com.sitewhere.spi.microservice.groovy;
+package com.sitewhere.spi.microservice.scripting;
 
 /**
- * Variables injected into Groovy decoders.
+ * Names used when injecting variables into scripts.
  */
-public interface IGroovyVariables {
+public interface IScriptVariables {
 
     /** Groovy variable used for tenant information */
     public static final String VAR_TENANT = "tenant";

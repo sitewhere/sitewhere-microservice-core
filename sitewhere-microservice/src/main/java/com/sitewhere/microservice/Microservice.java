@@ -44,8 +44,6 @@ import com.sitewhere.spi.microservice.state.ITenantEngineState;
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 import com.sitewhere.spi.system.IVersion;
 
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
@@ -71,7 +69,8 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     IInstanceSettings instanceSettings;
 
     /** Kubernetes client */
-    private DefaultKubernetesClient kubernetesClient;
+    @Inject
+    DefaultKubernetesClient kubernetesClient;
 
     /** SiteWhere Kubernetes client wrapper */
     private ISiteWhereKubernetesClient sitewhereKubernetesClient;
@@ -204,8 +203,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      * @throws SiteWhereException
      */
     protected void initializeK8sConnectivity() throws SiteWhereException {
-	Config config = new ConfigBuilder().withNamespace(null).build();
-	this.kubernetesClient = new DefaultKubernetesClient(config);
 	this.sitewhereKubernetesClient = new SiteWhereKubernetesClient(getKubernetesClient());
 	this.sharedInformerFactory = getKubernetesClient().informers();
 

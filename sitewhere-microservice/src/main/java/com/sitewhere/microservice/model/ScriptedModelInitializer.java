@@ -7,10 +7,13 @@
  */
 package com.sitewhere.microservice.model;
 
+import com.sitewhere.microservice.scripting.ScriptingComponent;
 import com.sitewhere.spi.microservice.model.IModelInitializer;
 
 /**
- * Base class for model initializer implementations.
+ * Model initializer that uses a script to bootstrap model.
+ * 
+ * @param <T>
  */
-public class ModelInitializer implements IModelInitializer {
+public class ScriptedModelInitializer<T> extends ScriptingComponent<T> implements IModelInitializer {
 }

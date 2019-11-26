@@ -7,24 +7,18 @@
  */
 package com.sitewhere.microservice.multitenant;
 
-import com.sitewhere.microservice.groovy.GroovyConfiguration;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
-import com.sitewhere.microservice.scripting.ScriptSynchronizer;
-import com.sitewhere.microservice.scripting.TenantEngineScriptContext;
 import com.sitewhere.microservice.scripting.TenantEngineScriptManager;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
-import com.sitewhere.spi.microservice.groovy.IGroovyConfiguration;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineConfiguration;
-import com.sitewhere.spi.microservice.scripting.IScriptContext;
-import com.sitewhere.spi.microservice.scripting.IScriptSynchronizer;
 import com.sitewhere.spi.microservice.state.ITenantEngineState;
 import com.sitewhere.spi.tenant.ITenant;
 
@@ -44,31 +38,19 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     /** Hosted tenant */
     private ITenant tenant;
 
-    /** Script synchronizer */
-    private IScriptSynchronizer scriptSynchronizer;
-
-    /** Script context */
-    private IScriptContext scriptContext;
-
     /** Script manager */
     private TenantEngineScriptManager scriptManager;
 
     /** Dataset bootstrap manager */
     private DatasetBootstrapManager bootstrapManager;
 
-    /** Groovy configuration */
-    private IGroovyConfiguration groovyConfiguration;
-
     /** Module context information */
     private Object moduleContext;
 
     public MicroserviceTenantEngine(ITenant tenant) {
 	this.tenant = tenant;
-	this.scriptSynchronizer = new ScriptSynchronizer();
 	this.scriptManager = new TenantEngineScriptManager();
-	this.scriptContext = new TenantEngineScriptContext(this);
 	this.bootstrapManager = new DatasetBootstrapManager();
-	this.groovyConfiguration = new GroovyConfiguration(getScriptContext(), getScriptSynchronizer());
     }
 
     /*
@@ -91,14 +73,8 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	// Create step that will initialize components.
 	ICompositeLifecycleStep init = new CompositeLifecycleStep("Initialize tenant engine " + getTenant().getName());
 
-	// Initialize script synchronizer.
-	init.addInitializeStep(this, getScriptSynchronizer(), true);
-
 	// Initialize script manager.
 	init.addInitializeStep(this, getScriptManager(), true);
-
-	// Initialize Groovy configuration.
-	init.addInitializeStep(this, getGroovyConfiguration(), true);
 
 	// Initialize bootstrap manager.
 	init.addInitializeStep(this, getBootstrapManager(), true);
@@ -140,14 +116,8 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	// Create step that will start components.
 	ICompositeLifecycleStep start = new CompositeLifecycleStep("Start tenant engine " + getTenant().getName());
 
-	// Start script synchronizer.
-	start.addStartStep(this, getScriptSynchronizer(), true);
-
 	// Start tenant script manager.
 	start.addStartStep(this, getScriptManager(), true);
-
-	// Start Groovy configuration.
-	start.addStartStep(this, getGroovyConfiguration(), true);
 
 	// Execute startup steps.
 	start.execute(monitor);
@@ -178,14 +148,8 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	// Create step that will stop components.
 	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Stop tenant engine " + getTenant().getName());
 
-	// Stop Groovy configuration.
-	stop.addStopStep(this, getGroovyConfiguration());
-
 	// Stop tenant script manager.
 	stop.addStopStep(this, getScriptManager());
-
-	// Stop script synchronizer.
-	stop.addStopStep(this, getScriptSynchronizer());
 
 	// Execute shutdown steps.
 	stop.execute(monitor);
@@ -203,14 +167,8 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	// Create step that will terminate components.
 	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Terminate tenant engine " + getTenant().getName());
 
-	// Terminate Groovy configuration.
-	stop.addTerminateStep(this, getGroovyConfiguration());
-
 	// Terminate tenant script manager.
 	stop.addTerminateStep(this, getScriptManager());
-
-	// Terminate script synchronizer.
-	stop.addTerminateStep(this, getScriptSynchronizer());
 
 	// Execute terminate steps.
 	stop.execute(monitor);
@@ -446,19 +404,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
     /*
      * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * getScriptSynchronizer()
-     */
-    @Override
-    public IScriptSynchronizer getScriptSynchronizer() {
-	return scriptSynchronizer;
-    }
-
-    public void setScriptSynchronizer(IScriptSynchronizer scriptSynchronizer) {
-	this.scriptSynchronizer = scriptSynchronizer;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
      * getScriptManager()
      */
     @Override
@@ -472,19 +417,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
     /*
      * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * getScriptContext()
-     */
-    @Override
-    public IScriptContext getScriptContext() {
-	return scriptContext;
-    }
-
-    public void setScriptContext(IScriptContext scriptContext) {
-	this.scriptContext = scriptContext;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
      * getBootstrapManager()
      */
     @Override
@@ -494,19 +426,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
     public void setBootstrapManager(DatasetBootstrapManager bootstrapManager) {
 	this.bootstrapManager = bootstrapManager;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * getGroovyConfiguration()
-     */
-    @Override
-    public IGroovyConfiguration getGroovyConfiguration() {
-	return groovyConfiguration;
-    }
-
-    public void setGroovyConfiguration(IGroovyConfiguration groovyConfiguration) {
-	this.groovyConfiguration = groovyConfiguration;
     }
 
     /*
