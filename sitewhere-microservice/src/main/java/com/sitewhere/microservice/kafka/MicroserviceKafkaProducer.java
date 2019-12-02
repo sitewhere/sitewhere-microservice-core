@@ -194,7 +194,7 @@ public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleCom
 			    IInstanceSettings settings = getMicroservice().getInstanceSettings();
 			    NewTopic newTopic = new NewTopic(getTargetTopicName(),
 				    settings.getKafkaDefaultTopicPartitions(),
-				    (short) settings.getKafkaDefaultTopicReplicationFactor());
+				    (short) settings.getKafkaDefaultTopicReplicationFactor().intValue());
 			    CreateTopicsResult result = getKafkaAdmin()
 				    .createTopics(Collections.singletonList(newTopic));
 			    result.all().get();

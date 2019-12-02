@@ -89,12 +89,9 @@ public class MarshalUtils {
      * @param json
      * @param type
      * @return
+     * @throws JsonProcessingException
      */
-    public static <T> T unmarshalJsonNode(JsonNode json, Class<T> type) {
-	try {
-	    return MAPPER.treeToValue(json, type);
-	} catch (Throwable e) {
-	    throw new RuntimeException("Unable to parse JSON.", e);
-	}
+    public static <T> T unmarshalJsonNode(JsonNode json, Class<T> type) throws JsonProcessingException {
+	return MAPPER.treeToValue(json, type);
     }
 }

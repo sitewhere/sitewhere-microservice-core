@@ -15,6 +15,7 @@ import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 import com.sitewhere.spi.microservice.metrics.IMetricsServer;
+import com.sitewhere.spi.microservice.scripting.IScriptManager;
 import com.sitewhere.spi.microservice.scripting.IScriptTemplateManager;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
@@ -130,6 +131,14 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
      * @return
      */
     IKafkaTopicNaming getKafkaTopicNaming();
+
+    /**
+     * Get manager for lastest versions of scripts which may be executed by
+     * components.
+     * 
+     * @return
+     */
+    IScriptManager getScriptManager();
 
     /**
      * Get manager for script templates which provide examples of

@@ -7,10 +7,30 @@
  */
 package com.sitewhere.spi.microservice.scripting;
 
+import com.sitewhere.microservice.scripting.Binding;
+import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 
 /**
  * Common interface for scripting components.
  */
-public interface IScriptingComponent extends ITenantEngineLifecycleComponent {
+public interface IScriptingComponent<T> extends ITenantEngineLifecycleComponent {
+
+    /**
+     * Get unique id of script within scripting context.
+     * 
+     * @return
+     */
+    String getScriptId();
+
+    /**
+     * Run script in the given scope with the given binding.
+     * 
+     * @param scope
+     * @param type
+     * @param binding
+     * @return
+     * @throws SiteWhereException
+     */
+    T run(ScriptScope scope, ScriptType type, Binding binding) throws SiteWhereException;
 }

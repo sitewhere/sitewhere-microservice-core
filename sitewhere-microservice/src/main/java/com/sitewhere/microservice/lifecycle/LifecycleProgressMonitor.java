@@ -48,6 +48,10 @@ public class LifecycleProgressMonitor implements ILifecycleProgressMonitor {
 	}
     }
 
+    public static LifecycleProgressMonitor createFor(String operation, IMicroservice<?, ?> microservice) {
+	return new LifecycleProgressMonitor(new LifecycleProgressContext(1, operation), microservice);
+    }
+
     /*
      * (non-Javadoc)
      * 

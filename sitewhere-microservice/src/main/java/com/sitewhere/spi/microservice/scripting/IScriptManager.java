@@ -11,16 +11,43 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 
 /**
- * Manages runtime scripting support for a microservice.
+ * Manages runtime scripting support for a microservice or tenant engine.
  */
 public interface IScriptManager extends ITenantEngineLifecycleComponent {
 
     /**
-     * Resolve a script id.
+     * Adds bootstrap script with a given identifier.
      * 
-     * @param scriptId
+     * @param identifier
+     * @param content
+     * @throws SiteWhereException
+     */
+    void addBootstrapScript(String identifier, String content) throws SiteWhereException;
+
+    /**
+     * Adds content from a managed script.
+     * 
+     * @param metadata
+     * @param content
+     * @throws SiteWhereException
+     */
+    void addManagedScript(IScriptMetadata metadata, String content) throws SiteWhereException;
+
+    /**
+     * Resolve a bootstrap script based on identifier.
+     * 
+     * @param identifier
      * @return
      * @throws SiteWhereException
      */
-    IScriptMetadata resolve(String scriptId) throws SiteWhereException;
+    String resolveBootstrapScript(String identifier) throws SiteWhereException;
+
+    /**
+     * Resolve a managed script based on identifier.
+     * 
+     * @param identifier
+     * @return
+     * @throws SiteWhereException
+     */
+    String resolveManagedScript(String identifier) throws SiteWhereException;
 }

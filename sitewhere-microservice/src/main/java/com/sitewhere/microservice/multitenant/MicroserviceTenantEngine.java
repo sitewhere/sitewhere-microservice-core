@@ -10,7 +10,7 @@ package com.sitewhere.microservice.multitenant;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
-import com.sitewhere.microservice.scripting.TenantEngineScriptManager;
+import com.sitewhere.microservice.scripting.ScriptManager;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
@@ -19,6 +19,7 @@ import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineConfiguration;
+import com.sitewhere.spi.microservice.scripting.IScriptManager;
 import com.sitewhere.spi.microservice.state.ITenantEngineState;
 import com.sitewhere.spi.tenant.ITenant;
 
@@ -39,7 +40,7 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     private ITenant tenant;
 
     /** Script manager */
-    private TenantEngineScriptManager scriptManager;
+    private IScriptManager scriptManager;
 
     /** Dataset bootstrap manager */
     private DatasetBootstrapManager bootstrapManager;
@@ -49,7 +50,7 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
     public MicroserviceTenantEngine(ITenant tenant) {
 	this.tenant = tenant;
-	this.scriptManager = new TenantEngineScriptManager();
+	this.scriptManager = new ScriptManager();
 	this.bootstrapManager = new DatasetBootstrapManager();
     }
 
@@ -407,11 +408,11 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
      * getScriptManager()
      */
     @Override
-    public TenantEngineScriptManager getScriptManager() {
+    public IScriptManager getScriptManager() {
 	return scriptManager;
     }
 
-    public void setScriptManager(TenantEngineScriptManager scriptManager) {
+    public void setScriptManager(IScriptManager scriptManager) {
 	this.scriptManager = scriptManager;
     }
 

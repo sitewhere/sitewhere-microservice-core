@@ -9,6 +9,7 @@ package com.sitewhere.microservice.configuration;
 
 import java.util.concurrent.CountDownLatch;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.microservice.Microservice;
 import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
@@ -101,9 +102,15 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 
 	// Save updated resource and parse configuration.
 	this.lastInstanceResource = instance;
-	InstanceConfiguration configuration = MarshalUtils.unmarshalJsonNode(instance.getSpec().getConfiguration(),
-		InstanceConfiguration.class);
-	this.instanceConfiguration = configuration;
+	try {
+	    InstanceConfiguration configuration = MarshalUtils.unmarshalJsonNode(instance.getSpec().getConfiguration(),
+		    InstanceConfiguration.class);
+	    this.instanceConfiguration = configuration;
+	} catch (JsonProcessingException e) {
+	    getLogger().error(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
+		    e.getMessage(), instance.getSpec().getConfiguration()));
+	    return;
+	}
 
 	// If configuration was not updated, skip context restart.
 	if (wasConfigured && !configUpdated) {
@@ -144,6 +151,11 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void onMicroserviceUpdated(SiteWhereMicroservice microservice) {
+	// Only process updates for the functional area of this microservice.
+	if (!getIdentifier().getPath().equals(microservice.getSpec().getFunctionalArea())) {
+	    return;
+	}
+
 	boolean wasConfigured = getLastMicroserviceResource() != null
 		&& getLastMicroserviceResource().getSpec().getConfiguration() != null;
 	boolean configUpdated = wasConfigured && !getLastMicroserviceResource().getSpec().getConfiguration()
@@ -154,9 +166,14 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 
 	// Save updated resource and parse configuration.
 	this.lastMicroserviceResource = microservice;
-	C configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
-		getConfigurationClass());
-	this.microserviceConfiguration = configuration;
+	try {
+	    C configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
+		    getConfigurationClass());
+	    this.microserviceConfiguration = configuration;
+	} catch (JsonProcessingException e) {
+	    getLogger().error(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
+		    e.getMessage(), microservice.getSpec().getConfiguration()));
+	}
 
 	// If configuration was not updated, skip context restart.
 	if (wasConfigured && !configUpdated) {
@@ -502,12 +519,18 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	    }
 
 	    // Load instance YAML configuration as JSON.
-	    JsonNode instanceJson = instance.getSpec().getConfiguration();
-	    InstanceConfiguration instanceConfiguration = MarshalUtils.unmarshalJsonNode(instanceJson,
-		    InstanceConfiguration.class);
-	    if (getLogger().isDebugEnabled()) {
-		getLogger().debug(String.format("\nINSTANCE CONFIG:\n\n%s\n",
-			MarshalUtils.marshalJsonAsPrettyString(instanceConfiguration)));
+	    try {
+		JsonNode instanceJson = instance.getSpec().getConfiguration();
+		InstanceConfiguration instanceConfiguration = MarshalUtils.unmarshalJsonNode(instanceJson,
+			InstanceConfiguration.class);
+		if (getLogger().isDebugEnabled()) {
+		    getLogger().debug(String.format("\nINSTANCE CONFIG:\n\n%s\n",
+			    MarshalUtils.marshalJsonAsPrettyString(instanceConfiguration)));
+		}
+		this.instanceConfiguration = instanceConfiguration;
+	    } catch (JsonProcessingException e) {
+		throw new SiteWhereException(String.format("Invalid instance configuration (%s). Content is: \n\n%s\n",
+			e.getMessage(), instance.getSpec().getConfiguration()));
 	    }
 
 	    ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
@@ -647,33 +670,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	} catch (InterruptedException e) {
 	    throw new SiteWhereException("Interrupted while waiting for instance configuration to become available.");
 	}
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * microserviceInitialize(com.sitewhere.spi.server.lifecycle.
-     * ILifecycleProgressMonitor)
-     */
-    @Override
-    public void microserviceInitialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * microserviceStart(com.sitewhere.spi.server.lifecycle.
-     * ILifecycleProgressMonitor)
-     */
-    @Override
-    public void microserviceStart(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * microserviceStop(com.sitewhere.spi.server.lifecycle.
-     * ILifecycleProgressMonitor)
-     */
-    @Override
-    public void microserviceStop(ILifecycleProgressMonitor monitor) throws SiteWhereException {
     }
 
     /*

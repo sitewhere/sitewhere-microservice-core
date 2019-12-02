@@ -134,30 +134,6 @@ public interface IConfigurableMicroservice<F extends IFunctionIdentifier, C exte
 	    throws SiteWhereException;
 
     /**
-     * Perform microservice initialization.
-     * 
-     * @param monitor
-     * @throws SiteWhereException
-     */
-    void microserviceInitialize(ILifecycleProgressMonitor monitor) throws SiteWhereException;
-
-    /**
-     * Called to start microservice after initialization.
-     * 
-     * @param monitor
-     * @throws SiteWhereException
-     */
-    void microserviceStart(ILifecycleProgressMonitor monitor) throws SiteWhereException;
-
-    /**
-     * Called to stop microservice before termination.
-     * 
-     * @param monitor
-     * @throws SiteWhereException
-     */
-    void microserviceStop(ILifecycleProgressMonitor monitor) throws SiteWhereException;
-
-    /**
      * Initialize components from the given context marked as
      * {@link IDiscoverableTenantLifecycleComponent}.
      * 

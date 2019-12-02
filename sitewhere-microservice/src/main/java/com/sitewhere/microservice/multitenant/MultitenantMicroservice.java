@@ -47,12 +47,6 @@ public abstract class MultitenantMicroservice<F extends IFunctionIdentifier, C e
 
 	// Execute initialization steps.
 	init.execute(monitor);
-
-	// Wait for microservice to be configured.
-	waitForConfigurationReady();
-
-	// Call logic for initializing microservice subclass.
-	microserviceInitialize(monitor);
     }
 
     /*
@@ -74,9 +68,6 @@ public abstract class MultitenantMicroservice<F extends IFunctionIdentifier, C e
 
 	// Execute startup steps.
 	start.execute(monitor);
-
-	// Call logic for starting microservice subclass.
-	microserviceStart(monitor);
     }
 
     /*
@@ -89,9 +80,6 @@ public abstract class MultitenantMicroservice<F extends IFunctionIdentifier, C e
     @Override
     public void stop(ILifecycleProgressMonitor monitor) throws SiteWhereException {
 	super.stop(monitor);
-
-	// Call logic for stopping microservice subclass.
-	microserviceStop(monitor);
 
 	// Create step that will stop components.
 	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Stop " + getName());

@@ -9,141 +9,70 @@ package com.sitewhere.spi.microservice.instance;
 
 import java.util.Optional;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import io.quarkus.arc.config.ConfigProperties;
+
 /**
  * Common settings used in a SiteWhere instance.
  */
+@ConfigProperties(prefix = "sitewhere.config")
 public interface IInstanceSettings {
 
-    /**
-     * Get product identifier.
-     * 
-     * @return
-     */
+    @ConfigProperty(name = "product.id", defaultValue = "sitewhere")
     String getProductId();
 
-    /**
-     * Get unique id for instance.
-     * 
-     * @return
-     */
+    @ConfigProperty(name = "instance.id", defaultValue = "sitewhere1")
     String getInstanceId();
 
-    /**
-     * Get id of instance template to use.
-     * 
-     * @return
-     */
+    @ConfigProperty(name = "instance.template.id", defaultValue = "default")
     String getInstanceTemplateId();
 
-    /**
-     * Get Kafka bootstrap servers configuration string.
-     * 
-     * @return
-     */
+    @ConfigProperty(name = "kafka.bootstrap.servers", defaultValue = "cp-kafka:9092")
     String getKafkaBootstrapServers();
 
-    /**
-     * Get default number of partitions used for Kafka topics.
-     * 
-     * @return
-     */
-    int getKafkaDefaultTopicPartitions();
+    @ConfigProperty(name = "kafka.defaultTopicPartitions", defaultValue = "8")
+    Integer getKafkaDefaultTopicPartitions();
 
-    /**
-     * Get default replication factor used for Kafka topics.
-     * 
-     * @return
-     */
-    int getKafkaDefaultTopicReplicationFactor();
+    @ConfigProperty(name = "kafka.defaultTopicReplicationFactor", defaultValue = "3")
+    Integer getKafkaDefaultTopicReplicationFactor();
 
-    /**
-     * Get hostname used by microservices to connect to Apache Syncope API.
-     * 
-     * @return
-     */
+    @ConfigProperty(name = "metrics.port", defaultValue = "9090")
+    Integer getMetricsHttpPort();
+
+    @ConfigProperty(name = "filesystem.storage.root", defaultValue = "/var/sitewhere/")
+    public String getFileSystemStorageRoot();
+
+    @ConfigProperty(name = "log.metrics", defaultValue = "false")
+    public Boolean getLogMetrics();
+
+    @ConfigProperty(name = "service.public.hostname")
+    public Optional<String> getPublicHostname();
+
+    @ConfigProperty(name = "namespace")
+    public Optional<String> getKubernetesNamespace();
+
+    @ConfigProperty(name = "k8s.pod.ip")
+    public Optional<String> getKubernetesPodAddress();
+
+    @ConfigProperty(name = "syncope.host", defaultValue = "syncope")
     String getSyncopeHost();
 
-    /**
-     * Get port used by microservices to connect to Apache Syncope API.
-     * 
-     * @return
-     */
-    int getSyncopePort();
+    @ConfigProperty(name = "syncope.port", defaultValue = "8080")
+    Integer getSyncopePort();
 
-    /**
-     * Get port used to allow HTTP metrics scraping.
-     * 
-     * @return
-     */
-    int getMetricsHttpPort();
+    @ConfigProperty(name = "grpcMaxRetryCount", defaultValue = "6")
+    Double getGrpcMaxRetryCount();
 
-    /**
-     * Get max retries for gRPC exponential backoff.
-     * 
-     * @return
-     */
-    double getGrpcMaxRetryCount();
+    @ConfigProperty(name = "grpcInitialBackoffSeconds", defaultValue = "10")
+    public Integer getGrpcInitialBackoffInSeconds();
 
-    /**
-     * Get initial wait time for exponential backoff on gRPC calls.
-     * 
-     * @return
-     */
-    int getGrpcInitialBackoffInSeconds();
+    @ConfigProperty(name = "grpcMaxBackoffSeconds", defaultValue = "600")
+    public Integer getGrpcMaxBackoffInSeconds();
 
-    /**
-     * Get max time for exponential backoff on gRPC calls.
-     * 
-     * @return
-     */
-    int getGrpcMaxBackoffInSeconds();
+    @ConfigProperty(name = "grpcBackoffMultiplier", defaultValue = "1.5")
+    public Double getGrpcBackoffMultiplier();
 
-    /**
-     * Get multiplier used for exponential backoff.
-     * 
-     * @return
-     */
-    double getGrpcBackoffMultiplier();
-
-    /**
-     * Indicates whether FQDN is used when resolving gRPC services.
-     * 
-     * @return
-     */
-    boolean isGrpcResolveFQDN();
-
-    /**
-     * Get root filesystem path where microservice resources may be stored.
-     * 
-     * @return
-     */
-    String getFileSystemStorageRoot();
-
-    /**
-     * Indicates whether to log metrics.
-     * 
-     * @return
-     */
-    boolean isLogMetrics();
-
-    /**
-     * Identifies public hostname used to access microservice instance.
-     * 
-     * @return
-     */
-    Optional<String> getPublicHostname();
-
-    /**
-     * Get Kubernetes namespace.
-     * 
-     * @return
-     */
-    Optional<String> getKubernetesNamespace();
-
-    /**
-     * Get IP address for Kubernetes Pod running microservice.
-     * 
-     * @return
-     */
-    Optional<String> getKubernetesPodAddress();
+    @ConfigProperty(name = "grpcResolveFQDN", defaultValue = "false")
+    public Boolean getGrpcResolveFQDN();
 }

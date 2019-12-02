@@ -7,11 +7,26 @@
  */
 package com.sitewhere.microservice.scripting;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Placeholder for variable binding.
  */
 public class Binding {
 
+    /** Map of bound objects */
+    private Map<String, Object> boundObjects = new HashMap<>();
+
     public void setVariable(String name, Object value) {
+	getBoundObjects().put(name, value);
+    }
+
+    public Map<String, Object> getBoundObjects() {
+	return boundObjects;
+    }
+
+    public void setBoundObjects(Map<String, Object> boundObjects) {
+	this.boundObjects = boundObjects;
     }
 }

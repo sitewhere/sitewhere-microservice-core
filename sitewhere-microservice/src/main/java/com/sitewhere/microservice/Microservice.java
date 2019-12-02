@@ -23,6 +23,7 @@ import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.microservice.metrics.MetricsServer;
+import com.sitewhere.microservice.scripting.ScriptManager;
 import com.sitewhere.microservice.scripting.ScriptTemplateManager;
 import com.sitewhere.microservice.tenant.persistence.KubernetesTenantManagement;
 import com.sitewhere.spi.SiteWhereException;
@@ -35,6 +36,7 @@ import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.metrics.IMetricsServer;
+import com.sitewhere.spi.microservice.scripting.IScriptManager;
 import com.sitewhere.spi.microservice.scripting.IScriptTemplateManager;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
@@ -95,6 +97,9 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 
     /** Version information */
     private IVersion version = new Version();
+
+    /** Script manager */
+    private IScriptManager scriptManager = new ScriptManager();
 
     /** Script template manager instance */
     private IScriptTemplateManager scriptTemplateManager;
@@ -170,6 +175,12 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 
 	// Organizes steps for initializing microservice.
 	ICompositeLifecycleStep initialize = new CompositeLifecycleStep("Initialize " + getName());
+
+	// Initialize script manager.
+	initialize.addInitializeStep(this, getScriptManager(), true);
+
+	// Start script manager.
+	initialize.addStartStep(this, getScriptManager(), true);
 
 	// Initialize script template manager.
 	initialize.addInitializeStep(this, getScriptTemplateManager(), true);
@@ -256,6 +267,9 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	// Terminate script template manager.
 	stop.addStopStep(this, getScriptTemplateManager());
 
+	// Terminate script manager.
+	stop.addStopStep(this, getScriptTemplateManager());
+
 	// Add step for stopping k8s client.
 	stop.addStep(new SimpleLifecycleStep("Stop Kubernetes client") {
 
@@ -336,7 +350,12 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	if (instanceId == null) {
 	    throw new SiteWhereException("Instance id not set on microservice.");
 	}
-	return getSiteWhereKubernetesClient().getInstances().withName(instanceId).get();
+	SiteWhereInstance found = getSiteWhereKubernetesClient().getInstances().withName(instanceId).get();
+	if (found == null) {
+	    throw new SiteWhereException(String
+		    .format("No instance descriptor found with name '%s'. Unable to load configuration.", instanceId));
+	}
+	return found;
     }
 
     /*
@@ -479,6 +498,18 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 
     public void setKafkaTopicNaming(IKafkaTopicNaming kafkaTopicNaming) {
 	this.kafkaTopicNaming = kafkaTopicNaming;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#getScriptManager()
+     */
+    @Override
+    public IScriptManager getScriptManager() {
+	return scriptManager;
+    }
+
+    public void setScriptManager(IScriptManager scriptManager) {
+	this.scriptManager = scriptManager;
     }
 
     /*

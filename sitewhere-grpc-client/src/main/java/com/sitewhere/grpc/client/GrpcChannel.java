@@ -103,7 +103,7 @@ public abstract class GrpcChannel<B, A> extends TenantEngineLifecycleComponent i
 		: settings.getInstanceId() + "-sitewhere-";
 	String namespace = settings.getKubernetesNamespace().isPresent() ? settings.getKubernetesNamespace().get()
 		: "default";
-	if (settings.isGrpcResolveFQDN()) {
+	if (settings.getGrpcResolveFQDN()) {
 	    return instanceId + identifier.getPath() + "-svc." + namespace + ".svc.cluster.local";
 	} else {
 	    return instanceId + identifier.getPath() + "-svc";
