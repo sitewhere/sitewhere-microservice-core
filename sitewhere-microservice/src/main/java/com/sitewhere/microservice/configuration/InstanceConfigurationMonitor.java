@@ -88,8 +88,14 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
      */
     @Override
     public void reconcileResourceChange(ResourceChangeType type, SiteWhereInstance instance) {
+	// Skip changes that don't affect specification.
+	if (this.instanceResource != null
+		&& this.instanceResource.getMetadata().getGeneration() == instance.getMetadata().getGeneration()) {
+	    return;
+	}
 	LOGGER.info(String.format("Detected %s resource change in instance %s.", type.name(),
 		instance.getMetadata().getName()));
+	SiteWhereInstance previous = this.instanceResource;
 	switch (type) {
 	case CREATE: {
 	    this.instanceResource = instance;
@@ -98,7 +104,9 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
 	}
 	case UPDATE: {
 	    this.instanceResource = instance;
-	    getListeners().forEach(listener -> listener.onInstanceUpdated(instance));
+	    InstanceSpecUpdates specUpdates = findSpecificationUpdates(previous, instance);
+	    InstanceStatusUpdates statusUpdates = findStatusUpdates(previous, instance);
+	    getListeners().forEach(listener -> listener.onInstanceUpdated(instance, specUpdates, statusUpdates));
 	    break;
 	}
 	case DELETE: {
@@ -107,6 +115,84 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
 	    break;
 	}
 	}
+    }
+
+    /**
+     * Determine which updates were made to instance specification.
+     * 
+     * @param previous
+     * @param updated
+     * @return
+     */
+    protected InstanceSpecUpdates findSpecificationUpdates(SiteWhereInstance previous, SiteWhereInstance updated) {
+	InstanceSpecUpdates updates = new InstanceSpecUpdates();
+	SiteWhereInstanceSpec oldSpec = previous.getSpec();
+	SiteWhereInstanceSpec newSpec = updated.getSpec();
+
+	// Check for null in new spec.
+	if (newSpec == null) {
+	    LOGGER.warn("New instance spec set to NULL!");
+	    return updates;
+	}
+
+	// Detect instance namespace updated.
+	if (oldSpec != null && oldSpec.getInstanceNamespace() != null
+		&& !oldSpec.getInstanceNamespace().equals(newSpec.getInstanceNamespace())) {
+	    updates.setInstanceNamespaceUpdated(true);
+	}
+
+	// Check whether configuration template was updated.
+	if (oldSpec != null && oldSpec.getConfigurationTemplate() != null
+		&& !oldSpec.getConfigurationTemplate().equals(newSpec.getConfigurationTemplate())) {
+	    updates.setConfigurationTemplateUpdated(true);
+	}
+
+	// Check whether dataset template was updated.
+	if (oldSpec != null && oldSpec.getDatasetTemplate() != null
+		&& !oldSpec.getDatasetTemplate().equals(newSpec.getDatasetTemplate())) {
+	    updates.setDatasetTemplateUpdated(true);
+	}
+
+	// Check whether configuration was updated.
+	if (oldSpec != null && oldSpec.getConfiguration() != null
+		&& !oldSpec.getConfiguration().equals(newSpec.getConfiguration())) {
+	    updates.setConfigurationUpdated(true);
+	}
+
+	return updates;
+    }
+
+    /**
+     * Determine which updates were made to instance status.
+     * 
+     * @param previous
+     * @param updated
+     * @return
+     */
+    protected InstanceStatusUpdates findStatusUpdates(SiteWhereInstance previous, SiteWhereInstance updated) {
+	InstanceStatusUpdates updates = new InstanceStatusUpdates();
+	SiteWhereInstanceStatus oldStatus = previous.getStatus();
+	SiteWhereInstanceStatus newStatus = updated.getStatus();
+
+	// Check for null in new status.
+	if (newStatus == null) {
+	    LOGGER.warn("New instance status set to NULL!");
+	    return updates;
+	}
+
+	// Detect tenant management bootstrap state updated.
+	if (oldStatus != null
+		&& oldStatus.getTenantManagementBootstrapState() != newStatus.getTenantManagementBootstrapState()) {
+	    updates.setTenantManagementBootstrapStateUpdated(true);
+	}
+
+	// Detect user management bootstrap state updated.
+	if (oldStatus != null
+		&& oldStatus.getUserManagementBootstrapState() != newStatus.getUserManagementBootstrapState()) {
+	    updates.setUserManagementBootstrapStateUpdated(true);
+	}
+
+	return updates;
     }
 
     /*

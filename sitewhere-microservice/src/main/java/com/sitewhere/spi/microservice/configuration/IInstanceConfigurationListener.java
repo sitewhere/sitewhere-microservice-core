@@ -25,8 +25,11 @@ public interface IInstanceConfigurationListener {
      * Called when instance configuration is updated.
      * 
      * @param instance
+     * @param specUpdates
+     * @param statusUpdates
      */
-    void onInstanceUpdated(SiteWhereInstance instance);
+    void onInstanceUpdated(SiteWhereInstance instance, IInstanceSpecUpdates specUpdates,
+	    IInstanceStatusUpdates statusUpdates);
 
     /**
      * Called when instance configuration is deleted.

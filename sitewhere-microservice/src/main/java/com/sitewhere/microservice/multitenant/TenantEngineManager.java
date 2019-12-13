@@ -36,6 +36,9 @@ import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableExcept
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 import com.sitewhere.spi.tenant.ITenant;
 
+import io.sitewhere.k8s.crd.ResourceLabels;
+import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineList;
+
 /**
  * Tenant engine manager implementation.
  * 
@@ -46,16 +49,8 @@ import com.sitewhere.spi.tenant.ITenant;
 public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration, T extends IMicroserviceTenantEngine<?>>
 	extends LifecycleComponent implements ITenantEngineManager<T> {
 
-    /** Number of seconds between fallback attempts for checking tenant bootstrap */
-    @SuppressWarnings("unused")
-    private static final int BOOTSTRAP_CHECK_MAX_SECS_BETWEEN_RETRIES = 15;
-
     /** Max number of tenants being added/removed concurrently */
     private static final int MAX_CONCURRENT_TENANT_OPERATIONS = 5;
-
-    /** Max time to wait for tenant to be bootstrapped from template */
-    @SuppressWarnings("unused")
-    private static final long MAX_WAIT_FOR_TENANT_BOOTSTRAPPED = 60 * 1000;
 
     /** Map of tenant engines that have been initialized */
     private ConcurrentMap<String, T> initializedTenantEngines = new MapMaker().concurrencyLevel(4).makeMap();
@@ -92,7 +87,6 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
 		new TenantOperationsThreadFactory());
 
 	// Initialize tenant engines.
-	waitForTenantsBootstrapped();
 	initializeTenantEngines();
     }
 
@@ -174,43 +168,17 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
     }
 
     /**
-     * Wait for tenants to be bootstrapped by instance management microservice.
-     */
-    protected void waitForTenantsBootstrapped() {
-	// Callable<Boolean> connectCheck = () -> {
-	// Stat existing =
-	// getMicroservice().getZookeeperManager().getCurator().checkExists()
-	// .forPath(getMultitenantMicroservice().getInstanceTenantsBootstrappedMarker());
-	// if (existing == null) {
-	// throw new SiteWhereException("Tenants not bootstrapped within waiting
-	// period.");
-	// }
-	// return true;
-	// };
-	// RetryConfig config = new
-	// RetryConfigBuilder().retryOnAnyException().retryIndefinitely().withRandomBackoff()
-	// .withDelayBetweenTries(Duration.ofSeconds(BOOTSTRAP_CHECK_MAX_SECS_BETWEEN_RETRIES)).build();
-	// RetryListener<Boolean> listener = new RetryListener<Boolean>() {
-	//
-	// @Override
-	// public void onEvent(Status<Boolean> status) {
-	// getLogger().info(String.format(
-	// "Waiting for tenants to be bootstrapped. Attempt %d (total wait so far %dms).
-	// Retrying after fallback...",
-	// status.getTotalTries(), status.getTotalElapsedDuration().toMillis()));
-	// }
-	// };
-	// new
-	// CallExecutorBuilder().config(config).afterFailedTryListener(listener).build().execute(connectCheck);
-    }
-
-    /**
      * Initialize tenant engines by inspecting the list of tenant configurations,
      * loading tenant information, then creating a tenant engine for each.
      * 
      * @throws SiteWhereException
      */
     protected void initializeTenantEngines() throws SiteWhereException {
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace().isPresent()
+		? getMicroservice().getInstanceSettings().getKubernetesNamespace().get()
+		: "default";
+	SiteWhereTenantEngineList list = getMicroservice().getSiteWhereKubernetesClient().getTenantEngines()
+		.inNamespace(namespace).withLabel(ResourceLabels.LABEL_SITEWHERE_MICROSERVICE, "xxx").list();
 	// CuratorFramework curator =
 	// getMicroservice().getZookeeperManager().getCurator();
 	// try {

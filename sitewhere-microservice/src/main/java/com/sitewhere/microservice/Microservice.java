@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
@@ -26,12 +27,15 @@ import com.sitewhere.microservice.metrics.MetricsServer;
 import com.sitewhere.microservice.scripting.ScriptManager;
 import com.sitewhere.microservice.scripting.ScriptTemplateManager;
 import com.sitewhere.microservice.tenant.persistence.KubernetesTenantManagement;
+import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceAnalytics;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
+import com.sitewhere.spi.microservice.instance.IInstanceSpecUpdateOperation;
+import com.sitewhere.spi.microservice.instance.IInstanceStatusUpdateOperation;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
@@ -49,7 +53,9 @@ import com.sitewhere.spi.system.IVersion;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
+import io.fabric8.kubernetes.client.utils.URLUtils;
 import io.quarkus.runtime.StartupEvent;
+import io.sitewhere.k8s.crd.ApiConstants;
 import io.sitewhere.k8s.crd.ISiteWhereKubernetesClient;
 import io.sitewhere.k8s.crd.ResourceLabels;
 import io.sitewhere.k8s.crd.SiteWhereKubernetesClient;
@@ -59,6 +65,10 @@ import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineList;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * Common base class for all SiteWhere microservices.
@@ -390,10 +400,31 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 		    String.format("Attempting to edit wrong instance: '%s'", instance.getMetadata().getName()));
 	}
 	try {
-	    return getSiteWhereKubernetesClient().getInstances().withName(instanceId)
-		    .lockResourceVersion(instance.getMetadata().getResourceVersion()).replace(instance);
+	    return getSiteWhereKubernetesClient().getInstances().withName(instanceId).createOrReplace(instance);
 	} catch (KubernetesClientException e) {
 	    throw new ConcurrentK8sUpdateException("Instance update failed due to concurrent update.", e);
+	}
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#updateInstanceStatus(io.
+     * sitewhere.k8s.crd.instance.SiteWhereInstance)
+     */
+    @Override
+    public SiteWhereInstance updateInstanceStatus(SiteWhereInstance instance) throws SiteWhereException {
+	try {
+	    final String statusUri = URLUtils.join(getKubernetesClient().getMasterUrl().toString(), "apis",
+		    ApiConstants.SITEWHERE_API_GROUP, ApiConstants.SITEWHERE_API_VERSION,
+		    ApiConstants.SITEWHERE_INSTANCE_CRD_PLURAL, instance.getMetadata().getName(), "status");
+	    final RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"),
+		    MarshalUtils.marshalJson(instance));
+	    Response response = getKubernetesClient().getHttpClient()
+		    .newCall(new Request.Builder().method("PUT", requestBody).url(statusUri).build()).execute();
+	    byte[] content = response.body().bytes();
+	    response.close();
+	    return MarshalUtils.unmarshalJson(content, SiteWhereInstance.class);
+	} catch (Throwable e) {
+	    throw new SiteWhereException("Unable to update instance status.", e);
 	}
     }
 
@@ -425,11 +456,12 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      * @see
      * com.sitewhere.spi.microservice.IMicroservice#setTenantEngineConfiguration(io.
      * sitewhere.k8s.crd.tenant.SiteWhereTenant,
-     * io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice, java.lang.String)
+     * io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice,
+     * com.fasterxml.jackson.databind.JsonNode)
      */
     @Override
     public SiteWhereTenantEngine setTenantEngineConfiguration(SiteWhereTenant tenant,
-	    SiteWhereMicroservice microservice, String configuration) throws SiteWhereException {
+	    SiteWhereMicroservice microservice, JsonNode configuration) throws SiteWhereException {
 	SiteWhereTenantEngine tenantEngine = getTenantEngineConfiguration(tenant, microservice);
 	if (tenantEngine == null) {
 	    throw new SiteWhereException(
@@ -438,6 +470,28 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	}
 	tenantEngine.getSpec().setConfiguration(configuration);
 	return getSiteWhereKubernetesClient().getTenantEngines().createOrReplace(tenantEngine);
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.IMicroservice#executeInstanceSpecUpdate(com.
+     * sitewhere.spi.microservice.instance.IInstanceSpecUpdateOperation)
+     */
+    @Override
+    public SiteWhereInstance executeInstanceSpecUpdate(IInstanceSpecUpdateOperation operation)
+	    throws SiteWhereException {
+	return operation.execute(this);
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.IMicroservice#executeInstanceStatusUpdate(com.
+     * sitewhere.spi.microservice.instance.IInstanceStatusUpdateOperation)
+     */
+    @Override
+    public SiteWhereInstance executeInstanceStatusUpdate(IInstanceStatusUpdateOperation operation)
+	    throws SiteWhereException {
+	return operation.execute(this);
     }
 
     /*

@@ -25,6 +25,7 @@ import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.ServerStartupException;
+import com.sitewhere.spi.microservice.lifecycle.IAsyncStartLifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponentParameter;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleConstraints;
@@ -275,6 +276,11 @@ public class LifecycleComponent implements ILifecycleComponent {
 	    }
 
 	    LifecycleStatus status = LifecycleStatus.Started;
+	    if (this instanceof IAsyncStartLifecycleComponent
+		    && !((IAsyncStartLifecycleComponent) this).isComponentStarted()) {
+		status = LifecycleStatus.StartingAsynchronously;
+	    }
+
 	    for (UUID id : getLifecycleComponents().keySet()) {
 		ILifecycleComponent sub = getLifecycleComponents().get(id);
 		if ((sub.getLifecycleStatus() == LifecycleStatus.LifecycleError)

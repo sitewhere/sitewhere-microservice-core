@@ -19,6 +19,15 @@ import io.quarkus.arc.config.ConfigProperties;
 @ConfigProperties(prefix = "sitewhere.config")
 public interface IInstanceSettings {
 
+    @ConfigProperty(name = "k8s.name")
+    public Optional<String> getKubernetesName();
+
+    @ConfigProperty(name = "k8s.namespace")
+    public Optional<String> getKubernetesNamespace();
+
+    @ConfigProperty(name = "k8s.pod.ip")
+    public Optional<String> getKubernetesPodAddress();
+
     @ConfigProperty(name = "product.id", defaultValue = "sitewhere")
     String getProductId();
 
@@ -48,12 +57,6 @@ public interface IInstanceSettings {
 
     @ConfigProperty(name = "service.public.hostname")
     public Optional<String> getPublicHostname();
-
-    @ConfigProperty(name = "namespace")
-    public Optional<String> getKubernetesNamespace();
-
-    @ConfigProperty(name = "k8s.pod.ip")
-    public Optional<String> getKubernetesPodAddress();
 
     @ConfigProperty(name = "syncope.host", defaultValue = "syncope")
     String getSyncopeHost();

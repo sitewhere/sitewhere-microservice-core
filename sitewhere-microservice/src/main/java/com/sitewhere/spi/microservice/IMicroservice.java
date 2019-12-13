@@ -10,8 +10,11 @@ package com.sitewhere.spi.microservice;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
+import com.sitewhere.spi.microservice.instance.IInstanceSpecUpdateOperation;
+import com.sitewhere.spi.microservice.instance.IInstanceStatusUpdateOperation;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 import com.sitewhere.spi.microservice.metrics.IMetricsServer;
@@ -206,6 +209,24 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
     SiteWhereInstance loadInstanceConfiguration() throws SiteWhereException;
 
     /**
+     * Update existing instance configuration.
+     * 
+     * @param instance
+     * @return
+     * @throws SiteWhereException
+     */
+    SiteWhereInstance updateInstanceConfiguration(SiteWhereInstance instance) throws SiteWhereException;
+
+    /**
+     * Update instance status information.
+     * 
+     * @param instance
+     * @return
+     * @throws SiteWhereException
+     */
+    SiteWhereInstance updateInstanceStatus(SiteWhereInstance instance) throws SiteWhereException;
+
+    /**
      * Loads latest instance dataset template from Kubernetes.
      * 
      * @param instance
@@ -215,12 +236,24 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
     InstanceDatasetTemplate loadInstanceDatasetTemplate(SiteWhereInstance instance) throws SiteWhereException;
 
     /**
-     * Update instance configuration.
+     * Executes an instance specification update operation in the context of this
+     * microservice.
      * 
-     * @param instance
+     * @param operation
+     * @return
      * @throws SiteWhereException
      */
-    SiteWhereInstance updateInstanceConfiguration(SiteWhereInstance instance) throws SiteWhereException;
+    SiteWhereInstance executeInstanceSpecUpdate(IInstanceSpecUpdateOperation operation) throws SiteWhereException;
+
+    /**
+     * Executes an instance status update operation in the context of this
+     * microservice.
+     * 
+     * @param operation
+     * @return
+     * @throws SiteWhereException
+     */
+    SiteWhereInstance executeInstanceStatusUpdate(IInstanceStatusUpdateOperation operation) throws SiteWhereException;
 
     /**
      * Get tenant engine configuration.
@@ -242,5 +275,5 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
      * @throws SiteWhereException
      */
     SiteWhereTenantEngine setTenantEngineConfiguration(SiteWhereTenant tenant, SiteWhereMicroservice microservice,
-	    String configuration) throws SiteWhereException;
+	    JsonNode configuration) throws SiteWhereException;
 }

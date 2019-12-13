@@ -25,6 +25,8 @@ import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
 import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener;
 import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationMonitor;
+import com.sitewhere.spi.microservice.configuration.IInstanceSpecUpdates;
+import com.sitewhere.spi.microservice.configuration.IInstanceStatusUpdates;
 import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationListener;
 import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
@@ -76,7 +78,14 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void onInstanceAdded(SiteWhereInstance instance) {
-	onInstanceUpdated(instance);
+	// Reflect configuration updated if not null.
+	InstanceSpecUpdates specUpdates = new InstanceSpecUpdates();
+	specUpdates.setConfigurationUpdated(instance.getSpec().getConfiguration() != null);
+
+	// No status updates.
+	InstanceStatusUpdates statusUpdates = new InstanceStatusUpdates();
+
+	onInstanceUpdated(instance, specUpdates, statusUpdates);
     }
 
     /*
@@ -85,42 +94,34 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      * onInstanceUpdated(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
      */
     @Override
-    public void onInstanceUpdated(SiteWhereInstance instance) {
+    public void onInstanceUpdated(SiteWhereInstance instance, IInstanceSpecUpdates specUpdates,
+	    IInstanceStatusUpdates statusUpdates) {
+	// Save resource reference.
+	this.lastInstanceResource = instance;
+
 	// Skip partially configured instance.
 	if (instance.getSpec().getConfiguration() == null) {
 	    getLogger().info("Skipping instance configuration which has not yet been bootstrapped.");
 	    return;
 	}
 
-	boolean wasConfigured = getLastInstanceResource() != null
-		&& getLastInstanceResource().getSpec().getConfiguration() != null;
-	boolean configUpdated = wasConfigured && !getLastInstanceResource().getSpec().getConfiguration()
-		.equals(instance.getSpec().getConfiguration());
-
-	getLogger().info(String.format("Handling instance resource update. configured=%s updated=%s",
-		String.valueOf(wasConfigured), String.valueOf(configUpdated)));
+	// Only interested in configuration updates.
+	if (!specUpdates.isConfigurationUpdated()) {
+	    return;
+	}
 
 	// Save updated resource and parse configuration.
-	this.lastInstanceResource = instance;
 	try {
-	    InstanceConfiguration configuration = MarshalUtils.unmarshalJsonNode(instance.getSpec().getConfiguration(),
+	    this.instanceConfiguration = MarshalUtils.unmarshalJsonNode(instance.getSpec().getConfiguration(),
 		    InstanceConfiguration.class);
-	    this.instanceConfiguration = configuration;
 	} catch (JsonProcessingException e) {
 	    getLogger().error(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
 		    e.getMessage(), instance.getSpec().getConfiguration()));
 	    return;
 	}
 
-	// If configuration was not updated, skip context restart.
-	if (wasConfigured && !configUpdated) {
-	    return;
-	}
-
 	// Handle updated configuration.
-	if (!wasConfigured || configUpdated) {
-	    onConfigurationUpdated();
-	}
+	onConfigurationUpdated();
     }
 
     /*

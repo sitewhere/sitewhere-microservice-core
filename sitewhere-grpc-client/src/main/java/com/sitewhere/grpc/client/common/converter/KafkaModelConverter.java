@@ -83,6 +83,8 @@ public class KafkaModelConverter {
 	    return GLifecycleStatus.LIFECYCLE_STATUS_STOPPED_WITH_ERRORS;
 	case Starting:
 	    return GLifecycleStatus.LIFECYCLE_STATUS_STARTING;
+	case StartingAsynchronously:
+	    return GLifecycleStatus.LIFECYCLE_STATUS_STARTING;
 	case Started:
 	    return GLifecycleStatus.LIFECYCLE_STATUS_STARTED;
 	case StartedWithErrors:

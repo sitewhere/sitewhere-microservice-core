@@ -27,6 +27,9 @@ public enum LifecycleStatus {
     /** Component is starting */
     Starting,
 
+    /** Component is starting asynchronously */
+    StartingAsynchronously,
+
     /** Component is started */
     Started,
 
