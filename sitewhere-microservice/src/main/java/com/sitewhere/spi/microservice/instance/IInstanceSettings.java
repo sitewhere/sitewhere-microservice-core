@@ -20,13 +20,13 @@ import io.quarkus.arc.config.ConfigProperties;
 public interface IInstanceSettings {
 
     @ConfigProperty(name = "k8s.name")
-    public Optional<String> getKubernetesName();
+    public String getKubernetesName();
 
     @ConfigProperty(name = "k8s.namespace")
-    public Optional<String> getKubernetesNamespace();
+    public String getKubernetesNamespace();
 
     @ConfigProperty(name = "k8s.pod.ip")
-    public Optional<String> getKubernetesPodAddress();
+    public String getKubernetesPodAddress();
 
     @ConfigProperty(name = "product.id", defaultValue = "sitewhere")
     String getProductId();

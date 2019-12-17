@@ -11,13 +11,22 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
-import com.sitewhere.spi.tenant.ITenant;
+import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationMonitor;
+
+import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 
 /**
  * Microservice that contains engines for multiple tenants.
  */
 public interface IMultitenantMicroservice<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration, T extends IMicroserviceTenantEngine<?>>
 	extends IConfigurableMicroservice<F, C> {
+
+    /**
+     * Get monitor which notifies when tenant engines change.
+     * 
+     * @return
+     */
+    ITenantEngineConfigurationMonitor getTenantEngineConfigurationMonitor();
 
     /**
      * Get tenant engine manager.
@@ -27,13 +36,13 @@ public interface IMultitenantMicroservice<F extends IFunctionIdentifier, C exten
     ITenantEngineManager<T> getTenantEngineManager();
 
     /**
-     * Create tenant engine specific to microservice function.
+     * Create tenant engine based on k8s resource.
      * 
-     * @param tenant
+     * @param engine
      * @return
      * @throws SiteWhereException
      */
-    T createTenantEngine(ITenant tenant) throws SiteWhereException;
+    T createTenantEngine(SiteWhereTenantEngine engine) throws SiteWhereException;
 
     /**
      * Get tenant engine corresponding to the given token.

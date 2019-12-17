@@ -7,7 +7,7 @@
  */
 package com.sitewhere.spi.microservice.kafka;
 
-import com.sitewhere.spi.tenant.ITenant;
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
 /**
  * Provides names for Kafka topics used in SiteWhere.
@@ -34,7 +34,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getTenantPrefix(ITenant tenant);
+    String getTenantPrefix(SiteWhereTenant tenant);
 
     /**
      * Get topic name for tracking tenant model updates.
@@ -71,7 +71,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getEventSourceDecodedEventsTopic(ITenant tenant);
+    String getEventSourceDecodedEventsTopic(SiteWhereTenant tenant);
 
     /**
      * Get name for topic that contains events that could not be decoded from event
@@ -80,7 +80,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getEventSourceFailedDecodeTopic(ITenant tenant);
+    String getEventSourceFailedDecodeTopic(SiteWhereTenant tenant);
 
     /**
      * Get topic for inbound events that have been validated by inbound processing
@@ -89,7 +89,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getInboundEventsTopic(ITenant tenant);
+    String getInboundEventsTopic(SiteWhereTenant tenant);
 
     /**
      * Get topic for inbound events that were sent for out-of-band processing, then
@@ -98,7 +98,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getInboundReprocessEventsTopic(ITenant tenant);
+    String getInboundReprocessEventsTopic(SiteWhereTenant tenant);
 
     /**
      * Get name for topic that contains events for device registration requests
@@ -107,7 +107,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getDeviceRegistrationEventsTopic(ITenant tenant);
+    String getDeviceRegistrationEventsTopic(SiteWhereTenant tenant);
 
     /**
      * Get name for topic that contains events for devices that were not registered
@@ -116,7 +116,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getUnregisteredDeviceEventsTopic(ITenant tenant);
+    String getUnregisteredDeviceEventsTopic(SiteWhereTenant tenant);
 
     /**
      * Get topic for events that have been persisted and enriched with
@@ -125,7 +125,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getOutboundEventsTopic(ITenant tenant);
+    String getOutboundEventsTopic(SiteWhereTenant tenant);
 
     /**
      * Get topic for device command invocations that have been persisted and
@@ -134,7 +134,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getOutboundCommandInvocationsTopic(ITenant tenant);
+    String getOutboundCommandInvocationsTopic(SiteWhereTenant tenant);
 
     /**
      * Get topic for device command invocations that could not be delievered.
@@ -142,7 +142,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getUndeliveredCommandInvocationsTopic(ITenant tenant);
+    String getUndeliveredCommandInvocationsTopic(SiteWhereTenant tenant);
 
     /**
      * Get topic for unprocessed batch operations.
@@ -150,7 +150,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getUnprocessedBatchOperationsTopic(ITenant tenant);
+    String getUnprocessedBatchOperationsTopic(SiteWhereTenant tenant);
 
     /**
      * Get topic for unprocessed batch elements.
@@ -158,7 +158,7 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getUnprocessedBatchElementsTopic(ITenant tenant);
+    String getUnprocessedBatchElementsTopic(SiteWhereTenant tenant);
 
     /**
      * Get topic for failed batch elements.
@@ -166,5 +166,5 @@ public interface IKafkaTopicNaming {
      * @param tenant
      * @return
      */
-    String getFailedBatchElementsTopic(ITenant tenant);
+    String getFailedBatchElementsTopic(SiteWhereTenant tenant);
 }

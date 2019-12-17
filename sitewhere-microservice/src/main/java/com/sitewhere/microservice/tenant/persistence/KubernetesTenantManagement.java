@@ -155,9 +155,7 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
 	tenant.setApiVersion(fullVersion);
 	tenant.setKind(SiteWhereTenant.class.getSimpleName());
 
-	// Determine namespace.
-	String namespace = settings.getKubernetesNamespace().isPresent() ? settings.getKubernetesNamespace().get()
-		: "default";
+	String namespace = settings.getKubernetesNamespace();
 
 	// Configure initial metadata.
 	tenant.setMetadata(new ObjectMeta());

@@ -28,7 +28,6 @@ import com.sitewhere.spi.SiteWhereSystemException;
 import com.sitewhere.spi.error.ErrorCode;
 import com.sitewhere.spi.error.ErrorLevel;
 import com.sitewhere.spi.microservice.ServiceNotAvailableException;
-import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice;
 import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableException;
 import com.sitewhere.spi.tenant.ITenant;
@@ -98,9 +97,10 @@ public class GrpcUtils {
 	    if (api.getMicroservice() instanceof IMultitenantMicroservice) {
 		String tenantId = GrpcKeys.TENANT_CONTEXT_KEY.get();
 		if (tenantId != null) {
-		    IMicroserviceTenantEngine<?> engine = ((IMultitenantMicroservice<?, ?, ?>) api.getMicroservice())
-			    .assureTenantEngineAvailable(tenantId);
-		    tenant = engine.getTenant();
+		    // IMicroserviceTenantEngine<?> engine = ((IMultitenantMicroservice<?, ?, ?>)
+		    // api.getMicroservice())
+		    // .assureTenantEngineAvailable(tenantId);
+		    // tenant = engine.getTenant();
 		}
 	    }
 	    Claims claims = getClaimsForJwt(api, jwt);

@@ -7,22 +7,27 @@
  */
 package com.sitewhere.microservice.multitenant;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.inject.CreationException;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.microservice.scripting.ScriptManager;
+import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
-import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineConfiguration;
 import com.sitewhere.spi.microservice.scripting.IScriptManager;
-import com.sitewhere.spi.microservice.state.ITenantEngineState;
-import com.sitewhere.spi.tenant.ITenant;
 
+import io.sitewhere.k8s.crd.ResourceLabels;
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 import io.sitewhere.k8s.crd.tenant.engine.configuration.TenantEngineConfigurationTemplate;
 import io.sitewhere.k8s.crd.tenant.engine.dataset.TenantEngineDatasetTemplate;
@@ -36,22 +41,63 @@ import io.sitewhere.k8s.crd.tenant.engine.dataset.TenantEngineDatasetTemplate;
 public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfiguration>
 	extends TenantEngineLifecycleComponent implements IMicroserviceTenantEngine<T> {
 
-    /** Hosted tenant */
-    private ITenant tenant;
+    /** Tenant resource */
+    private SiteWhereTenant tenantResource;
+
+    /** Tenant engine resource */
+    private SiteWhereTenantEngine tenantEngineResource;
+
+    /** Active configuration */
+    private T activeConfiguration;
+
+    /** Guice injector containing configured components */
+    private Injector injector;
 
     /** Script manager */
-    private IScriptManager scriptManager;
+    private IScriptManager scriptManager = new ScriptManager();
 
     /** Dataset bootstrap manager */
-    private DatasetBootstrapManager bootstrapManager;
+    private DatasetBootstrapManager bootstrapManager = new DatasetBootstrapManager();
 
-    /** Module context information */
-    private Object moduleContext;
+    public MicroserviceTenantEngine(SiteWhereTenantEngine tenantEngineResource) {
+	this.tenantEngineResource = tenantEngineResource;
+    }
 
-    public MicroserviceTenantEngine(ITenant tenant) {
-	this.tenant = tenant;
-	this.scriptManager = new ScriptManager();
-	this.bootstrapManager = new DatasetBootstrapManager();
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#getName(
+     * )
+     */
+    @Override
+    public String getName() {
+	return getTenantEngineResource().getMetadata().getName();
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * getTenantResource()
+     */
+    @Override
+    public SiteWhereTenant getTenantResource() {
+	return tenantResource;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * getTenantEngineResource()
+     */
+    @Override
+    public SiteWhereTenantEngine getTenantEngineResource() {
+	return tenantEngineResource;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * getActiveConfiguration()
+     */
+    @Override
+    public T getActiveConfiguration() {
+	return activeConfiguration;
     }
 
     /*
@@ -71,8 +117,16 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
      */
     @Override
     public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
+	resolveTenantResource();
+
+	// Refresh active configuration from k8s resource.
+	refreshConfiguration();
+
+	// Load tenant engine components from Guice injector.
+	loadEngineComponents();
+
 	// Create step that will initialize components.
-	ICompositeLifecycleStep init = new CompositeLifecycleStep("Initialize tenant engine " + getTenant().getName());
+	ICompositeLifecycleStep init = new CompositeLifecycleStep("Initialize tenant engine " + getName());
 
 	// Initialize script manager.
 	init.addInitializeStep(this, getScriptManager(), true);
@@ -83,25 +137,68 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	// Execute initialization steps.
 	init.execute(monitor);
 
+	// Initialize discoverable beans.
+	initializeDiscoverableBeans();
+
 	// Allow subclass to execute initialization logic.
 	tenantInitialize(monitor);
     }
 
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * getModuleConfiguration()
+    /**
+     * Resolve the tenant resource references by tenant engine label.
+     * 
+     * @throws SiteWhereException
      */
-    @Override
-    public byte[] getModuleConfiguration() throws SiteWhereException {
-	return null;
+    protected void resolveTenantResource() throws SiteWhereException {
+	String tenantToken = getTenantEngineResource().getMetadata().getLabels()
+		.get(ResourceLabels.LABEL_SITEWHERE_TENANT);
+	if (tenantToken == null) {
+	    throw new SiteWhereException("Tenant engine does not have a tenant label. Unable to resolve.");
+	}
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	getLogger().debug(String.format("Resolving tenant '%s' in namespace '%s'.", tenantToken, namespace));
+	SiteWhereTenant tenant = getMicroservice().getSiteWhereKubernetesClient().getTenants().inNamespace(namespace)
+		.withName(tenantToken).get();
+	if (tenant == null) {
+	    throw new SiteWhereException(
+		    String.format("Tenant engine label references a tenant '%s' which does not exist.", tenantToken));
+	}
+	this.tenantResource = tenant;
     }
 
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * updateModuleConfiguration(byte[])
+    /**
+     * Parse tenant engine configuraion into expected configuration type.
+     * 
+     * @return
+     * @throws SiteWhereException
      */
-    @Override
-    public void updateModuleConfiguration(byte[] content) throws SiteWhereException {
+    protected T parseConfiguration() throws SiteWhereException {
+	try {
+	    JsonNode configuration = getTenantEngineResource().getSpec().getConfiguration();
+	    return MarshalUtils.unmarshalJsonNode(configuration, getConfigurationClass());
+	} catch (JsonProcessingException e) {
+	    throw new SiteWhereException("Unable to parse tenant engine configuration.", e);
+	} catch (Throwable t) {
+	    throw new SiteWhereException("Unhandled exception parsing tenant engine configuration.", t);
+	}
+    }
+
+    /**
+     * Refresh active configuration from k8s resource.
+     * 
+     * @throws SiteWhereException
+     */
+    protected void refreshConfiguration() throws SiteWhereException {
+	this.activeConfiguration = parseConfiguration();
+	if (getLogger().isDebugEnabled()) {
+	    getLogger().debug(String.format("Refreshed tenant engine configuration: \n%s\n\n",
+		    MarshalUtils.marshalJsonAsPrettyString(getActiveConfiguration())));
+	}
+	try {
+	    this.injector = Guice.createInjector(getConfigurationModule());
+	} catch (CreationException e) {
+	    throw new SiteWhereException("Guice configuration module failed to initialize.", e);
+	}
     }
 
     /*
@@ -115,13 +212,16 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     public void start(ILifecycleProgressMonitor monitor) throws SiteWhereException {
 
 	// Create step that will start components.
-	ICompositeLifecycleStep start = new CompositeLifecycleStep("Start tenant engine " + getTenant().getName());
+	ICompositeLifecycleStep start = new CompositeLifecycleStep("Start tenant engine " + getName());
 
 	// Start tenant script manager.
 	start.addStartStep(this, getScriptManager(), true);
 
 	// Execute startup steps.
 	start.execute(monitor);
+
+	// Start discoverable beans.
+	startDiscoverableBeans();
 
 	// Allow subclass to execute startup logic.
 	tenantStart(monitor);
@@ -146,8 +246,11 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	// Allow subclass to execute shutdown logic.
 	tenantStop(monitor);
 
+	// Stop discoverable beans.
+	stopDiscoverableBeans();
+
 	// Create step that will stop components.
-	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Stop tenant engine " + getTenant().getName());
+	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Stop tenant engine " + getName());
 
 	// Stop tenant script manager.
 	stop.addStopStep(this, getScriptManager());
@@ -166,21 +269,33 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     @Override
     public void terminate(ILifecycleProgressMonitor monitor) throws SiteWhereException {
 	// Create step that will terminate components.
-	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Terminate tenant engine " + getTenant().getName());
+	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Terminate tenant engine " + getName());
 
 	// Terminate tenant script manager.
 	stop.addTerminateStep(this, getScriptManager());
 
 	// Execute terminate steps.
 	stop.execute(monitor);
+
+	// Terminate discoverable beans.
+	terminateDiscoverableBeans();
     }
 
     /*
      * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * initializeDiscoverableBeans(java.lang.Object)
+     * loadEngineComponents()
      */
     @Override
-    public ILifecycleStep initializeDiscoverableBeans(Object context) throws SiteWhereException {
+    public void loadEngineComponents() throws SiteWhereException {
+    }
+
+    /**
+     * Initialize discoverable beans in configuration.
+     * 
+     * @return
+     * @throws SiteWhereException
+     */
+    public ILifecycleStep initializeDiscoverableBeans() throws SiteWhereException {
 	return new SimpleLifecycleStep("Initialize discoverable beans") {
 
 	    @Override
@@ -195,12 +310,13 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	};
     }
 
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * startDiscoverableBeans(java.lang.Object)
+    /**
+     * Start discoverable beans in configuration.
+     * 
+     * @return
+     * @throws SiteWhereException
      */
-    @Override
-    public ILifecycleStep startDiscoverableBeans(Object context) throws SiteWhereException {
+    public ILifecycleStep startDiscoverableBeans() throws SiteWhereException {
 	return new SimpleLifecycleStep("Start discoverable beans") {
 
 	    @Override
@@ -215,12 +331,13 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	};
     }
 
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * stopDiscoverableBeans(java.lang.Object)
+    /**
+     * Stop discoverable beans in configuration.
+     * 
+     * @return
+     * @throws SiteWhereException
      */
-    @Override
-    public ILifecycleStep stopDiscoverableBeans(Object context) throws SiteWhereException {
+    public ILifecycleStep stopDiscoverableBeans() throws SiteWhereException {
 	return new SimpleLifecycleStep("Stop discoverable beans") {
 
 	    @Override
@@ -235,12 +352,13 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	};
     }
 
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * terminateDiscoverableBeans(java.lang.Object)
+    /**
+     * Terminate discoverable beans in configuration.
+     * 
+     * @return
+     * @throws SiteWhereException
      */
-    @Override
-    public ILifecycleStep terminateDiscoverableBeans(Object context) throws SiteWhereException {
+    public ILifecycleStep terminateDiscoverableBeans() throws SiteWhereException {
 	return new SimpleLifecycleStep("Terminate discoverable beans") {
 
 	    @Override
@@ -256,64 +374,12 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     }
 
     /*
-     * @see
-     * com.sitewhere.server.lifecycle.LifecycleComponent#lifecycleStatusChanged(com.
-     * sitewhere.spi.server.lifecycle.LifecycleStatus,
-     * com.sitewhere.spi.server.lifecycle.LifecycleStatus)
-     */
-    @Override
-    public void lifecycleStatusChanged(LifecycleStatus before, LifecycleStatus after) {
-	try {
-	    ITenantEngineState state = getCurrentState();
-	    getMicroservice().onTenantEngineStateChanged(state);
-	} catch (SiteWhereException e) {
-	    getLogger().error("Unable to calculate current state.", e);
-	}
-    }
-
-    /*
      * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * getCurrentState()
+     * getInjector()
      */
     @Override
-    public ITenantEngineState getCurrentState() throws SiteWhereException {
-	return null;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.
-     * ITenantEngineConfigurationListener#onConfigurationAdded(io.sitewhere.k8s.crd.
-     * tenant.engine.SiteWhereTenantEngine)
-     */
-    @Override
-    public void onConfigurationAdded(SiteWhereTenantEngine engine) {
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.
-     * ITenantEngineConfigurationListener#onConfigurationUpdated(io.sitewhere.k8s.
-     * crd.tenant.engine.SiteWhereTenantEngine)
-     */
-    @Override
-    public void onConfigurationUpdated(SiteWhereTenantEngine engine) {
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.
-     * ITenantEngineConfigurationListener#onConfigurationDeleted(io.sitewhere.k8s.
-     * crd.tenant.engine.SiteWhereTenantEngine)
-     */
-    @Override
-    public void onConfigurationDeleted(SiteWhereTenantEngine engine) {
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * onGlobalConfigurationUpdated()
-     */
-    @Override
-    public void onGlobalConfigurationUpdated() throws SiteWhereException {
-	getLogger().debug("Tenant engine detected global configuration update.");
+    public Injector getInjector() {
+	return injector;
     }
 
     /*
@@ -350,57 +416,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
      */
     @Override
     public void waitForTenantDatasetBootstrapped(IFunctionIdentifier identifier) throws SiteWhereException {
-	// getLogger().info(String.format("Verifying that module '%s' has been
-	// bootstrapped.", identifier.getShortName()));
-	// String path = ((IConfigurableMicroservice<?>)
-	// getMicroservice()).getInstanceTenantStatePath(getTenant().getId())
-	// + "/" + identifier.getPath() + "/" +
-	// MicroserviceTenantEngine.DATASET_BOOTSTRAPPED_NAME;
-	// Callable<Boolean> bootstrapCheck = () -> {
-	// return
-	// getMicroservice().getZookeeperManager().getCurator().checkExists().forPath(path)
-	// == null ? false
-	// : true;
-	// };
-	// RetryConfig config = new
-	// RetryConfigBuilder().retryOnReturnValue(Boolean.FALSE).retryIndefinitely()
-	// .withDelayBetweenTries(Duration.ofSeconds(2)).withRandomBackoff().build();
-	// RetryListener perFail = new RetryListener<Boolean>() {
-	//
-	// @Override
-	// public void onEvent(Status<Boolean> status) {
-	// getLogger().info(String.format(
-	// "Unable to locate bootstrap marker for '%s' on attempt %d (total wait so far
-	// %dms). Retrying after fallback...",
-	// identifier.getShortName(), status.getTotalTries(),
-	// status.getTotalElapsedDuration().toMillis()));
-	// }
-	// };
-	// RetryListener success = new RetryListener<Boolean>() {
-	//
-	// @Override
-	// public void onEvent(Status<Boolean> status) {
-	// getLogger().info(String.format("Located bootstrap marker for '%s' in %dms.",
-	// identifier.getShortName(),
-	// status.getTotalElapsedDuration().toMillis()));
-	// }
-	// };
-	// new
-	// CallExecutorBuilder().config(config).afterFailedTryListener(perFail).onSuccessListener(success).build()
-	// .execute(bootstrapCheck);
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * getTenant()
-     */
-    @Override
-    public ITenant getTenant() {
-	return tenant;
-    }
-
-    public void setTenant(ITenant tenant) {
-	this.tenant = tenant;
     }
 
     /*
@@ -412,10 +427,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	return scriptManager;
     }
 
-    public void setScriptManager(IScriptManager scriptManager) {
-	this.scriptManager = scriptManager;
-    }
-
     /*
      * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
      * getBootstrapManager()
@@ -423,22 +434,5 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     @Override
     public DatasetBootstrapManager getBootstrapManager() {
 	return bootstrapManager;
-    }
-
-    public void setBootstrapManager(DatasetBootstrapManager bootstrapManager) {
-	this.bootstrapManager = bootstrapManager;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * getModuleContext()
-     */
-    @Override
-    public Object getModuleContext() {
-	return moduleContext;
-    }
-
-    public void setModuleContext(Object moduleContext) {
-	this.moduleContext = moduleContext;
     }
 }

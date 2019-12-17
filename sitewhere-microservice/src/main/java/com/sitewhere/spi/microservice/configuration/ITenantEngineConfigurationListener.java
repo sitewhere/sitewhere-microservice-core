@@ -19,19 +19,19 @@ public interface ITenantEngineConfigurationListener {
      * 
      * @param engine
      */
-    void onConfigurationAdded(SiteWhereTenantEngine engine);
+    void onTenantEngineCreated(SiteWhereTenantEngine engine);
 
     /**
      * Called when tenant engine configuration is updated.
      * 
      * @param engine
      */
-    void onConfigurationUpdated(SiteWhereTenantEngine engine);
+    void onTenantEngineUpdated(SiteWhereTenantEngine engine);
 
     /**
      * Called when tenant engine configuration is deleted.
      * 
      * @param engine
      */
-    void onConfigurationDeleted(SiteWhereTenantEngine engine);
+    void onTenantEngineDeleted(SiteWhereTenantEngine engine);
 }

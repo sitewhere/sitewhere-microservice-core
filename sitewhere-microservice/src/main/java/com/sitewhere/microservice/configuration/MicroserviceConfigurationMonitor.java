@@ -94,9 +94,15 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
      */
     @Override
     public void reconcileResourceChange(ResourceChangeType type, SiteWhereMicroservice microservice) {
+	String function = microservice.getSpec().getFunctionalArea();
+
+	// Skip changes that don't affect specification.
+	SiteWhereMicroservice previous = this.microservicesByFunction.get(function);
+	if (previous != null && previous.getMetadata().getGeneration() == microservice.getMetadata().getGeneration()) {
+	    return;
+	}
 	LOGGER.info(String.format("Detected %s resource change in microservice %s.", type.name(),
 		microservice.getMetadata().getName()));
-	String function = microservice.getSpec().getFunctionalArea();
 	switch (type) {
 	case CREATE: {
 	    this.microservicesByFunction.put(function, microservice);
@@ -143,7 +149,7 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
     private class MonitorThreadFactory implements ThreadFactory {
 
 	public Thread newThread(Runnable r) {
-	    return new Thread(r, "Microservice Cfg Monitor");
+	    return new Thread(r, "Microservice Cfg");
 	}
     }
 }

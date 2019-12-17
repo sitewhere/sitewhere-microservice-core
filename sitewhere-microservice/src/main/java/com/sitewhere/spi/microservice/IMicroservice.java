@@ -22,9 +22,6 @@ import com.sitewhere.spi.microservice.scripting.IScriptManager;
 import com.sitewhere.spi.microservice.scripting.IScriptTemplateManager;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
-import com.sitewhere.spi.microservice.state.IMicroserviceDetails;
-import com.sitewhere.spi.microservice.state.IMicroserviceState;
-import com.sitewhere.spi.microservice.state.ITenantEngineState;
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 import com.sitewhere.spi.system.IVersion;
 
@@ -77,28 +74,6 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
      * @return
      */
     String getHostname();
-
-    /**
-     * Get details that identify and describe the microservice.
-     * 
-     * @return
-     */
-    IMicroserviceDetails getMicroserviceDetails();
-
-    /**
-     * Get current state for microservice.
-     * 
-     * @return
-     * @throws SiteWhereException
-     */
-    IMicroserviceState getCurrentState() throws SiteWhereException;
-
-    /**
-     * Called when state of managed tenant engine is updated.
-     * 
-     * @param state
-     */
-    void onTenantEngineStateChanged(ITenantEngineState state);
 
     /**
      * Get settings for SiteWhere instance.

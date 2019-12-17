@@ -7,8 +7,6 @@
  */
 package com.sitewhere.microservice;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,9 +42,6 @@ import com.sitewhere.spi.microservice.scripting.IScriptManager;
 import com.sitewhere.spi.microservice.scripting.IScriptTemplateManager;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
-import com.sitewhere.spi.microservice.state.IMicroserviceDetails;
-import com.sitewhere.spi.microservice.state.IMicroserviceState;
-import com.sitewhere.spi.microservice.state.ITenantEngineState;
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 import com.sitewhere.spi.system.IVersion;
 
@@ -298,15 +293,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public String getHostname() {
-	if (getInstanceSettings().getKubernetesPodAddress().isPresent()) {
-	    return getInstanceSettings().getKubernetesPodAddress().get();
-	}
-	try {
-	    InetAddress local = InetAddress.getLocalHost();
-	    return local.getHostName();
-	} catch (UnknownHostException e) {
-	    throw new RuntimeException("Unable to find hostname.", e);
-	}
+	return getInstanceSettings().getKubernetesPodAddress();
     }
 
     /*
@@ -324,31 +311,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @Override
     public ISiteWhereKubernetesClient getSiteWhereKubernetesClient() {
 	return this.sitewhereKubernetesClient;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.IMicroservice#getMicroserviceDetails()
-     */
-    @Override
-    public IMicroserviceDetails getMicroserviceDetails() {
-	return null;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.IMicroservice#getCurrentState()
-     */
-    @Override
-    public IMicroserviceState getCurrentState() throws SiteWhereException {
-	return null;
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.microservice.IMicroservice#onTenantEngineStateChanged(com.
-     * sitewhere.spi.microservice.state.ITenantEngineState)
-     */
-    @Override
-    public void onTenantEngineStateChanged(ITenantEngineState state) {
     }
 
     /*

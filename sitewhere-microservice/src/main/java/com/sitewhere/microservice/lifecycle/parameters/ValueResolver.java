@@ -49,7 +49,7 @@ public class ValueResolver {
 	String result = value;
 	Map<String, String> variables = new HashMap<String, String>();
 	if (engine != null) {
-	    variables.put(TENANT_ID, engine.getTenant().getToken());
+	    variables.put(TENANT_ID, engine.getTenantResource().getMetadata().getName());
 	}
 	for (String key : variables.keySet()) {
 	    result = result.replace(asVariable(key), variables.get(key));

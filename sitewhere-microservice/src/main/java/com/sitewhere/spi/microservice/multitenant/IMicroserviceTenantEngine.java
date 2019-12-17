@@ -7,17 +7,15 @@
  */
 package com.sitewhere.spi.microservice.multitenant;
 
+import com.google.inject.Injector;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
-import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationListener;
-import com.sitewhere.spi.microservice.lifecycle.IDiscoverableTenantLifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
-import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 import com.sitewhere.spi.microservice.scripting.IScriptManager;
-import com.sitewhere.spi.microservice.state.ITenantEngineState;
-import com.sitewhere.spi.tenant.ITenant;
 
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
+import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 import io.sitewhere.k8s.crd.tenant.engine.configuration.TenantEngineConfigurationTemplate;
 import io.sitewhere.k8s.crd.tenant.engine.dataset.TenantEngineDatasetTemplate;
 
@@ -26,14 +24,56 @@ import io.sitewhere.k8s.crd.tenant.engine.dataset.TenantEngineDatasetTemplate;
  * {@link IMultitenantMicroservice}.
  */
 public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
-	extends ITenantEngineLifecycleComponent, ITenantEngineConfigurationListener {
+	extends ITenantEngineLifecycleComponent {
 
     /**
-     * Get tenant hosted by engine.
+     * Get name displayed for tenant engine.
      * 
      * @return
      */
-    ITenant getTenant();
+    String getName();
+
+    /**
+     * Get tenant resource associated with engine.
+     * 
+     * @return
+     */
+    SiteWhereTenant getTenantResource();
+
+    /**
+     * Get tenant engine resource associated with engine.
+     * 
+     * @return
+     */
+    SiteWhereTenantEngine getTenantEngineResource();
+
+    /**
+     * Get class used for parsing configuration.
+     * 
+     * @return
+     */
+    Class<T> getConfigurationClass();
+
+    /**
+     * Get the currently active configuration.
+     * 
+     * @return
+     */
+    T getActiveConfiguration();
+
+    /**
+     * Get Guice module used to build engine components based on the active
+     * configuration.
+     * 
+     * @return
+     */
+    ITenantEngineModule<T> getConfigurationModule();
+
+    /**
+     * Get Guice injector which allows access to tenant engine components which have
+     * been configured via the module.
+     */
+    Injector getInjector();
 
     /**
      * Get tenant engine configuration template.
@@ -52,13 +92,6 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
     TenantEngineDatasetTemplate getDatasetTemplate() throws SiteWhereException;
 
     /**
-     * Get current engine state.
-     * 
-     * @return
-     */
-    ITenantEngineState getCurrentState() throws SiteWhereException;
-
-    /**
      * Get script manager.
      * 
      * @return
@@ -75,36 +108,6 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
     IDatasetBootstrapManager getBootstrapManager() throws SiteWhereException;
 
     /**
-     * Get Spring context that provides beans for module.
-     * 
-     * @return
-     */
-    Object getModuleContext();
-
-    /**
-     * Get module configuration data.
-     * 
-     * @return
-     * @throws SiteWhereException
-     */
-    byte[] getModuleConfiguration() throws SiteWhereException;
-
-    /**
-     * Update module configuration data.
-     * 
-     * @param content
-     * @throws SiteWhereException
-     */
-    void updateModuleConfiguration(byte[] content) throws SiteWhereException;
-
-    /**
-     * Called when global configuration is updated.
-     * 
-     * @throws SiteWhereException
-     */
-    void onGlobalConfigurationUpdated() throws SiteWhereException;
-
-    /**
      * Wait for dataset in another tenant engine to be bootstrapped using a backoff
      * policy.
      * 
@@ -112,6 +115,13 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
      * @throws SiteWhereException
      */
     void waitForTenantDatasetBootstrapped(IFunctionIdentifier identifier) throws SiteWhereException;
+
+    /**
+     * Load tenant engine components from the Guice injector.
+     * 
+     * @throws SiteWhereException
+     */
+    void loadEngineComponents() throws SiteWhereException;
 
     /**
      * Executes tenant initialization code. Called after Spring context has been
@@ -155,44 +165,4 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
      * @throws SiteWhereException
      */
     void tenantStop(ILifecycleProgressMonitor monitor) throws SiteWhereException;
-
-    /**
-     * Initialize components from the given context marked as
-     * {@link IDiscoverableTenantLifecycleComponent}.
-     * 
-     * @param context
-     * @return
-     * @throws SiteWhereException
-     */
-    ILifecycleStep initializeDiscoverableBeans(Object context) throws SiteWhereException;
-
-    /**
-     * Start components from the given context marked as
-     * {@link IDiscoverableTenantLifecycleComponent}.
-     * 
-     * @param context
-     * @return
-     * @throws SiteWhereException
-     */
-    ILifecycleStep startDiscoverableBeans(Object context) throws SiteWhereException;
-
-    /**
-     * Stop components from the given context marked as
-     * {@link IDiscoverableTenantLifecycleComponent}.
-     * 
-     * @param context
-     * @return
-     * @throws SiteWhereException
-     */
-    ILifecycleStep stopDiscoverableBeans(Object context) throws SiteWhereException;
-
-    /**
-     * Terminate components from the given context marked as
-     * {@link IDiscoverableTenantLifecycleComponent}.
-     * 
-     * @param context
-     * @return
-     * @throws SiteWhereException
-     */
-    ILifecycleStep terminateDiscoverableBeans(Object context) throws SiteWhereException;
 }

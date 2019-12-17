@@ -9,14 +9,9 @@ package com.sitewhere.grpc.client.common.converter;
 
 import com.sitewhere.grpc.kafka.model.KafkaModel.GLifecycleComponentState;
 import com.sitewhere.grpc.kafka.model.KafkaModel.GLifecycleStatus;
-import com.sitewhere.grpc.kafka.model.KafkaModel.GMicroserviceState;
-import com.sitewhere.grpc.kafka.model.KafkaModel.GStateUpdate;
-import com.sitewhere.grpc.kafka.model.KafkaModel.GTenantEngineState;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.microservice.state.ILifecycleComponentState;
-import com.sitewhere.spi.microservice.state.IMicroserviceState;
-import com.sitewhere.spi.microservice.state.ITenantEngineState;
 
 /**
  * Convert model objects passed on Kafka topics.
@@ -126,59 +121,6 @@ public class KafkaModelConverter {
 		grpc.addChildComponentStates(KafkaModelConverter.asGrpcLifecycleComponentState(child));
 	    }
 	}
-	return grpc.build();
-    }
-
-    /**
-     * Convert microservice state from API to GRPC.
-     * 
-     * @param api
-     * @return
-     * @throws SiteWhereException
-     */
-    public static GMicroserviceState asGrpcMicroserviceState(IMicroserviceState api) throws SiteWhereException {
-	GMicroserviceState.Builder grpc = GMicroserviceState.newBuilder();
-	grpc.setStatus(KafkaModelConverter.asGrpcLifecycleStatus(api.getLifecycleStatus()));
-	return grpc.build();
-    }
-
-    /**
-     * Convert tenant engine state from API to GRPC.
-     * 
-     * @param api
-     * @return
-     * @throws SiteWhereException
-     */
-    public static GTenantEngineState asGrpcTenantEngineState(ITenantEngineState api) throws SiteWhereException {
-	GTenantEngineState.Builder grpc = GTenantEngineState.newBuilder();
-	grpc.setTenantId(CommonModelConverter.asGrpcUuid(api.getTenantId()));
-	grpc.setState(KafkaModelConverter.asGrpcLifecycleComponentState(api.getComponentState()));
-	return grpc.build();
-    }
-
-    /**
-     * Convert microservice state to generic state update.
-     * 
-     * @param api
-     * @return
-     * @throws SiteWhereException
-     */
-    public static GStateUpdate asGrpcGenericStateUpdate(IMicroserviceState api) throws SiteWhereException {
-	GStateUpdate.Builder grpc = GStateUpdate.newBuilder();
-	grpc.setMicroserviceState(KafkaModelConverter.asGrpcMicroserviceState(api));
-	return grpc.build();
-    }
-
-    /**
-     * Convert tenant engine state to generic state update.
-     * 
-     * @param api
-     * @return
-     * @throws SiteWhereException
-     */
-    public static GStateUpdate asGrpcGenericStateUpdate(ITenantEngineState api) throws SiteWhereException {
-	GStateUpdate.Builder grpc = GStateUpdate.newBuilder();
-	grpc.setTenantEngineState(KafkaModelConverter.asGrpcTenantEngineState(api));
 	return grpc.build();
     }
 }

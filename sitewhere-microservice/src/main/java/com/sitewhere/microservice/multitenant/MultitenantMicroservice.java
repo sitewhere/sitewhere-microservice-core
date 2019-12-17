@@ -8,10 +8,12 @@
 package com.sitewhere.microservice.multitenant;
 
 import com.sitewhere.microservice.configuration.ConfigurableMicroservice;
+import com.sitewhere.microservice.configuration.TenantEngineConfigurationMonitor;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
+import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
@@ -20,11 +22,16 @@ import com.sitewhere.spi.microservice.multitenant.ITenantEngineConfiguration;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineManager;
 import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableException;
 
+import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
+
 /**
  * Microservice that contains engines for multiple tenants.
  */
 public abstract class MultitenantMicroservice<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration, T extends IMicroserviceTenantEngine<? extends ITenantEngineConfiguration>>
 	extends ConfigurableMicroservice<F, C> implements IMultitenantMicroservice<F, C, T> {
+
+    /** Tenant engine configuration monitor */
+    private ITenantEngineConfigurationMonitor tenantEngineConfigurationMonitor;
 
     /** Tenant engine manager */
     private ITenantEngineManager<T> tenantEngineManager = new TenantEngineManager<>();
@@ -92,6 +99,22 @@ public abstract class MultitenantMicroservice<F extends IFunctionIdentifier, C e
     }
 
     /*
+     * @see com.sitewhere.microservice.configuration.ConfigurableMicroservice#
+     * createKubernetesResourceControllers(io.fabric8.kubernetes.client.informers.
+     * SharedInformerFactory)
+     */
+    @Override
+    public void createKubernetesResourceControllers(SharedInformerFactory informers) throws SiteWhereException {
+	super.createKubernetesResourceControllers(informers);
+
+	// Add shared informer for instance configuration monitoring.
+	this.tenantEngineConfigurationMonitor = new TenantEngineConfigurationMonitor(getIdentifier(),
+		getKubernetesClient(), informers);
+	getTenantEngineConfigurationMonitor().getListeners().add(getTenantEngineManager());
+	getTenantEngineConfigurationMonitor().start();
+    }
+
+    /*
      * @see com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice#
      * getTenantEngineByToken(java.lang.String)
      */
@@ -107,6 +130,15 @@ public abstract class MultitenantMicroservice<F extends IFunctionIdentifier, C e
     @Override
     public T assureTenantEngineAvailable(String token) throws TenantEngineNotAvailableException {
 	return getTenantEngineManager().assureTenantEngineAvailable(token);
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice#
+     * getTenantEngineConfigurationMonitor()
+     */
+    @Override
+    public ITenantEngineConfigurationMonitor getTenantEngineConfigurationMonitor() {
+	return tenantEngineConfigurationMonitor;
     }
 
     /*

@@ -9,7 +9,8 @@ package com.sitewhere.microservice.kafka;
 
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
-import com.sitewhere.spi.tenant.ITenant;
+
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
 /**
  * Class for locating SiteWhere Kafka topics.
@@ -95,12 +96,14 @@ public class KafkaTopicNaming implements IKafkaTopicNaming {
     }
 
     /*
-     * @see com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#getTenantPrefix(
-     * com.sitewhere.spi.tenant.ITenant)
+     * @see
+     * com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#getTenantPrefix(io.
+     * sitewhere.k8s.crd.tenant.SiteWhereTenant)
      */
     @Override
-    public String getTenantPrefix(ITenant tenant) {
-	return getInstancePrefix() + SEPARATOR + TENANT_INDICATOR + SEPARATOR + tenant.getToken() + SEPARATOR;
+    public String getTenantPrefix(SiteWhereTenant tenant) {
+	return getInstancePrefix() + SEPARATOR + TENANT_INDICATOR + SEPARATOR + tenant.getMetadata().getName()
+		+ SEPARATOR;
     }
 
     /*
@@ -142,112 +145,115 @@ public class KafkaTopicNaming implements IKafkaTopicNaming {
     }
 
     /*
-     * @see com.sitewhere.microservice.spi.kafka.IKafkaTopicNaming#
-     * getEventSourceDecodedEventsTopic(com.sitewhere.spi.tenant.ITenant)
+     * @see com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#
+     * getEventSourceDecodedEventsTopic(io.sitewhere.k8s.crd.tenant.SiteWhereTenant)
      */
     @Override
-    public String getEventSourceDecodedEventsTopic(ITenant tenant) {
+    public String getEventSourceDecodedEventsTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_EVENT_SOURCE_DECODED_EVENTS;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#
-     * getEventSourceFailedDecodeTopic(com.sitewhere.spi.tenant.ITenant)
+     * getEventSourceFailedDecodeTopic(io.sitewhere.k8s.crd.tenant.SiteWhereTenant)
      */
     @Override
-    public String getEventSourceFailedDecodeTopic(ITenant tenant) {
+    public String getEventSourceFailedDecodeTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_EVENT_SOURCE_FAILED_DECODE_EVENTS;
     }
 
     /*
      * @see
      * com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#getInboundEventsTopic(
-     * com.sitewhere.spi.tenant.ITenant)
+     * io.sitewhere.k8s.crd.tenant.SiteWhereTenant)
      */
     @Override
-    public String getInboundEventsTopic(ITenant tenant) {
+    public String getInboundEventsTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_INBOUND_EVENTS;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#
-     * getInboundReprocessEventsTopic(com.sitewhere.spi.tenant.ITenant)
+     * getInboundReprocessEventsTopic(io.sitewhere.k8s.crd.tenant.SiteWhereTenant)
      */
     @Override
-    public String getInboundReprocessEventsTopic(ITenant tenant) {
+    public String getInboundReprocessEventsTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_INBOUND_REPROCESS_EVENTS;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#
-     * getDeviceRegistrationEventsTopic(com.sitewhere.spi.tenant.ITenant)
+     * getDeviceRegistrationEventsTopic(io.sitewhere.k8s.crd.tenant.SiteWhereTenant)
      */
     @Override
-    public String getDeviceRegistrationEventsTopic(ITenant tenant) {
+    public String getDeviceRegistrationEventsTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_INBOUND_DEVICE_REGISTRATION_EVENTS;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#
-     * getUnregisteredDeviceEventsTopic(com.sitewhere.spi.tenant.ITenant)
+     * getUnregisteredDeviceEventsTopic(io.sitewhere.k8s.crd.tenant.SiteWhereTenant)
      */
     @Override
-    public String getUnregisteredDeviceEventsTopic(ITenant tenant) {
+    public String getUnregisteredDeviceEventsTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_INBOUND_UNREGISTERED_DEVICE_EVENTS;
     }
 
     /*
      * @see
      * com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#getOutboundEventsTopic
-     * (com.sitewhere.spi.tenant.ITenant)
+     * (io.sitewhere.k8s.crd.tenant.SiteWhereTenant)
      */
     @Override
-    public String getOutboundEventsTopic(ITenant tenant) {
+    public String getOutboundEventsTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_OUTBOUND_EVENTS;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#
-     * getOutboundCommandInvocationsTopic(com.sitewhere.spi.tenant.ITenant)
+     * getOutboundCommandInvocationsTopic(io.sitewhere.k8s.crd.tenant.
+     * SiteWhereTenant)
      */
     @Override
-    public String getOutboundCommandInvocationsTopic(ITenant tenant) {
+    public String getOutboundCommandInvocationsTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_OUTBOUND_COMMAND_INVOCATIONS;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#
-     * getUndeliveredCommandInvocationsTopic(com.sitewhere.spi.tenant.ITenant)
+     * getUndeliveredCommandInvocationsTopic(io.sitewhere.k8s.crd.tenant.
+     * SiteWhereTenant)
      */
     @Override
-    public String getUndeliveredCommandInvocationsTopic(ITenant tenant) {
+    public String getUndeliveredCommandInvocationsTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_UNDELIVERED_COMMAND_INVOCATIONS;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#
-     * getUnprocessedBatchOperationsTopic(com.sitewhere.spi.tenant.ITenant)
+     * getUnprocessedBatchOperationsTopic(io.sitewhere.k8s.crd.tenant.
+     * SiteWhereTenant)
      */
     @Override
-    public String getUnprocessedBatchOperationsTopic(ITenant tenant) {
+    public String getUnprocessedBatchOperationsTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_UNPROCESSED_BATCH_OPERATIONS;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#
-     * getUnprocessedBatchElementsTopic(com.sitewhere.spi.tenant.ITenant)
+     * getUnprocessedBatchElementsTopic(io.sitewhere.k8s.crd.tenant.SiteWhereTenant)
      */
     @Override
-    public String getUnprocessedBatchElementsTopic(ITenant tenant) {
+    public String getUnprocessedBatchElementsTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_UNPROCESSED_BATCH_ELEMENTS;
     }
 
     /*
      * @see com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming#
-     * getFailedBatchElementsTopic(com.sitewhere.spi.tenant.ITenant)
+     * getFailedBatchElementsTopic(io.sitewhere.k8s.crd.tenant.SiteWhereTenant)
      */
     @Override
-    public String getFailedBatchElementsTopic(ITenant tenant) {
+    public String getFailedBatchElementsTopic(SiteWhereTenant tenant) {
 	return getTenantPrefix(tenant) + TENANT_TOPIC_FAILED_BATCH_ELEMENTS;
     }
 

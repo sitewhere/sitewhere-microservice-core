@@ -8,12 +8,14 @@
 package com.sitewhere.spi.microservice.multitenant;
 
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationListener;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 
 /**
  * Manages tenant engines for a multitenant microservice.
  */
-public interface ITenantEngineManager<T extends IMicroserviceTenantEngine<?>> extends ILifecycleComponent {
+public interface ITenantEngineManager<T extends IMicroserviceTenantEngine<?>>
+	extends ITenantEngineConfigurationListener, ILifecycleComponent {
 
     /**
      * Get tenant engine corresponding to the given id.
@@ -32,24 +34,6 @@ public interface ITenantEngineManager<T extends IMicroserviceTenantEngine<?>> ex
      * @throws TenantEngineNotAvailableException
      */
     T assureTenantEngineAvailable(String token) throws TenantEngineNotAvailableException;
-
-    /**
-     * Get configuration for the given tenant.
-     * 
-     * @param token
-     * @return
-     * @throws SiteWhereException
-     */
-    byte[] getTenantConfiguration(String token) throws SiteWhereException;
-
-    /**
-     * Update configuration for the given tenant.
-     * 
-     * @param token
-     * @param content
-     * @throws SiteWhereException
-     */
-    void updateTenantConfiguration(String token, byte[] content) throws SiteWhereException;
 
     /**
      * Shuts down and restarts the given tenant engine.

@@ -223,7 +223,7 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
     private class MonitorThreadFactory implements ThreadFactory {
 
 	public Thread newThread(Runnable r) {
-	    return new Thread(r, "Instance Cfg Monitor");
+	    return new Thread(r, "Instance Cfg");
 	}
     }
 }

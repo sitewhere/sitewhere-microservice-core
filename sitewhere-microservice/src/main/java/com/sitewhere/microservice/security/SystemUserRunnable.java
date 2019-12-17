@@ -14,7 +14,8 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
-import com.sitewhere.spi.tenant.ITenant;
+
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
 /**
  * Allows code to be run in a separate thread along with thread local security
@@ -30,11 +31,11 @@ public abstract class SystemUserRunnable implements Runnable {
     private IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice;
 
     /** Tenant */
-    private ITenant tenant;
+    private SiteWhereTenant tenant;
 
     public SystemUserRunnable(
 	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice,
-	    ITenant tenant) {
+	    SiteWhereTenant tenant) {
 	this.microservice = microservice;
 	this.tenant = tenant;
     }
@@ -81,16 +82,7 @@ public abstract class SystemUserRunnable implements Runnable {
 	return microservice;
     }
 
-    protected void setMicroservice(
-	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice) {
-	this.microservice = microservice;
-    }
-
-    protected ITenant getTenant() {
+    protected SiteWhereTenant getTenant() {
 	return tenant;
-    }
-
-    protected void setTenant(ITenant tenant) {
-	this.tenant = tenant;
     }
 }
