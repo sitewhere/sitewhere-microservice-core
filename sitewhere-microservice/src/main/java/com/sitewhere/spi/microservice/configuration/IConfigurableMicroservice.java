@@ -7,6 +7,7 @@
  */
 package com.sitewhere.spi.microservice.configuration;
 
+import com.google.inject.Injector;
 import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
@@ -83,11 +84,39 @@ public interface IConfigurableMicroservice<F extends IFunctionIdentifier, C exte
     SiteWhereMicroservice getLastMicroserviceResource();
 
     /**
-     * Get microservice configuration (loaded from microservice k8s resource).
+     * Get the currently active configuration.
      * 
      * @return
      */
     C getMicroserviceConfiguration();
+
+    /**
+     * Creates a Guice module used to build microservice components based on the
+     * active configuration.
+     * 
+     * @return
+     */
+    IMicroserviceModule<C> createConfigurationModule();
+
+    /**
+     * Get most recently configured microservice configuration module.
+     * 
+     * @return
+     */
+    IMicroserviceModule<C> getMicroserviceConfigurationModule();
+
+    /**
+     * Get most recently configured instance configuraion module.
+     * 
+     * @return
+     */
+    IInstanceModule getInstanceConfigurationModule();
+
+    /**
+     * Get Guice injector which allows access to tenant engine components which have
+     * been configured via the module.
+     */
+    Injector getInjector();
 
     /**
      * Initialize configurable components.

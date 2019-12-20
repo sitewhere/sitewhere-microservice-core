@@ -10,7 +10,6 @@ package com.sitewhere.spi.microservice;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.instance.IInstanceSpecUpdateOperation;
@@ -30,9 +29,6 @@ import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.sitewhere.k8s.crd.ISiteWhereKubernetesClient;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.instance.dataset.InstanceDatasetTemplate;
-import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
-import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
-import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 
 /**
  * Functionality common to all SiteWhere microservices.
@@ -229,26 +225,4 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
      * @throws SiteWhereException
      */
     SiteWhereInstance executeInstanceStatusUpdate(IInstanceStatusUpdateOperation operation) throws SiteWhereException;
-
-    /**
-     * Get tenant engine configuration.
-     * 
-     * @param tenant
-     * @param microservice
-     * @return
-     * @throws SiteWhereException
-     */
-    SiteWhereTenantEngine getTenantEngineConfiguration(SiteWhereTenant tenant, SiteWhereMicroservice microservice)
-	    throws SiteWhereException;
-
-    /**
-     * Set configuration for a tenant engine.
-     * 
-     * @param tenant
-     * @param microservice
-     * @param configuration
-     * @throws SiteWhereException
-     */
-    SiteWhereTenantEngine setTenantEngineConfiguration(SiteWhereTenant tenant, SiteWhereMicroservice microservice,
-	    JsonNode configuration) throws SiteWhereException;
 }

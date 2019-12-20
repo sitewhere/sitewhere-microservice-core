@@ -11,7 +11,11 @@ import java.util.concurrent.CountDownLatch;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.inject.CreationException;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.sitewhere.microservice.Microservice;
+import com.sitewhere.microservice.MicroserviceUtils;
 import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleProgressContext;
@@ -25,10 +29,12 @@ import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
 import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener;
 import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationMonitor;
+import com.sitewhere.spi.microservice.configuration.IInstanceModule;
 import com.sitewhere.spi.microservice.configuration.IInstanceSpecUpdates;
 import com.sitewhere.spi.microservice.configuration.IInstanceStatusUpdates;
 import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationListener;
 import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationMonitor;
+import com.sitewhere.spi.microservice.configuration.IMicroserviceModule;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
@@ -65,11 +71,74 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     /** Instance configuration */
     private InstanceConfiguration instanceConfiguration;
 
-    /** Microservice configuration */
+    /** Active configuration */
     private C microserviceConfiguration;
+
+    /** Active microservice configuration module */
+    private IMicroserviceModule<C> microserviceConfigurationModule;
+
+    /** Active instance configuration module */
+    private IInstanceModule instanceConfigurationModule;
+
+    /** Guice injector containing configured components */
+    private Injector injector;
 
     /** Latch for configuration availability */
     private CountDownLatch configurationAvailable = new CountDownLatch(1);
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
+     * getLastInstanceResource()
+     */
+    @Override
+    public SiteWhereInstance getLastInstanceResource() {
+	return this.lastInstanceResource;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
+     * getLastMicroserviceResource()
+     */
+    @Override
+    public SiteWhereMicroservice getLastMicroserviceResource() {
+	return this.lastMicroserviceResource;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
+     * getMicroserviceConfiguration()
+     */
+    @Override
+    public C getMicroserviceConfiguration() {
+	return this.microserviceConfiguration;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#
+     * getMicroserviceConfigurationModule()
+     */
+    @Override
+    public IMicroserviceModule<C> getMicroserviceConfigurationModule() {
+	return this.microserviceConfigurationModule;
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.IMicroservice#getInstanceConfigurationModule()
+     */
+    @Override
+    public IInstanceModule getInstanceConfigurationModule() {
+	return this.instanceConfigurationModule;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
+     * getInjector()
+     */
+    @Override
+    public Injector getInjector() {
+	return this.injector;
+    }
 
     /*
      * @see
@@ -114,9 +183,10 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	try {
 	    this.instanceConfiguration = MarshalUtils.unmarshalJsonNode(instance.getSpec().getConfiguration(),
 		    InstanceConfiguration.class);
+	    this.instanceConfigurationModule = new InstanceModule(getInstanceConfiguration());
 	} catch (JsonProcessingException e) {
-	    getLogger().error(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
-		    e.getMessage(), instance.getSpec().getConfiguration()));
+	    getLogger().error(String.format("Invalid instance configuration (%s). Content is: \n\n%s\n", e.getMessage(),
+		    instance.getSpec().getConfiguration()));
 	    return;
 	}
 
@@ -153,7 +223,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public void onMicroserviceUpdated(SiteWhereMicroservice microservice) {
 	// Only process updates for the functional area of this microservice.
-	if (!getIdentifier().getPath().equals(microservice.getSpec().getFunctionalArea())) {
+	if (!getIdentifier().getPath().equals(MicroserviceUtils.getFunctionalArea(microservice))) {
 	    return;
 	}
 
@@ -171,6 +241,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	    C configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
 		    getConfigurationClass());
 	    this.microserviceConfiguration = configuration;
+	    this.microserviceConfigurationModule = createConfigurationModule();
 	} catch (JsonProcessingException e) {
 	    getLogger().error(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
 		    e.getMessage(), microservice.getSpec().getConfiguration()));
@@ -211,6 +282,14 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	    return;
 	}
 
+	// Create Guice injector with the instance and microservice bindings.
+	try {
+	    this.injector = Guice.createInjector(getInstanceConfigurationModule(),
+		    getMicroserviceConfigurationModule());
+	} catch (CreationException e) {
+	    getLogger().error("Guice configuration module failed to initialize.", e);
+	}
+
 	getMicroserviceOperationsService().execute(new Runnable() {
 
 	    @Override
@@ -246,24 +325,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 		}
 	    }
 	});
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * getLastInstanceResource()
-     */
-    @Override
-    public SiteWhereInstance getLastInstanceResource() {
-	return this.lastInstanceResource;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * getLastMicroserviceResource()
-     */
-    @Override
-    public SiteWhereMicroservice getLastMicroserviceResource() {
-	return this.lastMicroserviceResource;
     }
 
     /*
@@ -322,15 +383,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public InstanceConfiguration getInstanceConfiguration() {
 	return this.instanceConfiguration;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * getMicroserviceConfiguration()
-     */
-    @Override
-    public C getMicroserviceConfiguration() {
-	return this.microserviceConfiguration;
     }
 
     /*

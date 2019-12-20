@@ -7,12 +7,15 @@
  */
 package com.sitewhere.spi.microservice.multitenant;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
 import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationMonitor;
 
+import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 
 /**
@@ -61,4 +64,26 @@ public interface IMultitenantMicroservice<F extends IFunctionIdentifier, C exten
      * @throws TenantEngineNotAvailableException
      */
     T assureTenantEngineAvailable(String token) throws TenantEngineNotAvailableException;
+
+    /**
+     * Get tenant engine configuration.
+     * 
+     * @param tenant
+     * @param microservice
+     * @return
+     * @throws SiteWhereException
+     */
+    SiteWhereTenantEngine getTenantEngineConfiguration(SiteWhereTenant tenant, SiteWhereMicroservice microservice)
+	    throws SiteWhereException;
+
+    /**
+     * Set configuration for a tenant engine.
+     * 
+     * @param tenant
+     * @param microservice
+     * @param configuration
+     * @throws SiteWhereException
+     */
+    SiteWhereTenantEngine setTenantEngineConfiguration(SiteWhereTenant tenant, SiteWhereMicroservice microservice,
+	    JsonNode configuration) throws SiteWhereException;
 }

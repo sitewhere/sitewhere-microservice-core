@@ -62,12 +62,12 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
     T getActiveConfiguration();
 
     /**
-     * Get Guice module used to build engine components based on the active
+     * Creates a Guice module used to build engine components based on the active
      * configuration.
      * 
      * @return
      */
-    ITenantEngineModule<T> getConfigurationModule();
+    ITenantEngineModule<T> createConfigurationModule();
 
     /**
      * Get Guice injector which allows access to tenant engine components which have

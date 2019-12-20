@@ -10,8 +10,8 @@ package com.sitewhere.microservice.multitenant;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.CreationException;
-import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.sitewhere.microservice.configuration.model.instance.PersistenceConfigurations;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
@@ -19,6 +19,7 @@ import com.sitewhere.microservice.scripting.ScriptManager;
 import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
@@ -195,7 +196,22 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 		    MarshalUtils.marshalJsonAsPrettyString(getActiveConfiguration())));
 	}
 	try {
-	    this.injector = Guice.createInjector(getConfigurationModule());
+	    // Inherit existing bindings from the microsevice injector.
+	    this.injector = ((IConfigurableMicroservice<?, ?>) getMicroservice()).getInjector()
+		    .createChildInjector(createConfigurationModule());
+	    PersistenceConfigurations configs = getInjector().getInstance(PersistenceConfigurations.class);
+	    if (configs == null) {
+		getLogger().info("Did not find persistence configurations.");
+	    } else {
+		getLogger().info(String.format("Found persistence configs:\n%s\n\n",
+			MarshalUtils.marshalJsonAsPrettyString(configs)));
+	    }
+	    PersistenceConfigurations second = getInjector().getInstance(PersistenceConfigurations.class);
+	    if (configs == second) {
+		getLogger().info("PCs are singletons in the injector.");
+	    } else {
+		getLogger().info("PCs are !!!NOT!!! singletons in the injector.");
+	    }
 	} catch (CreationException e) {
 	    throw new SiteWhereException("Guice configuration module failed to initialize.", e);
 	}

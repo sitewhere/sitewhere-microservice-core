@@ -10,7 +10,7 @@ dependencies {
     
 	// SiteWhere model/API.
     compile group: 'com.sitewhere', name: 'sitewhere-java-model', version: '3.0.0.alpha1'
-	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: '0.0.16'
+	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: '0.0.17'
     
     // JSON web token support.
     compile group: 'io.jsonwebtoken', name: 'jjwt', version:'0.7.0'
@@ -33,6 +33,7 @@ dependencies {
 	
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.9'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+    compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
     compile group: 'commons-io', name: 'commons-io', version: '2.6'
 	
 	// Date/time conversions.

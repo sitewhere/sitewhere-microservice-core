@@ -13,10 +13,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
@@ -49,17 +47,11 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.fabric8.kubernetes.client.utils.URLUtils;
-import io.quarkus.runtime.StartupEvent;
 import io.sitewhere.k8s.crd.ApiConstants;
 import io.sitewhere.k8s.crd.ISiteWhereKubernetesClient;
-import io.sitewhere.k8s.crd.ResourceLabels;
 import io.sitewhere.k8s.crd.SiteWhereKubernetesClient;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.instance.dataset.InstanceDatasetTemplate;
-import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
-import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
-import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
-import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineList;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -86,7 +78,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     private SharedInformerFactory sharedInformerFactory;
 
     /** Metrics server */
-    private IMetricsServer metricsServer;
+    private IMetricsServer metricsServer = new MetricsServer();
 
     /** JWT token management */
     private ITokenManagement tokenManagement;
@@ -107,7 +99,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     private IScriptManager scriptManager = new ScriptManager();
 
     /** Script template manager instance */
-    private IScriptTemplateManager scriptTemplateManager;
+    private IScriptTemplateManager scriptTemplateManager = new ScriptTemplateManager();
 
     /** Microservice runtime analytics interface */
     private IMicroserviceAnalytics microserviceAnalytics = new MicroserviceAnalytics();
@@ -125,12 +117,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     public Microservice() {
 	this.microserviceOperationsService = Executors
 		.newSingleThreadExecutor(new MicroserviceOperationsThreadFactory());
-
-	// Create script template manager.
-	this.scriptTemplateManager = new ScriptTemplateManager();
-
-	// Create Prometheus metrics server.
-	this.metricsServer = new MetricsServer();
     }
 
     /*
@@ -148,22 +134,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @Override
     public IMicroservice<F, C> getMicroservice() {
 	return this;
-    }
-
-    /**
-     * Called when microservice is started.
-     * 
-     * @param ev
-     */
-    void onStart(@Observes StartupEvent ev) {
-	getLogger().info("Microservice starting...");
-
-	// Initialize configuration model.
-	try {
-	    initializeK8sConnectivity();
-	} catch (SiteWhereException e) {
-	    getLogger().error("Unable to start microservice.", e);
-	}
     }
 
     /*
@@ -392,50 +362,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 
     /*
      * @see
-     * com.sitewhere.spi.microservice.IMicroservice#getTenantEngineConfiguration(io.
-     * sitewhere.k8s.crd.tenant.SiteWhereTenant,
-     * io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice)
-     */
-    @Override
-    public SiteWhereTenantEngine getTenantEngineConfiguration(SiteWhereTenant tenant,
-	    SiteWhereMicroservice microservice) throws SiteWhereException {
-	SiteWhereTenantEngineList list = getSiteWhereKubernetesClient().getTenantEngines()
-		.inNamespace(tenant.getMetadata().getNamespace())
-		.withLabel(ResourceLabels.LABEL_SITEWHERE_TENANT, tenant.getMetadata().getName())
-		.withLabel(ResourceLabels.LABEL_SITEWHERE_MICROSERVICE, microservice.getMetadata().getName()).list();
-	if (list.getItems().size() == 0) {
-	    return null;
-	} else if (list.getItems().size() == 1) {
-	    return list.getItems().get(0);
-	} else {
-	    getLogger().warn(String.format("Found multiple tenant engines for tenant/microservice combination. %s %s",
-		    tenant.getMetadata().getName(), microservice.getMetadata().getName()));
-	    return list.getItems().get(0);
-	}
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.microservice.IMicroservice#setTenantEngineConfiguration(io.
-     * sitewhere.k8s.crd.tenant.SiteWhereTenant,
-     * io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice,
-     * com.fasterxml.jackson.databind.JsonNode)
-     */
-    @Override
-    public SiteWhereTenantEngine setTenantEngineConfiguration(SiteWhereTenant tenant,
-	    SiteWhereMicroservice microservice, JsonNode configuration) throws SiteWhereException {
-	SiteWhereTenantEngine tenantEngine = getTenantEngineConfiguration(tenant, microservice);
-	if (tenantEngine == null) {
-	    throw new SiteWhereException(
-		    String.format("Unable to find tenant engine for tenant/microservice combination. %s %s",
-			    tenant.getMetadata().getName(), microservice.getMetadata().getName()));
-	}
-	tenantEngine.getSpec().setConfiguration(configuration);
-	return getSiteWhereKubernetesClient().getTenantEngines().createOrReplace(tenantEngine);
-    }
-
-    /*
-     * @see
      * com.sitewhere.spi.microservice.IMicroservice#executeInstanceSpecUpdate(com.
      * sitewhere.spi.microservice.instance.IInstanceSpecUpdateOperation)
      */
@@ -464,20 +390,12 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	return metricsServer;
     }
 
-    public void setMetricsServer(IMetricsServer metricsServer) {
-	this.metricsServer = metricsServer;
-    }
-
     /*
      * @see com.sitewhere.microservice.spi.IMicroservice#getTokenManagement()
      */
     @Override
     public ITokenManagement getTokenManagement() {
 	return tokenManagement;
-    }
-
-    public void setTokenManagement(ITokenManagement tokenManagement) {
-	this.tokenManagement = tokenManagement;
     }
 
     /*
@@ -488,20 +406,12 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	return tenantManagement;
     }
 
-    public void setTenantManagement(ITenantManagement tenantManagement) {
-	this.tenantManagement = tenantManagement;
-    }
-
     /*
      * @see com.sitewhere.microservice.spi.IMicroservice#getSystemUser()
      */
     @Override
     public ISystemUser getSystemUser() {
 	return systemUser;
-    }
-
-    public void setSystemUser(ISystemUser systemUser) {
-	this.systemUser = systemUser;
     }
 
     /*
@@ -512,20 +422,12 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	return kafkaTopicNaming;
     }
 
-    public void setKafkaTopicNaming(IKafkaTopicNaming kafkaTopicNaming) {
-	this.kafkaTopicNaming = kafkaTopicNaming;
-    }
-
     /*
      * @see com.sitewhere.spi.microservice.IMicroservice#getScriptManager()
      */
     @Override
     public IScriptManager getScriptManager() {
 	return scriptManager;
-    }
-
-    public void setScriptManager(IScriptManager scriptManager) {
-	this.scriptManager = scriptManager;
     }
 
     /*
@@ -536,20 +438,12 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	return scriptTemplateManager;
     }
 
-    public void setScriptTemplateManager(IScriptTemplateManager scriptTemplateManager) {
-	this.scriptTemplateManager = scriptTemplateManager;
-    }
-
     /*
      * @see com.sitewhere.spi.microservice.IMicroservice#getMicroserviceAnalytics()
      */
     @Override
     public IMicroserviceAnalytics getMicroserviceAnalytics() {
 	return microserviceAnalytics;
-    }
-
-    public void setMicroserviceAnalytics(IMicroserviceAnalytics microserviceAnalytics) {
-	this.microserviceAnalytics = microserviceAnalytics;
     }
 
     /*
@@ -560,20 +454,12 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	return instanceSettings;
     }
 
-    public void setInstanceSettings(IInstanceSettings instanceSettings) {
-	this.instanceSettings = instanceSettings;
-    }
-
     /*
      * @see com.sitewhere.microservice.spi.IMicroservice#getVersion()
      */
     @Override
     public IVersion getVersion() {
 	return version;
-    }
-
-    public void setVersion(IVersion version) {
-	this.version = version;
     }
 
     /*
@@ -584,10 +470,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @Override
     public ExecutorService getMicroserviceOperationsService() {
 	return microserviceOperationsService;
-    }
-
-    public void setMicroserviceOperationsService(ExecutorService microserviceOperationsService) {
-	this.microserviceOperationsService = microserviceOperationsService;
     }
 
     protected SharedInformerFactory getSharedInformerFactory() {

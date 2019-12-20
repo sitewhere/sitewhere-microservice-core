@@ -7,6 +7,7 @@
  */
 package com.sitewhere.microservice.multitenant;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.microservice.configuration.ConfigurableMicroservice;
 import com.sitewhere.microservice.configuration.TenantEngineConfigurationMonitor;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
@@ -23,6 +24,11 @@ import com.sitewhere.spi.microservice.multitenant.ITenantEngineManager;
 import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableException;
 
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
+import io.sitewhere.k8s.crd.ResourceLabels;
+import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
+import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
+import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineList;
 
 /**
  * Microservice that contains engines for multiple tenants.
@@ -130,6 +136,48 @@ public abstract class MultitenantMicroservice<F extends IFunctionIdentifier, C e
     @Override
     public T assureTenantEngineAvailable(String token) throws TenantEngineNotAvailableException {
 	return getTenantEngineManager().assureTenantEngineAvailable(token);
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice#
+     * getTenantEngineConfiguration(io.sitewhere.k8s.crd.tenant.SiteWhereTenant,
+     * io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice)
+     */
+    @Override
+    public SiteWhereTenantEngine getTenantEngineConfiguration(SiteWhereTenant tenant,
+	    SiteWhereMicroservice microservice) throws SiteWhereException {
+	SiteWhereTenantEngineList list = getSiteWhereKubernetesClient().getTenantEngines()
+		.inNamespace(tenant.getMetadata().getNamespace())
+		.withLabel(ResourceLabels.LABEL_SITEWHERE_TENANT, tenant.getMetadata().getName())
+		.withLabel(ResourceLabels.LABEL_SITEWHERE_MICROSERVICE, microservice.getMetadata().getName()).list();
+	if (list.getItems().size() == 0) {
+	    return null;
+	} else if (list.getItems().size() == 1) {
+	    return list.getItems().get(0);
+	} else {
+	    getLogger().warn(String.format("Found multiple tenant engines for tenant/microservice combination. %s %s",
+		    tenant.getMetadata().getName(), microservice.getMetadata().getName()));
+	    return list.getItems().get(0);
+	}
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice#
+     * setTenantEngineConfiguration(io.sitewhere.k8s.crd.tenant.SiteWhereTenant,
+     * io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice,
+     * com.fasterxml.jackson.databind.JsonNode)
+     */
+    @Override
+    public SiteWhereTenantEngine setTenantEngineConfiguration(SiteWhereTenant tenant,
+	    SiteWhereMicroservice microservice, JsonNode configuration) throws SiteWhereException {
+	SiteWhereTenantEngine tenantEngine = getTenantEngineConfiguration(tenant, microservice);
+	if (tenantEngine == null) {
+	    throw new SiteWhereException(
+		    String.format("Unable to find tenant engine for tenant/microservice combination. %s %s",
+			    tenant.getMetadata().getName(), microservice.getMetadata().getName()));
+	}
+	tenantEngine.getSpec().setConfiguration(configuration);
+	return getSiteWhereKubernetesClient().getTenantEngines().createOrReplace(tenantEngine);
     }
 
     /*
