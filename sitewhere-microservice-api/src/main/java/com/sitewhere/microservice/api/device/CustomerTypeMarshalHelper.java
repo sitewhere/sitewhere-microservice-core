@@ -7,10 +7,6 @@
  */
 package com.sitewhere.microservice.api.device;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +23,7 @@ import com.sitewhere.spi.customer.ICustomerType;
 public class CustomerTypeMarshalHelper {
 
     /** Static logger instance */
+    @SuppressWarnings("unused")
     private static Logger LOGGER = LoggerFactory.getLogger(CustomerTypeMarshalHelper.class);
 
     /** Device management */
@@ -50,19 +47,9 @@ public class CustomerTypeMarshalHelper {
 	MarshaledCustomerType type = new MarshaledCustomerType();
 	type.setName(source.getName());
 	type.setDescription(source.getDescription());
-	type.setContainedCustomerTypeIds(source.getContainedCustomerTypeIds());
 	BrandedEntity.copy(source, type);
 	if (isIncludeContainedCustomerTypes()) {
-	    List<ICustomerType> ccts = new ArrayList<ICustomerType>();
-	    for (UUID ctid : source.getContainedCustomerTypeIds()) {
-		ICustomerType at = getDeviceManagement().getCustomerType(ctid);
-		if (at != null) {
-		    ccts.add(at);
-		} else {
-		    LOGGER.warn("Contained customer types has invalid reference.");
-		}
-	    }
-	    type.setContainedCustomerTypes(ccts);
+	    type.setContainedCustomerTypes(getDeviceManagement().getContainedCustomerTypes(source.getId()));
 	}
 	return type;
     }

@@ -273,11 +273,11 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      * Called when configuration is added or updated.
      */
     protected void onConfigurationUpdated() {
-	if (getInstanceConfiguration() == null) {
+	if (getInstanceConfigurationModule() == null) {
 	    getLogger().info("Waiting for instance configuration to be loaded before starting.");
 	    return;
 	}
-	if (getMicroserviceConfiguration() == null) {
+	if (getMicroserviceConfigurationModule() == null) {
 	    getLogger().info("Waiting for microservice configuration to be loaded before starting.");
 	    return;
 	}

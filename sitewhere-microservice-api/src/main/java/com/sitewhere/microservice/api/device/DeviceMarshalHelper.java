@@ -72,7 +72,6 @@ public class DeviceMarshalHelper {
     public MarshaledDevice convert(IDevice source, IAssetManagement assetManagement) throws SiteWhereException {
 	MarshaledDevice result = new MarshaledDevice();
 	result.setDeviceTypeId(source.getDeviceTypeId());
-	result.setActiveDeviceAssignmentIds(source.getActiveDeviceAssignmentIds());
 	result.setParentDeviceId(source.getParentDeviceId());
 	result.setStatus(source.getStatus());
 	result.setComments(source.getComments());
@@ -98,9 +97,10 @@ public class DeviceMarshalHelper {
 		result.setDeviceType(getDeviceTypeHelper().convert(deviceType));
 	    }
 	}
-	if ((source.getActiveDeviceAssignmentIds().size() > 0) && (isIncludeAssignment())) {
+	if (isIncludeAssignment()) {
 	    try {
-		List<IDeviceAssignment> assignments = getDeviceManagement().getActiveDeviceAssignments(source.getId());
+		List<? extends IDeviceAssignment> assignments = getDeviceManagement()
+			.getActiveDeviceAssignments(source.getId());
 		List<DeviceAssignment> converted = new ArrayList<>();
 		for (IDeviceAssignment assignment : assignments) {
 		    converted.add(getAssignmentHelper().convert(assignment, assetManagement));

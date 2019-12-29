@@ -284,10 +284,10 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     }
 
     /*
-     * @see com.sitewhere.spi.microservice.IMicroservice#loadInstanceConfiguration()
+     * @see com.sitewhere.spi.microservice.IMicroservice#loadInstanceResource()
      */
     @Override
-    public SiteWhereInstance loadInstanceConfiguration() throws SiteWhereException {
+    public SiteWhereInstance loadInstanceResource() throws SiteWhereException {
 	String instanceId = getInstanceSettings().getInstanceId();
 	if (instanceId == null) {
 	    throw new SiteWhereException("Instance id not set on microservice.");
@@ -320,12 +320,11 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     }
 
     /*
-     * @see
-     * com.sitewhere.spi.microservice.IMicroservice#updateInstanceConfiguration(io.
+     * @see com.sitewhere.spi.microservice.IMicroservice#updateInstanceResource(io.
      * sitewhere.k8s.crd.instance.SiteWhereInstance)
      */
     @Override
-    public SiteWhereInstance updateInstanceConfiguration(SiteWhereInstance instance) throws SiteWhereException {
+    public SiteWhereInstance updateInstanceResource(SiteWhereInstance instance) throws SiteWhereException {
 	String instanceId = getInstanceSettings().getInstanceId();
 	if (!instanceId.equals(instance.getMetadata().getName())) {
 	    throw new SiteWhereException(

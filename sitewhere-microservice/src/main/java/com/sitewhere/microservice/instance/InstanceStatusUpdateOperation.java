@@ -34,7 +34,7 @@ public abstract class InstanceStatusUpdateOperation implements IInstanceStatusUp
     public SiteWhereInstance execute(IMicroservice<?, ?> microservice) throws SiteWhereException {
 	while (true) {
 	    try {
-		SiteWhereInstance instance = microservice.loadInstanceConfiguration();
+		SiteWhereInstance instance = microservice.loadInstanceResource();
 		update(instance);
 		return microservice.updateInstanceStatus(instance);
 	    } catch (ConcurrentK8sUpdateException e) {

@@ -7,10 +7,6 @@
  */
 package com.sitewhere.microservice.api.device;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +23,7 @@ import com.sitewhere.spi.area.IAreaType;
 public class AreaTypeMarshalHelper {
 
     /** Static logger instance */
+    @SuppressWarnings("unused")
     private static Logger LOGGER = LoggerFactory.getLogger(AreaTypeMarshalHelper.class);
 
     /** Device management */
@@ -50,19 +47,9 @@ public class AreaTypeMarshalHelper {
 	MarshaledAreaType type = new MarshaledAreaType();
 	type.setName(source.getName());
 	type.setDescription(source.getDescription());
-	type.setContainedAreaTypeIds(source.getContainedAreaTypeIds());
 	BrandedEntity.copy(source, type);
 	if (isIncludeContainedAreaTypes()) {
-	    List<IAreaType> cats = new ArrayList<IAreaType>();
-	    for (UUID atid : source.getContainedAreaTypeIds()) {
-		IAreaType at = getDeviceManagement().getAreaType(atid);
-		if (at != null) {
-		    cats.add(at);
-		} else {
-		    LOGGER.warn("Contained area types has invalid reference.");
-		}
-	    }
-	    type.setContainedAreaTypes(cats);
+	    type.setContainedAreaTypes(getDeviceManagement().getContainedAreaTypes(source.getId()));
 	}
 	return type;
     }

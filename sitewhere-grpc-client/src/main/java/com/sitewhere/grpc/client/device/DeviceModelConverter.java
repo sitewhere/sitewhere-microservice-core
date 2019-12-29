@@ -266,7 +266,7 @@ public class DeviceModelConverter {
      * @return
      * @throws SiteWhereException
      */
-    public static List<GDeviceSlot> asGrpcDeviceSlots(List<IDeviceSlot> apis) throws SiteWhereException {
+    public static List<GDeviceSlot> asGrpcDeviceSlots(List<? extends IDeviceSlot> apis) throws SiteWhereException {
 	List<GDeviceSlot> grpcs = new ArrayList<GDeviceSlot>();
 	for (IDeviceSlot api : apis) {
 	    grpcs.add(DeviceModelConverter.asGrpcDeviceSlot(api));
@@ -313,7 +313,7 @@ public class DeviceModelConverter {
      * @return
      * @throws SiteWhereException
      */
-    public static List<GDeviceUnit> asGrpcDeviceUnits(List<IDeviceUnit> apis) throws SiteWhereException {
+    public static List<GDeviceUnit> asGrpcDeviceUnits(List<? extends IDeviceUnit> apis) throws SiteWhereException {
 	List<GDeviceUnit> grpcs = new ArrayList<GDeviceUnit>();
 	for (IDeviceUnit api : apis) {
 	    grpcs.add(DeviceModelConverter.asGrpcDeviceUnit(api));
@@ -410,7 +410,8 @@ public class DeviceModelConverter {
 	api.setName(grpc.hasName() ? grpc.getName().getValue() : null);
 	api.setDescription(grpc.hasDescription() ? grpc.getDescription().getValue() : null);
 	api.setContainerPolicy(DeviceModelConverter.asApiDeviceContainerPolicy(grpc.getContainerPolicy()));
-	api.setDeviceElementSchema(DeviceModelConverter.asApiDeviceElementSchema(grpc.getDeviceElementSchema()));
+	api.setDeviceElementSchemaToken(
+		grpc.hasDeviceElementSchemaToken() ? grpc.getDeviceElementSchemaToken().getValue() : null);
 	api.setMetadata(grpc.getMetadataMap());
 	CommonModelConverter.setBrandingInformation(api, grpc.getBranding());
 	return api;
@@ -436,8 +437,9 @@ public class DeviceModelConverter {
 	    grpc.setDescription(GOptionalString.newBuilder().setValue(api.getDescription()));
 	}
 	grpc.setContainerPolicy(DeviceModelConverter.asGrpcDeviceContainerPolicy(api.getContainerPolicy()));
-	if (api.getDeviceElementSchema() != null) {
-	    grpc.setDeviceElementSchema(DeviceModelConverter.asGrpcDeviceElementSchema(api.getDeviceElementSchema()));
+	if (api.getDeviceElementSchemaToken() != null) {
+	    grpc.setDeviceElementSchemaToken(
+		    GOptionalString.newBuilder().setValue(api.getDeviceElementSchemaToken()).build());
 	}
 	grpc.putAllMetadata(api.getMetadata());
 	grpc.setBranding(CommonModelConverter.asGrpcBrandingInformation(api));
@@ -456,7 +458,7 @@ public class DeviceModelConverter {
 	api.setName(grpc.getName());
 	api.setDescription(grpc.getDescription());
 	api.setContainerPolicy(DeviceModelConverter.asApiDeviceContainerPolicy(grpc.getContainerPolicy()));
-	api.setDeviceElementSchema(DeviceModelConverter.asApiDeviceElementSchema(grpc.getDeviceElementSchema()));
+	api.setDeviceElementSchemaId(CommonModelConverter.asApiUuid(grpc.getDeviceElementSchemaId()));
 	CommonModelConverter.setEntityInformation(api, grpc.getEntityInformation());
 	CommonModelConverter.setBrandingInformation(api, grpc.getBranding());
 	return api;
@@ -474,9 +476,7 @@ public class DeviceModelConverter {
 	grpc.setName(api.getName());
 	grpc.setDescription(api.getDescription());
 	grpc.setContainerPolicy(DeviceModelConverter.asGrpcDeviceContainerPolicy(api.getContainerPolicy()));
-	if (api.getDeviceElementSchema() != null) {
-	    grpc.setDeviceElementSchema(DeviceModelConverter.asGrpcDeviceElementSchema(api.getDeviceElementSchema()));
-	}
+	grpc.setDeviceElementSchemaId(CommonModelConverter.asGrpcUuid(api.getDeviceElementSchemaId()));
 	grpc.setEntityInformation(CommonModelConverter.asGrpcEntityInformation(api));
 	grpc.setBranding(CommonModelConverter.asGrpcBrandingInformation(api));
 	return grpc.build();
@@ -623,7 +623,7 @@ public class DeviceModelConverter {
      * @return
      * @throws SiteWhereException
      */
-    public static List<GCommandParameter> asGrpcCommandParameters(List<ICommandParameter> apis)
+    public static List<GCommandParameter> asGrpcCommandParameters(List<? extends ICommandParameter> apis)
 	    throws SiteWhereException {
 	List<GCommandParameter> grpcs = new ArrayList<GCommandParameter>();
 	for (ICommandParameter api : apis) {
@@ -1128,7 +1128,6 @@ public class DeviceModelConverter {
 	Device api = new Device();
 	api.setDeviceTypeId(CommonModelConverter.asApiUuid(grpc.getDeviceTypeId()));
 	api.setStatus(grpc.hasStatus() ? grpc.getStatus().getValue() : null);
-	api.setActiveDeviceAssignmentIds(CommonModelConverter.asApiUuids(grpc.getActiveAssignmentIdList()));
 	api.setParentDeviceId(
 		grpc.hasParentDeviceId() ? CommonModelConverter.asApiUuid(grpc.getParentDeviceId()) : null);
 	api.setComments(grpc.hasComments() ? grpc.getComments().getValue() : null);
@@ -1153,9 +1152,6 @@ public class DeviceModelConverter {
 	grpc.setDeviceTypeId(CommonModelConverter.asGrpcUuid(api.getDeviceTypeId()));
 	if (api.getStatus() != null) {
 	    grpc.setStatus(GOptionalString.newBuilder().setValue(api.getStatus()).build());
-	}
-	if (api.getActiveDeviceAssignmentIds() != null) {
-	    grpc.addAllActiveAssignmentId(CommonModelConverter.asGrpcUuids(api.getActiveDeviceAssignmentIds()));
 	}
 	if (api.getComments() != null) {
 	    grpc.setComments(GOptionalString.newBuilder().setValue(api.getComments()).build());
@@ -1689,7 +1685,7 @@ public class DeviceModelConverter {
      * @return
      * @throws SiteWhereException
      */
-    public static List<GDeviceAssignment> asGrpcDeviceAssignments(List<IDeviceAssignment> apis)
+    public static List<GDeviceAssignment> asGrpcDeviceAssignments(List<? extends IDeviceAssignment> apis)
 	    throws SiteWhereException {
 	List<GDeviceAssignment> grpcs = new ArrayList<>();
 	for (IDeviceAssignment api : apis) {
@@ -2039,7 +2035,6 @@ public class DeviceModelConverter {
 	CustomerType api = new CustomerType();
 	api.setName(grpc.getName());
 	api.setDescription(grpc.getDescription());
-	api.setContainedCustomerTypeIds(CommonModelConverter.asApiUuids(grpc.getContainedCustomerTypeIdsList()));
 	CommonModelConverter.setEntityInformation(api, grpc.getEntityInformation());
 	CommonModelConverter.setBrandingInformation(api, grpc.getBranding());
 	return api;
@@ -2056,9 +2051,6 @@ public class DeviceModelConverter {
 	GCustomerType.Builder grpc = GCustomerType.newBuilder();
 	grpc.setName(api.getName());
 	grpc.setDescription(api.getDescription());
-	if (api.getContainedCustomerTypeIds() != null) {
-	    grpc.addAllContainedCustomerTypeIds(CommonModelConverter.asGrpcUuids(api.getContainedCustomerTypeIds()));
-	}
 	grpc.setEntityInformation(CommonModelConverter.asGrpcEntityInformation(api));
 	grpc.setBranding(CommonModelConverter.asGrpcBrandingInformation(api));
 	return grpc.build();
@@ -2290,7 +2282,7 @@ public class DeviceModelConverter {
      * @return
      * @throws SiteWhereException
      */
-    public static List<GCustomer> asGrpcCustomers(List<ICustomer> apis) throws SiteWhereException {
+    public static List<GCustomer> asGrpcCustomers(List<? extends ICustomer> apis) throws SiteWhereException {
 	List<GCustomer> grpcs = new ArrayList<>();
 	for (ICustomer api : apis) {
 	    grpcs.add(DeviceModelConverter.asGrpcCustomer(api));
@@ -2383,7 +2375,6 @@ public class DeviceModelConverter {
 	AreaType api = new AreaType();
 	api.setName(grpc.getName());
 	api.setDescription(grpc.getDescription());
-	api.setContainedAreaTypeIds(CommonModelConverter.asApiUuids(grpc.getContainedAreaTypeIdsList()));
 	CommonModelConverter.setEntityInformation(api, grpc.getEntityInformation());
 	CommonModelConverter.setBrandingInformation(api, grpc.getBranding());
 	return api;
@@ -2400,9 +2391,6 @@ public class DeviceModelConverter {
 	GAreaType.Builder grpc = GAreaType.newBuilder();
 	grpc.setName(api.getName());
 	grpc.setDescription(api.getDescription());
-	if (api.getContainedAreaTypeIds() != null) {
-	    grpc.addAllContainedAreaTypeIds(CommonModelConverter.asGrpcUuids(api.getContainedAreaTypeIds()));
-	}
 	grpc.setEntityInformation(CommonModelConverter.asGrpcEntityInformation(api));
 	grpc.setBranding(CommonModelConverter.asGrpcBrandingInformation(api));
 	return grpc.build();
@@ -2577,7 +2565,7 @@ public class DeviceModelConverter {
      * @return
      * @throws SiteWhereException
      */
-    public static List<GArea> asGrpcAreas(List<IArea> apis) throws SiteWhereException {
+    public static List<GArea> asGrpcAreas(List<? extends IArea> apis) throws SiteWhereException {
 	List<GArea> grpcs = new ArrayList<>();
 	for (IArea api : apis) {
 	    grpcs.add(DeviceModelConverter.asGrpcArea(api));

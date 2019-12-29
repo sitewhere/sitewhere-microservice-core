@@ -77,7 +77,7 @@ public interface IAssetManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IAsset> listAssets(IAssetSearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends IAsset> listAssets(IAssetSearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Create a new asset type.
@@ -132,5 +132,5 @@ public interface IAssetManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IAssetType> listAssetTypes(IAssetTypeSearchCritiera criteria) throws SiteWhereException;
+    ISearchResults<? extends IAssetType> listAssetTypes(IAssetTypeSearchCritiera criteria) throws SiteWhereException;
 }

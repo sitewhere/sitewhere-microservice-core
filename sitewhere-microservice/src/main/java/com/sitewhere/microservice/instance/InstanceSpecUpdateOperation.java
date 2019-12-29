@@ -35,11 +35,13 @@ public abstract class InstanceSpecUpdateOperation implements IInstanceSpecUpdate
     public SiteWhereInstance execute(IMicroservice<?, ?> microservice) throws SiteWhereException {
 	while (true) {
 	    try {
-		SiteWhereInstance instance = microservice.loadInstanceConfiguration();
+		SiteWhereInstance instance = microservice.loadInstanceResource();
 		update(instance);
-		return microservice.updateInstanceConfiguration(instance);
+		return microservice.updateInstanceResource(instance);
 	    } catch (ConcurrentK8sUpdateException e) {
 		LOGGER.info("Instance configuration updated concurrently. Will retry.");
+	    } catch (Throwable t) {
+		throw new SiteWhereException("Instance spec update failed.", t);
 	    }
 	    try {
 		Thread.sleep(500);

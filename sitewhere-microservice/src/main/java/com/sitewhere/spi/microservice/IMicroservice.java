@@ -172,21 +172,21 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
     ExecutorService getMicroserviceOperationsService();
 
     /**
-     * Loads latest instance configuration from Kubernetes.
+     * Loads latest instance resource from Kubernetes.
      * 
      * @return
      * @throws SiteWhereException
      */
-    SiteWhereInstance loadInstanceConfiguration() throws SiteWhereException;
+    SiteWhereInstance loadInstanceResource() throws SiteWhereException;
 
     /**
-     * Update existing instance configuration.
+     * Update existing instance resource.
      * 
      * @param instance
      * @return
      * @throws SiteWhereException
      */
-    SiteWhereInstance updateInstanceConfiguration(SiteWhereInstance instance) throws SiteWhereException;
+    SiteWhereInstance updateInstanceResource(SiteWhereInstance instance) throws SiteWhereException;
 
     /**
      * Update instance status information.

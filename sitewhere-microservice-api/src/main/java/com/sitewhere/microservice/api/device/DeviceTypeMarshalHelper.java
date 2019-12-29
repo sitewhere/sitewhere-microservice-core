@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.sitewhere.rest.model.common.BrandedEntity;
 import com.sitewhere.rest.model.device.DeviceType;
-import com.sitewhere.rest.model.device.element.DeviceElementSchema;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.device.IDeviceType;
 
@@ -45,7 +44,7 @@ public class DeviceTypeMarshalHelper {
 	deviceType.setName(source.getName());
 	deviceType.setDescription(source.getDescription());
 	deviceType.setContainerPolicy(source.getContainerPolicy());
-	deviceType.setDeviceElementSchema((DeviceElementSchema) source.getDeviceElementSchema());
+	deviceType.setDeviceElementSchemaId(source.getDeviceElementSchemaId());
 	BrandedEntity.copy(source, deviceType);
 	return deviceType;
     }

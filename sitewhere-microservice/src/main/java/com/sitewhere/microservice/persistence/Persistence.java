@@ -36,7 +36,6 @@ public class Persistence {
      */
     public static void entityCreateLogic(IPersistentEntityCreateRequest request, PersistentEntity entity)
 	    throws SiteWhereException {
-	entity.setId(UUID.randomUUID());
 	if (!StringUtils.isEmpty(request.getToken())) {
 	    entity.setToken(request.getToken());
 	} else {

@@ -107,7 +107,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * search.ISearchCriteria)
      */
     @Override
-    public ISearchResults<IDeviceType> listDeviceTypes(ISearchCriteria criteria) throws SiteWhereException {
+    public ISearchResults<? extends IDeviceType> listDeviceTypes(ISearchCriteria criteria) throws SiteWhereException {
 	return getDelegate().listDeviceTypes(criteria);
     }
 
@@ -165,7 +165,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * spi.search.device.IDeviceCommandSearchCriteria)
      */
     @Override
-    public ISearchResults<IDeviceCommand> listDeviceCommands(IDeviceCommandSearchCriteria criteria)
+    public ISearchResults<? extends IDeviceCommand> listDeviceCommands(IDeviceCommandSearchCriteria criteria)
 	    throws SiteWhereException {
 	return getDelegate().listDeviceCommands(criteria);
     }
@@ -225,7 +225,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * spi.search.device.IDeviceStatusSearchCriteria)
      */
     @Override
-    public ISearchResults<IDeviceStatus> listDeviceStatuses(IDeviceStatusSearchCriteria criteria)
+    public ISearchResults<? extends IDeviceStatus> listDeviceStatuses(IDeviceStatusSearchCriteria criteria)
 	    throws SiteWhereException {
 	return getDelegate().listDeviceStatuses(criteria);
     }
@@ -281,7 +281,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * util.UUID)
      */
     @Override
-    public List<IDeviceAssignment> getActiveDeviceAssignments(UUID deviceId) throws SiteWhereException {
+    public List<? extends IDeviceAssignment> getActiveDeviceAssignments(UUID deviceId) throws SiteWhereException {
 	return getDelegate().getActiveDeviceAssignments(deviceId);
     }
 
@@ -291,7 +291,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * search.device.IDeviceSearchCriteria)
      */
     @Override
-    public ISearchResults<IDevice> listDevices(IDeviceSearchCriteria criteria) throws SiteWhereException {
+    public ISearchResults<? extends IDevice> listDevices(IDeviceSearchCriteria criteria) throws SiteWhereException {
 	return getDelegate().listDevices(criteria);
     }
 
@@ -368,7 +368,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * sitewhere.spi.search.device.IDeviceAssignmentSearchCriteria)
      */
     @Override
-    public ISearchResults<IDeviceAssignment> listDeviceAssignments(IDeviceAssignmentSearchCriteria criteria)
+    public ISearchResults<? extends IDeviceAssignment> listDeviceAssignments(IDeviceAssignmentSearchCriteria criteria)
 	    throws SiteWhereException {
 	return getDelegate().listDeviceAssignments(criteria);
     }
@@ -428,7 +428,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * spi.search.device.IDeviceAlarmSearchCriteria)
      */
     @Override
-    public ISearchResults<IDeviceAlarm> searchDeviceAlarms(IDeviceAlarmSearchCriteria criteria)
+    public ISearchResults<? extends IDeviceAlarm> searchDeviceAlarms(IDeviceAlarmSearchCriteria criteria)
 	    throws SiteWhereException {
 	return getDelegate().searchDeviceAlarms(criteria);
     }
@@ -487,8 +487,18 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * spi.search.ISearchCriteria)
      */
     @Override
-    public ISearchResults<ICustomerType> listCustomerTypes(ISearchCriteria criteria) throws SiteWhereException {
+    public ISearchResults<? extends ICustomerType> listCustomerTypes(ISearchCriteria criteria)
+	    throws SiteWhereException {
 	return getDelegate().listCustomerTypes(criteria);
+    }
+
+    /*
+     * @see com.sitewhere.microservice.api.device.IDeviceManagement#
+     * getContainedCustomerTypes(java.util.UUID)
+     */
+    @Override
+    public List<? extends ICustomerType> getContainedCustomerTypes(UUID customerTypeId) throws SiteWhereException {
+	return getDelegate().getContainedCustomerTypes(customerTypeId);
     }
 
     /*
@@ -533,7 +543,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * String)
      */
     @Override
-    public List<ICustomer> getCustomerChildren(String token) throws SiteWhereException {
+    public List<? extends ICustomer> getCustomerChildren(String token) throws SiteWhereException {
 	return getDelegate().getCustomerChildren(token);
     }
 
@@ -553,7 +563,8 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * search.customer.ICustomerSearchCriteria)
      */
     @Override
-    public ISearchResults<ICustomer> listCustomers(ICustomerSearchCriteria criteria) throws SiteWhereException {
+    public ISearchResults<? extends ICustomer> listCustomers(ICustomerSearchCriteria criteria)
+	    throws SiteWhereException {
 	return getDelegate().listCustomers(criteria);
     }
 
@@ -617,8 +628,18 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * search.ISearchCriteria)
      */
     @Override
-    public ISearchResults<IAreaType> listAreaTypes(ISearchCriteria criteria) throws SiteWhereException {
+    public ISearchResults<? extends IAreaType> listAreaTypes(ISearchCriteria criteria) throws SiteWhereException {
 	return getDelegate().listAreaTypes(criteria);
+    }
+
+    /*
+     * @see
+     * com.sitewhere.microservice.api.device.IDeviceManagement#getContainedAreaTypes
+     * (java.util.UUID)
+     */
+    @Override
+    public List<? extends IAreaType> getContainedAreaTypes(UUID areaTypeId) throws SiteWhereException {
+	return getDelegate().getContainedAreaTypes(areaTypeId);
     }
 
     /*
@@ -662,7 +683,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * com.sitewhere.spi.device.IDeviceManagement#getAreaChildren(java.lang.String)
      */
     @Override
-    public List<IArea> getAreaChildren(String token) throws SiteWhereException {
+    public List<? extends IArea> getAreaChildren(String token) throws SiteWhereException {
 	return getDelegate().getAreaChildren(token);
     }
 
@@ -681,7 +702,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * .area.IAreaSearchCriteria)
      */
     @Override
-    public ISearchResults<IArea> listAreas(IAreaSearchCriteria criteria) throws SiteWhereException {
+    public ISearchResults<? extends IArea> listAreas(IAreaSearchCriteria criteria) throws SiteWhereException {
 	return getDelegate().listAreas(criteria);
     }
 
@@ -743,7 +764,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * .device.IZoneSearchCriteria)
      */
     @Override
-    public ISearchResults<IZone> listZones(IZoneSearchCriteria criteria) throws SiteWhereException {
+    public ISearchResults<? extends IZone> listZones(IZoneSearchCriteria criteria) throws SiteWhereException {
 	return getDelegate().listZones(criteria);
     }
 
@@ -800,7 +821,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * .search.ISearchCriteria)
      */
     @Override
-    public ISearchResults<IDeviceGroup> listDeviceGroups(ISearchCriteria criteria) throws SiteWhereException {
+    public ISearchResults<? extends IDeviceGroup> listDeviceGroups(ISearchCriteria criteria) throws SiteWhereException {
 	return getDelegate().listDeviceGroups(criteria);
     }
 
@@ -810,7 +831,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * .String, com.sitewhere.spi.search.ISearchCriteria)
      */
     @Override
-    public ISearchResults<IDeviceGroup> listDeviceGroupsWithRole(String role, ISearchCriteria criteria)
+    public ISearchResults<? extends IDeviceGroup> listDeviceGroupsWithRole(String role, ISearchCriteria criteria)
 	    throws SiteWhereException {
 	return getDelegate().listDeviceGroupsWithRole(role, criteria);
     }
@@ -821,7 +842,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * UUID, java.util.List, boolean)
      */
     @Override
-    public List<IDeviceGroupElement> addDeviceGroupElements(UUID groupId,
+    public List<? extends IDeviceGroupElement> addDeviceGroupElements(UUID groupId,
 	    List<IDeviceGroupElementCreateRequest> elements, boolean ignoreDuplicates) throws SiteWhereException {
 	return getDelegate().addDeviceGroupElements(groupId, elements, ignoreDuplicates);
     }
@@ -832,7 +853,8 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * util.List)
      */
     @Override
-    public List<IDeviceGroupElement> removeDeviceGroupElements(List<UUID> elements) throws SiteWhereException {
+    public List<? extends IDeviceGroupElement> removeDeviceGroupElements(List<UUID> elements)
+	    throws SiteWhereException {
 	return getDelegate().removeDeviceGroupElements(elements);
     }
 
@@ -842,7 +864,7 @@ public class DeviceManagementDecorator extends TenantEngineLifecycleComponentDec
      * UUID, com.sitewhere.spi.search.ISearchCriteria)
      */
     @Override
-    public ISearchResults<IDeviceGroupElement> listDeviceGroupElements(UUID groupId, ISearchCriteria criteria)
+    public ISearchResults<? extends IDeviceGroupElement> listDeviceGroupElements(UUID groupId, ISearchCriteria criteria)
 	    throws SiteWhereException {
 	return getDelegate().listDeviceGroupElements(groupId, criteria);
     }

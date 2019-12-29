@@ -289,11 +289,11 @@ public class DeviceManagementRequestBuilder {
      * @return
      * @throws SiteWhereException
      */
-    public List<IDeviceAssignment> allActiveAssignments() throws SiteWhereException {
+    public List<? extends IDeviceAssignment> allActiveAssignments() throws SiteWhereException {
 	DeviceAssignmentSearchCriteria criteria = new DeviceAssignmentSearchCriteria(1, 0);
 	criteria.setAssignmentStatuses(Collections.singletonList(DeviceAssignmentStatus.Active));
 
-	ISearchResults<IDeviceAssignment> matches = getDeviceManagement().listDeviceAssignments(criteria);
+	ISearchResults<? extends IDeviceAssignment> matches = getDeviceManagement().listDeviceAssignments(criteria);
 	return matches.getResults();
     }
 
@@ -359,8 +359,8 @@ public class DeviceManagementRequestBuilder {
      * @return
      * @throws SiteWhereException
      */
-    public List<IDeviceGroupElement> persist(IDeviceGroup group, List<DeviceGroupElementCreateRequest.Builder> builders)
-	    throws SiteWhereException {
+    public List<? extends IDeviceGroupElement> persist(IDeviceGroup group,
+	    List<DeviceGroupElementCreateRequest.Builder> builders) throws SiteWhereException {
 	List<IDeviceGroupElementCreateRequest> elements = new ArrayList<IDeviceGroupElementCreateRequest>();
 	for (DeviceGroupElementCreateRequest.Builder builder : builders) {
 	    elements.add(builder.build());

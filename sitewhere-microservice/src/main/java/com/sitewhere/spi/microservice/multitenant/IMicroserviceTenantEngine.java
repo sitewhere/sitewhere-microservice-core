@@ -8,6 +8,7 @@
 package com.sitewhere.spi.microservice.multitenant;
 
 import com.google.inject.Injector;
+import com.sitewhere.microservice.scripting.Binding;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
@@ -55,6 +56,54 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
     Class<T> getConfigurationClass();
 
     /**
+     * Loads the latest tenant engine resource from k8s.
+     * 
+     * @return
+     * @throws SiteWhereException
+     */
+    SiteWhereTenantEngine loadTenantEngineResource() throws SiteWhereException;
+
+    /**
+     * Update tenant engine resource.
+     * 
+     * @param engine
+     * @return
+     * @throws SiteWhereException
+     */
+    SiteWhereTenantEngine updateTenantEngineResource(SiteWhereTenantEngine engine) throws SiteWhereException;
+
+    /**
+     * Update tenant engine status information.
+     * 
+     * @param engine
+     * @return
+     * @throws SiteWhereException
+     */
+    SiteWhereTenantEngine updateTenantEngineStatus(SiteWhereTenantEngine engine) throws SiteWhereException;
+
+    /**
+     * Executes a tenant engine specification update operation in the context of
+     * this tenant engine.
+     * 
+     * @param operation
+     * @return
+     * @throws SiteWhereException
+     */
+    SiteWhereTenantEngine executeTenantEngineSpecUpdate(ITenantEngineSpecUpdateOperation operation)
+	    throws SiteWhereException;
+
+    /**
+     * Executes a tenant engine status update operation in the context of this
+     * tenant engine.
+     * 
+     * @param operation
+     * @return
+     * @throws SiteWhereException
+     */
+    SiteWhereTenantEngine executeTenantEngineStatusUpdate(ITenantEngineStatusUpdateOperation operation)
+	    throws SiteWhereException;
+
+    /**
      * Get the currently active configuration.
      * 
      * @return
@@ -100,12 +149,28 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
     IScriptManager getScriptManager() throws SiteWhereException;
 
     /**
-     * Get bootstrap manager.
+     * Get component which bootstraps the tenant engine dataset.
      * 
      * @return
      * @throws SiteWhereException
      */
-    IDatasetBootstrapManager getBootstrapManager() throws SiteWhereException;
+    ITenantEngineBootstrapper getTenantEngineBootstrapper() throws SiteWhereException;
+
+    /**
+     * Set any bindings required by scripts for bootstrapping tenant engine.
+     * 
+     * @param binding
+     * @throws SiteWhereException
+     */
+    void setDatasetBootsrapBindings(Binding binding) throws SiteWhereException;
+
+    /**
+     * Get list of tenant engines in other microservices that must be bootstrapped
+     * before bootstrap logic in this engine is executed.
+     * 
+     * @return
+     */
+    IFunctionIdentifier[] getTenantBootstrapPrerequisites();
 
     /**
      * Wait for dataset in another tenant engine to be bootstrapped using a backoff
@@ -141,28 +206,15 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
     void tenantStart(ILifecycleProgressMonitor monitor) throws SiteWhereException;
 
     /**
-     * Get list of tenant engines in other microservices that must be bootstrapped
-     * before bootstrap logic in this engine is executed.
-     * 
-     * @return
-     */
-    IFunctionIdentifier[] getTenantBootstrapPrerequisites();
-
-    /**
-     * Bootstrap a tenant with data provided in dataset template.
-     * 
-     * @param template
-     * @param monitor
-     * @throws SiteWhereException
-     */
-    void tenantBootstrap(TenantEngineDatasetTemplate template, ILifecycleProgressMonitor monitor)
-	    throws SiteWhereException;
-
-    /**
      * Executes tenant shutdown code.
      * 
      * @param monitor
      * @throws SiteWhereException
      */
     void tenantStop(ILifecycleProgressMonitor monitor) throws SiteWhereException;
+
+    /**
+     * Called after tenant engine dataset has been bootstrapped.
+     */
+    void onTenantBootstrapComplete();
 }

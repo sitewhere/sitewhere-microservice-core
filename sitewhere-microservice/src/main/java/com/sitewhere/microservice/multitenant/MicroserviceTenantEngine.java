@@ -9,12 +9,14 @@ package com.sitewhere.microservice.multitenant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.CaseFormat;
 import com.google.inject.CreationException;
 import com.google.inject.Injector;
 import com.sitewhere.microservice.configuration.model.instance.PersistenceConfigurations;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
+import com.sitewhere.microservice.scripting.Binding;
 import com.sitewhere.microservice.scripting.ScriptManager;
 import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
@@ -24,14 +26,25 @@ import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
+import com.sitewhere.spi.microservice.multitenant.ITenantEngineBootstrapper;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineConfiguration;
+import com.sitewhere.spi.microservice.multitenant.ITenantEngineSpecUpdateOperation;
+import com.sitewhere.spi.microservice.multitenant.ITenantEngineStatusUpdateOperation;
 import com.sitewhere.spi.microservice.scripting.IScriptManager;
 
+import io.fabric8.kubernetes.client.utils.URLUtils;
+import io.sitewhere.k8s.crd.ApiConstants;
 import io.sitewhere.k8s.crd.ResourceLabels;
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
+import io.sitewhere.k8s.crd.tenant.configuration.TenantConfigurationTemplate;
+import io.sitewhere.k8s.crd.tenant.dataset.TenantDatasetTemplate;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 import io.sitewhere.k8s.crd.tenant.engine.configuration.TenantEngineConfigurationTemplate;
 import io.sitewhere.k8s.crd.tenant.engine.dataset.TenantEngineDatasetTemplate;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * Component within microservice which runs for a specific tenant. Each tenant
@@ -57,8 +70,8 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     /** Script manager */
     private IScriptManager scriptManager = new ScriptManager();
 
-    /** Dataset bootstrap manager */
-    private DatasetBootstrapManager bootstrapManager = new DatasetBootstrapManager();
+    /** Tenant engine bootstrapper */
+    private TenantEngineBootstrapper tenantEngineBootstrapper = new TenantEngineBootstrapper();
 
     public MicroserviceTenantEngine(SiteWhereTenantEngine tenantEngineResource) {
 	this.tenantEngineResource = tenantEngineResource;
@@ -132,8 +145,8 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	// Initialize script manager.
 	init.addInitializeStep(this, getScriptManager(), true);
 
-	// Initialize bootstrap manager.
-	init.addInitializeStep(this, getBootstrapManager(), true);
+	// Initialize engine bootstrapper.
+	init.addInitializeStep(this, getTenantEngineBootstrapper(), true);
 
 	// Execute initialization steps.
 	init.execute(monitor);
@@ -165,6 +178,80 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 		    String.format("Tenant engine label references a tenant '%s' which does not exist.", tenantToken));
 	}
 	this.tenantResource = tenant;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * loadTenantEngineResource()
+     */
+    @Override
+    public SiteWhereTenantEngine loadTenantEngineResource() throws SiteWhereException {
+	String engineName = getTenantEngineResource().getMetadata().getName();
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	SiteWhereTenantEngine found = getMicroservice().getSiteWhereKubernetesClient().getTenantEngines()
+		.inNamespace(namespace).withName(engineName).get();
+	if (found == null) {
+	    throw new SiteWhereException(String.format("No tenant engine resource found with name '%s'.", engineName));
+	}
+	return found;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * updateTenantEngineResource(io.sitewhere.k8s.crd.tenant.engine.
+     * SiteWhereTenantEngine)
+     */
+    @Override
+    public SiteWhereTenantEngine updateTenantEngineResource(SiteWhereTenantEngine engine) throws SiteWhereException {
+	String engineName = getTenantEngineResource().getMetadata().getName();
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	return getMicroservice().getSiteWhereKubernetesClient().getTenantEngines().inNamespace(namespace)
+		.withName(engineName).createOrReplace(engine);
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * executeTenantEngineSpecUpdate(com.sitewhere.spi.microservice.multitenant.
+     * ITenantEngineSpecUpdateOperation)
+     */
+    @Override
+    public SiteWhereTenantEngine executeTenantEngineSpecUpdate(ITenantEngineSpecUpdateOperation operation)
+	    throws SiteWhereException {
+	return operation.execute(this);
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * executeTenantEngineStatusUpdate(com.sitewhere.spi.microservice.multitenant.
+     * ITenantEngineStatusUpdateOperation)
+     */
+    @Override
+    public SiteWhereTenantEngine executeTenantEngineStatusUpdate(ITenantEngineStatusUpdateOperation operation)
+	    throws SiteWhereException {
+	return operation.execute(this);
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * updateTenantEngineStatus(io.sitewhere.k8s.crd.tenant.engine.
+     * SiteWhereTenantEngine)
+     */
+    @Override
+    public SiteWhereTenantEngine updateTenantEngineStatus(SiteWhereTenantEngine engine) throws SiteWhereException {
+	try {
+	    final String statusUri = URLUtils.join(getMicroservice().getKubernetesClient().getMasterUrl().toString(),
+		    "apis", ApiConstants.SITEWHERE_API_GROUP, ApiConstants.SITEWHERE_API_VERSION,
+		    ApiConstants.SITEWHERE_TENANT_ENGINE_CRD_PLURAL, engine.getMetadata().getName(), "status");
+	    final RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"),
+		    MarshalUtils.marshalJson(engine));
+	    Response response = getMicroservice().getKubernetesClient().getHttpClient()
+		    .newCall(new Request.Builder().method("PUT", requestBody).url(statusUri).build()).execute();
+	    byte[] content = response.body().bytes();
+	    response.close();
+	    return MarshalUtils.unmarshalJson(content, SiteWhereTenantEngine.class);
+	} catch (Throwable e) {
+	    throw new SiteWhereException("Unable to update tenant engine status.", e);
+	}
     }
 
     /**
@@ -243,7 +330,7 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	tenantStart(monitor);
 
 	// Execute bootstrap in background
-	startNestedComponent(getBootstrapManager(), monitor, true);
+	startNestedComponent(getTenantEngineBootstrapper(), monitor, true);
     }
 
     /*
@@ -256,8 +343,8 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     @Override
     public void stop(ILifecycleProgressMonitor monitor) throws SiteWhereException {
 
-	// Stop the bootstrap manager.
-	stopNestedComponent(getBootstrapManager(), monitor);
+	// Stop the engine bootstrapper.
+	stopNestedComponent(getTenantEngineBootstrapper(), monitor);
 
 	// Allow subclass to execute shutdown logic.
 	tenantStop(monitor);
@@ -404,7 +491,29 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
      */
     @Override
     public TenantEngineConfigurationTemplate getConfigurationTemplate() throws SiteWhereException {
-	return null;
+	String tctName = getTenantResource().getSpec().getConfigurationTemplate();
+	if (tctName == null) {
+	    throw new SiteWhereException("No tenant configuration template specified.");
+	}
+	TenantConfigurationTemplate tct = getMicroservice().getSiteWhereKubernetesClient()
+		.getTenantConfigurationTemplates().withName(tctName).get();
+	if (tct == null) {
+	    throw new SiteWhereException(String.format("No tenant configuration template found for '%s'.", tctName));
+	}
+	String functionName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL,
+		getMicroservice().getIdentifier().getPath());
+	String tectName = tct.getSpec().getTenantEngineTemplates().get(functionName);
+	if (tectName == null) {
+	    throw new SiteWhereException(
+		    String.format("No tenant engine configuration template listed for '%s'.", tectName));
+	}
+	TenantEngineConfigurationTemplate tect = getMicroservice().getSiteWhereKubernetesClient()
+		.getTenantEngineConfigurationTemplates().withName(tectName).get();
+	if (tect == null) {
+	    throw new SiteWhereException(
+		    String.format("No tenant engine configuration template found for '%s'.", tectName));
+	}
+	return tect;
     }
 
     /*
@@ -413,7 +522,36 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
      */
     @Override
     public TenantEngineDatasetTemplate getDatasetTemplate() throws SiteWhereException {
-	return null;
+	String tdtName = getTenantResource().getSpec().getDatasetTemplate();
+	if (tdtName == null) {
+	    throw new SiteWhereException("No tenant dataset template specified.");
+	}
+	TenantDatasetTemplate tdt = getMicroservice().getSiteWhereKubernetesClient().getTenantDatasetTemplates()
+		.withName(tdtName).get();
+	if (tdt == null) {
+	    throw new SiteWhereException(String.format("No tenant dataset template found for '%s'.", tdtName));
+	}
+	String functionName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL,
+		getMicroservice().getIdentifier().getPath());
+	String tedtName = tdt.getSpec().getTenantEngineTemplates().get(functionName);
+	if (tedtName == null) {
+	    throw new SiteWhereException(String.format("No tenant engine dataset template listed for '%s'.", tedtName));
+	}
+	TenantEngineDatasetTemplate tedt = getMicroservice().getSiteWhereKubernetesClient()
+		.getTenantEngineDatasetTemplates().withName(tedtName).get();
+	if (tedt == null) {
+	    throw new SiteWhereException(String.format("No tenant engine dataset template found for '%s'.", tedtName));
+	}
+	return tedt;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * getTenantEngineBootstrapper()
+     */
+    @Override
+    public ITenantEngineBootstrapper getTenantEngineBootstrapper() throws SiteWhereException {
+	return tenantEngineBootstrapper;
     }
 
     /*
@@ -427,6 +565,14 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
     /*
      * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * setDatasetBootsrapBindings(com.sitewhere.microservice.scripting.Binding)
+     */
+    @Override
+    public void setDatasetBootsrapBindings(Binding binding) throws SiteWhereException {
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
      * waitForTenantDatasetBootstrapped(com.sitewhere.spi.microservice.
      * IFunctionIdentifier)
      */
@@ -436,19 +582,18 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
     /*
      * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * onTenantBootstrapComplete()
+     */
+    @Override
+    public void onTenantBootstrapComplete() {
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
      * getScriptManager()
      */
     @Override
     public IScriptManager getScriptManager() {
 	return scriptManager;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * getBootstrapManager()
-     */
-    @Override
-    public DatasetBootstrapManager getBootstrapManager() {
-	return bootstrapManager;
     }
 }

@@ -200,6 +200,16 @@ public class DeviceManagementApiChannel extends MultitenantApiChannel<DeviceMana
     }
 
     /*
+     * @see com.sitewhere.microservice.api.device.IDeviceManagement#
+     * getContainedCustomerTypes(java.util.UUID)
+     */
+    @Override
+    public List<? extends ICustomerType> getContainedCustomerTypes(UUID customerTypeId) throws SiteWhereException {
+	// TODO Auto-generated method stub
+	return null;
+    }
+
+    /*
      * @see
      * com.sitewhere.spi.device.IDeviceManagement#deleteCustomerType(java.util.UUID)
      */
@@ -483,6 +493,17 @@ public class DeviceManagementApiChannel extends MultitenantApiChannel<DeviceMana
 	} catch (Throwable t) {
 	    throw GrpcUtils.handleClientMethodException(DeviceManagementGrpc.getListAreaTypesMethod(), t);
 	}
+    }
+
+    /*
+     * @see
+     * com.sitewhere.microservice.api.device.IDeviceManagement#getContainedAreaTypes
+     * (java.util.UUID)
+     */
+    @Override
+    public List<? extends IAreaType> getContainedAreaTypes(UUID areaTypeId) throws SiteWhereException {
+	// TODO Auto-generated method stub
+	return null;
     }
 
     /*

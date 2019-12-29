@@ -46,7 +46,7 @@ public class BatchUtils {
 
 	DeviceSearchCriteria search = new DeviceSearchCriteria(1, 0, null, null);
 	search.setDeviceTypeToken(criteria.getDeviceTypeToken());
-	List<IDevice> matches = deviceManagement.listDevices(search).getResults();
+	List<? extends IDevice> matches = deviceManagement.listDevices(search).getResults();
 
 	List<String> deviceTokens = new ArrayList<String>();
 	for (IDevice match : matches) {
@@ -75,7 +75,7 @@ public class BatchUtils {
 	search.setCustomerTokens(criteria.getCustomerTokens());
 	search.setAreaTokens(criteria.getAreaTokens());
 	search.setAssetTokens(criteria.getAssetTokens());
-	List<IDeviceAssignment> matches = deviceManagement.listDeviceAssignments(search).getResults();
+	List<? extends IDeviceAssignment> matches = deviceManagement.listDeviceAssignments(search).getResults();
 
 	List<String> deviceTokens = new ArrayList<String>();
 	for (IDeviceAssignment match : matches) {

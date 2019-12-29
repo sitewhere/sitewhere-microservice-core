@@ -90,7 +90,7 @@ public class CustomerMarshalHelper {
 	    DeviceAssignmentSearchCriteria criteria = new DeviceAssignmentSearchCriteria(1, 0);
 	    criteria.setAssignmentStatuses(Collections.singletonList(DeviceAssignmentStatus.Active));
 	    criteria.setCustomerTokens(Collections.singletonList(customer.getToken()));
-	    ISearchResults<IDeviceAssignment> matches = getDeviceManagement().listDeviceAssignments(criteria);
+	    ISearchResults<? extends IDeviceAssignment> matches = getDeviceManagement().listDeviceAssignments(criteria);
 	    List<DeviceAssignment> assignments = new ArrayList<DeviceAssignment>();
 	    for (IDeviceAssignment match : matches.getResults()) {
 		assignments.add(assignmentHelper.convert(match, getAssetManagement()));

@@ -103,7 +103,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IDeviceType> listDeviceTypes(ISearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends IDeviceType> listDeviceTypes(ISearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Delete an existing device type.
@@ -159,7 +159,8 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IDeviceCommand> listDeviceCommands(IDeviceCommandSearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends IDeviceCommand> listDeviceCommands(IDeviceCommandSearchCriteria criteria)
+	    throws SiteWhereException;
 
     /**
      * Delete an existing device command.
@@ -215,7 +216,8 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IDeviceStatus> listDeviceStatuses(IDeviceStatusSearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends IDeviceStatus> listDeviceStatuses(IDeviceStatusSearchCriteria criteria)
+	    throws SiteWhereException;
 
     /**
      * Delete an existing device status.
@@ -270,7 +272,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IDevice> listDevices(IDeviceSearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends IDevice> listDevices(IDeviceSearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Create an {@link IDeviceElementMapping} for a nested device.
@@ -335,7 +337,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    List<IDeviceAssignment> getActiveDeviceAssignments(UUID deviceId) throws SiteWhereException;
+    List<? extends IDeviceAssignment> getActiveDeviceAssignments(UUID deviceId) throws SiteWhereException;
 
     /**
      * Update an existing device assignment.
@@ -354,7 +356,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IDeviceAssignment> listDeviceAssignments(IDeviceAssignmentSearchCriteria criteria)
+    ISearchResults<? extends IDeviceAssignment> listDeviceAssignments(IDeviceAssignmentSearchCriteria criteria)
 	    throws SiteWhereException;
 
     /**
@@ -410,7 +412,8 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IDeviceAlarm> searchDeviceAlarms(IDeviceAlarmSearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends IDeviceAlarm> searchDeviceAlarms(IDeviceAlarmSearchCriteria criteria)
+	    throws SiteWhereException;
 
     /**
      * Delete a device alarm.
@@ -465,7 +468,16 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<ICustomerType> listCustomerTypes(ISearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends ICustomerType> listCustomerTypes(ISearchCriteria criteria) throws SiteWhereException;
+
+    /**
+     * Get a list of customer types that may be contained in a customer type.
+     * 
+     * @param customerTypeId
+     * @return
+     * @throws SiteWhereException
+     */
+    List<? extends ICustomerType> getContainedCustomerTypes(UUID customerTypeId) throws SiteWhereException;
 
     /**
      * Delete a customer type.
@@ -510,7 +522,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    List<ICustomer> getCustomerChildren(String token) throws SiteWhereException;
+    List<? extends ICustomer> getCustomerChildren(String token) throws SiteWhereException;
 
     /**
      * Update information for a customer.
@@ -529,7 +541,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<ICustomer> listCustomers(ICustomerSearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends ICustomer> listCustomers(ICustomerSearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Get tree structure for customers hierarchy.
@@ -592,7 +604,16 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IAreaType> listAreaTypes(ISearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends IAreaType> listAreaTypes(ISearchCriteria criteria) throws SiteWhereException;
+
+    /**
+     * Get a list of area types that may be contained in a given area type.
+     * 
+     * @param areaTypeId
+     * @return
+     * @throws SiteWhereException
+     */
+    List<? extends IAreaType> getContainedAreaTypes(UUID areaTypeId) throws SiteWhereException;
 
     /**
      * Delete an area type.
@@ -637,7 +658,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    List<IArea> getAreaChildren(String token) throws SiteWhereException;
+    List<? extends IArea> getAreaChildren(String token) throws SiteWhereException;
 
     /**
      * Update information for an area.
@@ -656,7 +677,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IArea> listAreas(IAreaSearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends IArea> listAreas(IAreaSearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Get tree structure for areas hierarchy.
@@ -719,7 +740,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IZone> listZones(IZoneSearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends IZone> listZones(IZoneSearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Delete a zone.
@@ -774,7 +795,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IDeviceGroup> listDeviceGroups(ISearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends IDeviceGroup> listDeviceGroups(ISearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Lists all device groups that have the given role.
@@ -784,7 +805,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IDeviceGroup> listDeviceGroupsWithRole(String role, ISearchCriteria criteria)
+    ISearchResults<? extends IDeviceGroup> listDeviceGroupsWithRole(String role, ISearchCriteria criteria)
 	    throws SiteWhereException;
 
     /**
@@ -805,8 +826,8 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    List<IDeviceGroupElement> addDeviceGroupElements(UUID groupId, List<IDeviceGroupElementCreateRequest> elements,
-	    boolean ignoreDuplicates) throws SiteWhereException;
+    List<? extends IDeviceGroupElement> addDeviceGroupElements(UUID groupId,
+	    List<IDeviceGroupElementCreateRequest> elements, boolean ignoreDuplicates) throws SiteWhereException;
 
     /**
      * Remove selected elements from a device group.
@@ -815,7 +836,7 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    List<IDeviceGroupElement> removeDeviceGroupElements(List<UUID> elements) throws SiteWhereException;
+    List<? extends IDeviceGroupElement> removeDeviceGroupElements(List<UUID> elements) throws SiteWhereException;
 
     /**
      * List device group elements that meet the given criteria.
@@ -825,6 +846,6 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IDeviceGroupElement> listDeviceGroupElements(UUID groupId, ISearchCriteria criteria)
+    ISearchResults<? extends IDeviceGroupElement> listDeviceGroupElements(UUID groupId, ISearchCriteria criteria)
 	    throws SiteWhereException;
 }

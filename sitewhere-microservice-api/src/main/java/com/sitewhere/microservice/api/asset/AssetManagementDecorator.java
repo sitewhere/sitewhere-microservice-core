@@ -30,63 +30,122 @@ public class AssetManagementDecorator extends TenantEngineLifecycleComponentDeco
 	super(delegate);
     }
 
+    /*
+     * @see com.sitewhere.microservice.api.asset.IAssetManagement#createAsset(com.
+     * sitewhere.spi.asset.request.IAssetCreateRequest)
+     */
     @Override
     public IAsset createAsset(IAssetCreateRequest request) throws SiteWhereException {
 	return getDelegate().createAsset(request);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.asset.IAssetManagement#updateAsset(java.util.
+     * UUID, com.sitewhere.spi.asset.request.IAssetCreateRequest)
+     */
     @Override
     public IAsset updateAsset(UUID assetId, IAssetCreateRequest request) throws SiteWhereException {
 	return getDelegate().updateAsset(assetId, request);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.asset.IAssetManagement#getAsset(java.util.
+     * UUID)
+     */
     @Override
     public IAsset getAsset(UUID assetId) throws SiteWhereException {
 	return getDelegate().getAsset(assetId);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.asset.IAssetManagement#getAssetByToken(java.
+     * lang.String)
+     */
     @Override
     public IAsset getAssetByToken(String token) throws SiteWhereException {
 	return getDelegate().getAssetByToken(token);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.asset.IAssetManagement#deleteAsset(java.util.
+     * UUID)
+     */
     @Override
     public IAsset deleteAsset(UUID assetId) throws SiteWhereException {
 	return getDelegate().deleteAsset(assetId);
     }
 
+    /*
+     * @see com.sitewhere.microservice.api.asset.IAssetManagement#listAssets(com.
+     * sitewhere.spi.search.asset.IAssetSearchCriteria)
+     */
     @Override
-    public ISearchResults<IAsset> listAssets(IAssetSearchCriteria criteria) throws SiteWhereException {
+    public ISearchResults<? extends IAsset> listAssets(IAssetSearchCriteria criteria) throws SiteWhereException {
 	return getDelegate().listAssets(criteria);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.asset.IAssetManagement#createAssetType(com.
+     * sitewhere.spi.asset.request.IAssetTypeCreateRequest)
+     */
     @Override
     public IAssetType createAssetType(IAssetTypeCreateRequest request) throws SiteWhereException {
 	return getDelegate().createAssetType(request);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.asset.IAssetManagement#updateAssetType(java.
+     * util.UUID, com.sitewhere.spi.asset.request.IAssetTypeCreateRequest)
+     */
     @Override
     public IAssetType updateAssetType(UUID assetTypeId, IAssetTypeCreateRequest request) throws SiteWhereException {
 	return getDelegate().updateAssetType(assetTypeId, request);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.asset.IAssetManagement#getAssetType(java.util.
+     * UUID)
+     */
     @Override
     public IAssetType getAssetType(UUID assetTypeId) throws SiteWhereException {
 	return getDelegate().getAssetType(assetTypeId);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.asset.IAssetManagement#getAssetTypeByToken(
+     * java.lang.String)
+     */
     @Override
     public IAssetType getAssetTypeByToken(String token) throws SiteWhereException {
 	return getDelegate().getAssetTypeByToken(token);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.asset.IAssetManagement#deleteAssetType(java.
+     * util.UUID)
+     */
     @Override
     public IAssetType deleteAssetType(UUID assetTypeId) throws SiteWhereException {
 	return getDelegate().deleteAssetType(assetTypeId);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.asset.IAssetManagement#listAssetTypes(com.
+     * sitewhere.spi.search.asset.IAssetTypeSearchCritiera)
+     */
     @Override
-    public ISearchResults<IAssetType> listAssetTypes(IAssetTypeSearchCritiera criteria) throws SiteWhereException {
+    public ISearchResults<? extends IAssetType> listAssetTypes(IAssetTypeSearchCritiera criteria)
+	    throws SiteWhereException {
 	return getDelegate().listAssetTypes(criteria);
     }
 }

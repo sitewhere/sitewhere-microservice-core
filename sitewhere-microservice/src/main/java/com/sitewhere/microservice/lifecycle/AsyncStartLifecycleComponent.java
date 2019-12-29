@@ -23,7 +23,8 @@ import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
  * "waitForComponentStarted" in order to verify that the async operation has
  * completed.
  */
-public abstract class AsyncStartLifecycleComponent extends LifecycleComponent implements IAsyncStartLifecycleComponent {
+public abstract class AsyncStartLifecycleComponent extends TenantEngineLifecycleComponent
+	implements IAsyncStartLifecycleComponent {
 
     /** Thread used for executing async processing */
     ExecutorService executor = Executors.newSingleThreadExecutor();

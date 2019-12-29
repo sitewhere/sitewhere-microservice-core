@@ -71,7 +71,7 @@ public class DeviceActions implements IDeviceActions {
 	IDeviceType type = getDeviceManagement().getDeviceType(assignment.getDeviceTypeId());
 	DeviceCommandSearchCriteria criteria = new DeviceCommandSearchCriteria(1, 0);
 	criteria.setDeviceTypeToken(type.getToken());
-	ISearchResults<IDeviceCommand> commands = getDeviceManagement().listDeviceCommands(criteria);
+	ISearchResults<? extends IDeviceCommand> commands = getDeviceManagement().listDeviceCommands(criteria);
 	IDeviceCommand match = null;
 	for (IDeviceCommand command : commands.getResults()) {
 	    if (command.getName().equals(commandName)) {

@@ -105,7 +105,7 @@ public class AreaMarshalHelper {
 	    DeviceAssignmentSearchCriteria criteria = new DeviceAssignmentSearchCriteria(1, 0);
 	    criteria.setAssignmentStatuses(Collections.singletonList(DeviceAssignmentStatus.Active));
 	    criteria.setAreaTokens(Collections.singletonList(area.getToken()));
-	    ISearchResults<IDeviceAssignment> matches = getDeviceManagement().listDeviceAssignments(criteria);
+	    ISearchResults<? extends IDeviceAssignment> matches = getDeviceManagement().listDeviceAssignments(criteria);
 	    List<DeviceAssignment> assignments = new ArrayList<DeviceAssignment>();
 	    for (IDeviceAssignment match : matches.getResults()) {
 		assignments.add(assignmentHelper.convert(match, getAssetManagement()));
@@ -115,9 +115,9 @@ public class AreaMarshalHelper {
 	if (isIncludeZones()) {
 	    ZoneSearchCriteria criteria = new ZoneSearchCriteria(1, 0);
 	    criteria.setAreaToken(area.getToken());
-	    ISearchResults<IZone> matches = getDeviceManagement().listZones(criteria);
+	    ISearchResults<? extends IZone> matches = getDeviceManagement().listZones(criteria);
 	    List<Zone> zones = new ArrayList<Zone>();
-	    List<IZone> reordered = matches.getResults();
+	    List<? extends IZone> reordered = matches.getResults();
 	    Collections.sort(reordered, new Comparator<IZone>() {
 
 		@Override

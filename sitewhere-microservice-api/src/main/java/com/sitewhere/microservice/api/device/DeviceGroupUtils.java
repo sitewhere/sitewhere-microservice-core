@@ -20,6 +20,7 @@ import com.sitewhere.rest.model.device.marshaling.MarshaledDeviceGroupElement;
 import com.sitewhere.rest.model.search.SearchCriteria;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.device.IDevice;
+import com.sitewhere.spi.device.IDeviceAssignment;
 import com.sitewhere.spi.device.IDeviceType;
 import com.sitewhere.spi.device.group.IDeviceGroup;
 import com.sitewhere.spi.device.group.IDeviceGroupElement;
@@ -57,7 +58,8 @@ public class DeviceGroupUtils {
 	    }
 
 	    // Handle exclude assigned.
-	    if (criteria.isExcludeAssigned() && (device.getActiveDeviceAssignmentIds().size() > 0)) {
+	    List<? extends IDeviceAssignment> assignments = deviceManagement.getActiveDeviceAssignments(device.getId());
+	    if (criteria.isExcludeAssigned() && (assignments.size() > 0)) {
 		continue;
 	    }
 	    if ((criteria.getStartDate() != null) && (device.getCreatedDate().before(criteria.getStartDate()))) {
@@ -112,7 +114,7 @@ public class DeviceGroupUtils {
     protected static void getDevicesInGroup(UUID groupId, IDeviceManagement deviceManagement,
 	    IAssetManagement assetManagement, Map<String, IDevice> devices, Map<String, IDeviceGroup> groups)
 	    throws SiteWhereException {
-	ISearchResults<IDeviceGroupElement> elements = deviceManagement.listDeviceGroupElements(groupId,
+	ISearchResults<? extends IDeviceGroupElement> elements = deviceManagement.listDeviceGroupElements(groupId,
 		SearchCriteria.ALL);
 	DeviceGroupElementMarshalHelper helper = new DeviceGroupElementMarshalHelper(deviceManagement);
 	for (IDeviceGroupElement element : elements.getResults()) {
@@ -144,7 +146,8 @@ public class DeviceGroupUtils {
 	    IDeviceManagement deviceManagement, IAssetManagement assetManagement) throws SiteWhereException {
 	Map<String, IDevice> devices = new HashMap<String, IDevice>();
 	ISearchCriteria groupCriteria = new SearchCriteria(1, 0);
-	ISearchResults<IDeviceGroup> groups = deviceManagement.listDeviceGroupsWithRole(groupRole, groupCriteria);
+	ISearchResults<? extends IDeviceGroup> groups = deviceManagement.listDeviceGroupsWithRole(groupRole,
+		groupCriteria);
 	for (IDeviceGroup group : groups.getResults()) {
 	    List<IDevice> groupDevices = getDevicesInGroup(group, criteria, deviceManagement, assetManagement);
 	    for (IDevice groupDevice : groupDevices) {

@@ -7,9 +7,6 @@
  */
 package com.sitewhere.microservice.scripting;
 
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Value;
-
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
@@ -22,9 +19,6 @@ import com.sitewhere.spi.microservice.scripting.ScriptType;
  * Common base class for scripting components.
  */
 public abstract class ScriptingComponent<T> extends TenantEngineLifecycleComponent implements IScriptingComponent<T> {
-
-    /** JavaScript language indicator for polyglot impl */
-    private static final String LANGUAGE_JAVASCRIPT = "js";
 
     /** Unique identifier for id within context */
     private String scriptId;
@@ -55,39 +49,18 @@ public abstract class ScriptingComponent<T> extends TenantEngineLifecycleCompone
 	    if (script == null) {
 		throw new SiteWhereException(String.format("Bootstrap script not found for id: %s", getScriptId()));
 	    }
-	    return run(script, binding);
+	    return ScriptingUtils.run(script, binding);
 	}
 	case Managed: {
 	    String script = manager.resolveManagedScript(getScriptId());
 	    if (script == null) {
 		throw new SiteWhereException(String.format("Managed script not found for id: %s", getScriptId()));
 	    }
-	    return run(script, binding);
+	    return ScriptingUtils.run(script, binding);
 	}
 	default: {
 	    throw new SiteWhereException(String.format("Invalid script type used. %s", type.name()));
 	}
-	}
-    }
-
-    /**
-     * Run the script using the given binding values.
-     * 
-     * @param script
-     * @param binding
-     * @return
-     */
-    protected T run(String script, Binding binding) {
-	try (Context context = Context.newBuilder().allowAllAccess(true).build()) {
-	    Value jsBindings = context.getBindings(LANGUAGE_JAVASCRIPT);
-	    for (String key : binding.getBoundObjects().keySet()) {
-		jsBindings.putMember(key, binding.getBoundObjects().get(key));
-	    }
-	    Value result = context.eval(LANGUAGE_JAVASCRIPT, script);
-	    if (result.isHostObject()) {
-		return result.asHostObject();
-	    }
-	    return null;
 	}
     }
 

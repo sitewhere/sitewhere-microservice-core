@@ -65,7 +65,7 @@ public class DeviceEventRequestBuilder {
 	    IDeviceType type = deviceManagement.getDeviceType(targetAssignment.getDeviceTypeId());
 	    DeviceCommandSearchCriteria criteria = new DeviceCommandSearchCriteria(1, 0);
 	    criteria.setDeviceTypeToken(type.getToken());
-	    ISearchResults<IDeviceCommand> commands = deviceManagement.listDeviceCommands(criteria);
+	    ISearchResults<? extends IDeviceCommand> commands = deviceManagement.listDeviceCommands(criteria);
 	    IDeviceCommand match = null;
 	    for (IDeviceCommand command : commands.getResults()) {
 		if (command.getName().equals(commandName)) {
