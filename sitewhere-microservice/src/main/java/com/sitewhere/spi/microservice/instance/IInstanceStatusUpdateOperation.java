@@ -11,6 +11,7 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IMicroservice;
 
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
+import io.sitewhere.k8s.crd.instance.SiteWhereInstanceStatus;
 
 /**
  * Operation that mutates the SiteWhere instance resource status.
@@ -32,5 +33,5 @@ public interface IInstanceStatusUpdateOperation {
      * @param current
      * @throws SiteWhereException
      */
-    void update(SiteWhereInstance current) throws SiteWhereException;
+    void update(SiteWhereInstanceStatus current) throws SiteWhereException;
 }

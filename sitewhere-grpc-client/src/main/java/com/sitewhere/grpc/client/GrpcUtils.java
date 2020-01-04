@@ -235,6 +235,7 @@ public class GrpcUtils {
 	    }
 	    }
 	}
+	LOGGER.error(String.format("Unhandled client exception while calling '%s'.", method.getFullMethodName()), t);
 	return new SiteWhereException("Client exception in call to " + method.getFullMethodName() + ".", t);
     }
 

@@ -7,14 +7,18 @@
  */
 package com.sitewhere.microservice.multitenant;
 
-import com.sitewhere.microservice.instance.InstanceStatusUpdateOperation;
+import org.graalvm.polyglot.PolyglotException;
+
 import com.sitewhere.microservice.lifecycle.AsyncStartLifecycleComponent;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleProgressMonitor;
 import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.microservice.scripting.Binding;
 import com.sitewhere.microservice.scripting.ScriptingUtils;
+import com.sitewhere.microservice.security.SiteWhereAuthentication;
+import com.sitewhere.microservice.security.UserContext;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
@@ -22,7 +26,6 @@ import com.sitewhere.spi.microservice.multitenant.ITenantEngineBootstrapper;
 import com.sitewhere.spi.microservice.scripting.IScriptVariables;
 
 import io.sitewhere.k8s.crd.common.BootstrapState;
-import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineStatus;
 import io.sitewhere.k8s.crd.tenant.engine.dataset.TenantEngineDatasetTemplate;
@@ -51,6 +54,7 @@ public class TenantEngineBootstrapper extends AsyncStartLifecycleComponent imple
 
 	    @Override
 	    public void execute(ILifecycleProgressMonitor monitor) throws SiteWhereException {
+		waitForPrerequisites();
 		bootstrap();
 	    }
 	});
@@ -60,22 +64,14 @@ public class TenantEngineBootstrapper extends AsyncStartLifecycleComponent imple
     }
 
     /**
-     * Create default status if missing from resource.
+     * Wait for other external datasets required by this tenant engine to be loaded
+     * first.
      * 
-     * @param engine
      * @throws SiteWhereException
      */
-    protected void createStatusIfMissing(SiteWhereTenantEngine engine) throws SiteWhereException {
-	if (engine.getStatus() == null) {
-	    getTenantEngine().executeTenantEngineStatusUpdate(new TenantEngineStatusUpdateOperation() {
-
-		@Override
-		public void update(SiteWhereTenantEngine current) throws SiteWhereException {
-		    getLogger().info("Creating default tenant engine status since none was found.");
-		    current.setStatus(new SiteWhereTenantEngineStatus());
-		    current.getStatus().setBootstrapState(BootstrapState.NotBootstrapped);
-		}
-	    });
+    protected void waitForPrerequisites() throws SiteWhereException {
+	for (IFunctionIdentifier function : getTenantEngine().getTenantBootstrapPrerequisites()) {
+	    getTenantEngine().waitForTenantDatasetBootstrapped(function);
 	}
     }
 
@@ -87,7 +83,7 @@ public class TenantEngineBootstrapper extends AsyncStartLifecycleComponent imple
     protected void bootstrap() throws SiteWhereException {
 	// Load latest tenant engine resource from k8s.
 	SiteWhereTenantEngine current = getTenantEngine().loadTenantEngineResource();
-	createStatusIfMissing(current);
+	setTenantEngineBootstrapState(BootstrapState.NotBootstrapped);
 
 	// Load tenant engine dataset template.
 	TenantEngineDatasetTemplate template = getTenantEngine().getDatasetTemplate();
@@ -136,7 +132,10 @@ public class TenantEngineBootstrapper extends AsyncStartLifecycleComponent imple
      * @throws SiteWhereException
      */
     protected void runInitializer(TenantEngineDatasetTemplate template) throws SiteWhereException {
+	SiteWhereAuthentication previous = UserContext.getCurrentUser();
 	try {
+	    UserContext.setContext(getMicroservice().getSystemUser()
+		    .getAuthenticationForTenant(getTenantEngine().getTenantResource()));
 	    setTenantEngineBootstrapState(BootstrapState.Bootstrapping);
 
 	    String script = template.getSpec().getConfiguration();
@@ -145,15 +144,20 @@ public class TenantEngineBootstrapper extends AsyncStartLifecycleComponent imple
 			template.getMetadata().getName()));
 		Binding binding = new Binding();
 		binding.setVariable(IScriptVariables.VAR_LOGGER, getLogger());
-		getTenantEngine().setDatasetBootsrapBindings(binding);
+		getTenantEngine().setDatasetBootstrapBindings(binding);
 		ScriptingUtils.run(script, binding);
 		getLogger().info(String.format("Completed execution of tenant dataset template '%s'.",
 			template.getMetadata().getName()));
 	    }
 	    setTenantEngineBootstrapState(BootstrapState.Bootstrapped);
+	} catch (PolyglotException e) {
+	    setTenantEngineBootstrapState(BootstrapState.BootstrapFailed);
+	    throw new SiteWhereException("Tenant engine bootstrap failed due to error executing dataset script.", e);
 	} catch (Throwable t) {
 	    setTenantEngineBootstrapState(BootstrapState.BootstrapFailed);
-	    throw t;
+	    throw new SiteWhereException("Tenant engine bootstrap failed due to unhandled exception.", t);
+	} finally {
+	    UserContext.setContext(previous);
 	}
     }
 
@@ -165,12 +169,16 @@ public class TenantEngineBootstrapper extends AsyncStartLifecycleComponent imple
      * @throws SiteWhereException
      */
     protected void setTenantEngineBootstrapState(BootstrapState state) throws SiteWhereException {
-	getMicroservice().executeInstanceStatusUpdate(new InstanceStatusUpdateOperation() {
+	getTenantEngine().executeTenantEngineStatusUpdate(new TenantEngineStatusUpdateOperation() {
 
+	    /*
+	     * @see
+	     * com.sitewhere.spi.microservice.multitenant.ITenantEngineStatusUpdateOperation
+	     * #update(io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineStatus)
+	     */
 	    @Override
-	    public void update(SiteWhereInstance current) throws SiteWhereException {
-		getLogger().info(String.format("Set tenant engine bootstrap status to `%s`.", state.name()));
-		current.getStatus().setUserManagementBootstrapState(state);
+	    public void update(SiteWhereTenantEngineStatus current) throws SiteWhereException {
+		current.setBootstrapState(state);
 	    }
 	});
     }

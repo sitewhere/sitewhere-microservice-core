@@ -16,7 +16,8 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
-import com.sitewhere.spi.tenant.ITenant;
+
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
 /**
  * Allows code to be run in a separate thread along with thread local security
@@ -26,18 +27,17 @@ import com.sitewhere.spi.tenant.ITenant;
 public abstract class SystemUserCallable<V> implements Callable<V> {
 
     /** Static logger instance */
-    @SuppressWarnings("unused")
     private static Log LOGGER = LogFactory.getLog(SystemUserCallable.class);
 
     /** Tenant engine if tenant operation */
     private IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice;
 
     /** Tenant */
-    private ITenant tenant;
+    private SiteWhereTenant tenant;
 
     public SystemUserCallable(
 	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice,
-	    ITenant tenant) {
+	    SiteWhereTenant tenant) {
 	this.microservice = microservice;
 	this.tenant = tenant;
     }
@@ -55,39 +55,30 @@ public abstract class SystemUserCallable<V> implements Callable<V> {
      */
     @Override
     public V call() throws Exception {
-	// Authentication previous =
-	// SecurityContextHolder.getContext().getAuthentication();
-	// try {
-	// if (tenant != null) {
-	// Authentication system =
-	// getMicroservice().getSystemUser().getAuthenticationForTenant(getTenant());
-	// SecurityContextHolder.getContext().setAuthentication(system);
-	// } else {
-	// Authentication system =
-	// getMicroservice().getSystemUser().getAuthentication();
-	// SecurityContextHolder.getContext().setAuthentication(system);
-	// }
-	// return runAsSystemUser();
-	// } finally {
-	// SecurityContextHolder.getContext().setAuthentication(previous);
-	// }
-	return runAsSystemUser();
+	SiteWhereAuthentication previous = UserContext.getCurrentUser();
+	try {
+	    if (tenant != null) {
+		SiteWhereAuthentication system = getMicroservice().getSystemUser()
+			.getAuthenticationForTenant(getTenant());
+		UserContext.setContext(system);
+	    } else {
+		SiteWhereAuthentication system = getMicroservice().getSystemUser().getAuthentication();
+		UserContext.setContext(system);
+	    }
+	    return runAsSystemUser();
+	} catch (Throwable e) {
+	    LOGGER.error("Unhandled exception.", e);
+	    throw e;
+	} finally {
+	    UserContext.setContext(previous);
+	}
     }
 
     protected IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> getMicroservice() {
 	return microservice;
     }
 
-    protected void setMicroservice(
-	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice) {
-	this.microservice = microservice;
-    }
-
-    protected ITenant getTenant() {
+    protected SiteWhereTenant getTenant() {
 	return tenant;
-    }
-
-    protected void setTenant(ITenant tenant) {
-	this.tenant = tenant;
     }
 }

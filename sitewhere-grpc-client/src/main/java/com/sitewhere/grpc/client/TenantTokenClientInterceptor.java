@@ -7,6 +7,10 @@
  */
 package com.sitewhere.grpc.client;
 
+import com.sitewhere.microservice.grpc.GrpcKeys;
+import com.sitewhere.microservice.security.SiteWhereAuthentication;
+import com.sitewhere.microservice.security.UserContext;
+
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -14,6 +18,7 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ForwardingClientCall.SimpleForwardingClientCall;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
 /**
  * GRPC interceptor that pushes tenant token into GRPC call metadata.
@@ -39,15 +44,13 @@ public class TenantTokenClientInterceptor implements ClientInterceptor {
 	     */
 	    @Override
 	    public void start(Listener<RespT> responseListener, Metadata headers) {
-		// Authentication authentication =
-		// SecurityContextHolder.getContext().getAuthentication();
-		// if ((authentication != null) && (authentication instanceof
-		// ITenantAwareAuthentication)) {
-		// ITenant tenant = ((ITenantAwareAuthentication) authentication).getTenant();
-		// if (tenant != null) {
-		// headers.put(TENANT_TOKEN_KEY, tenant.getToken().toString());
-		// }
-		// }
+		SiteWhereAuthentication authentication = UserContext.getCurrentUser();
+		if (authentication != null) {
+		    SiteWhereTenant tenant = authentication.getTenant();
+		    if (tenant != null) {
+			headers.put(GrpcKeys.TENANT_KEY, tenant.getMetadata().getName());
+		    }
+		}
 		super.start(responseListener, headers);
 	    }
 	};

@@ -53,28 +53,21 @@ public abstract class SystemUserRunnable implements Runnable {
      */
     @Override
     public void run() {
-	// Authentication previous =
-	// SecurityContextHolder.getContext().getAuthentication();
-	// try {
-	// if (tenant != null) {
-	// Authentication system =
-	// getMicroservice().getSystemUser().getAuthenticationForTenant(getTenant());
-	// SecurityContextHolder.getContext().setAuthentication(system);
-	// } else {
-	// Authentication system =
-	// getMicroservice().getSystemUser().getAuthentication();
-	// SecurityContextHolder.getContext().setAuthentication(system);
-	// }
-	// runAsSystemUser();
-	// } catch (Throwable e) {
-	// LOGGER.error("Unhandled exception.", e);
-	// } finally {
-	// SecurityContextHolder.getContext().setAuthentication(previous);
-	// }
+	SiteWhereAuthentication previous = UserContext.getCurrentUser();
 	try {
+	    if (tenant != null) {
+		SiteWhereAuthentication system = getMicroservice().getSystemUser()
+			.getAuthenticationForTenant(getTenant());
+		UserContext.setContext(system);
+	    } else {
+		SiteWhereAuthentication system = getMicroservice().getSystemUser().getAuthentication();
+		UserContext.setContext(system);
+	    }
 	    runAsSystemUser();
 	} catch (Throwable e) {
 	    LOGGER.error("Unhandled exception.", e);
+	} finally {
+	    UserContext.setContext(previous);
 	}
     }
 

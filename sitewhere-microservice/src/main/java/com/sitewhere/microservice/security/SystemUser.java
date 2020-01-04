@@ -12,20 +12,25 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import com.sitewhere.rest.model.user.GrantedAuthority;
 import com.sitewhere.rest.model.user.User;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
-import com.sitewhere.spi.tenant.ITenant;
 import com.sitewhere.spi.user.IGrantedAuthority;
 import com.sitewhere.spi.user.IUser;
 import com.sitewhere.spi.user.SiteWhereAuthority;
+
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
 /**
  * Bean that provides a system "superuser" that allows microservices to
  * authenticate with other microservices.
  */
+@ApplicationScoped
 public class SystemUser implements ISystemUser {
 
     /** Number of seconds between renewing JWT */
@@ -35,6 +40,7 @@ public class SystemUser implements ISystemUser {
     private static final int SYSTEM_USER_TOKEN_EXPIRATION_IN_MINS = 60 * 24 * 365;
 
     /** JWT token management */
+    @Inject
     private ITokenManagement tokenManagement;
 
     /** System user information */
@@ -56,8 +62,7 @@ public class SystemUser implements ISystemUser {
     public SiteWhereAuthentication getAuthentication() throws SiteWhereException {
 	if ((System.currentTimeMillis() - lastGenerated) > (RENEW_INTERVAL_SEC * 1000)) {
 	    String jwt = tokenManagement.generateToken(user, SYSTEM_USER_TOKEN_EXPIRATION_IN_MINS);
-	    SiteWhereUserDetails details = new SiteWhereUserDetails(user, auths);
-	    this.last = new SiteWhereAuthentication(details, jwt);
+	    this.last = new SiteWhereAuthentication(user, auths, jwt);
 	    this.lastGenerated = System.currentTimeMillis();
 	}
 	return this.last;
@@ -65,10 +70,10 @@ public class SystemUser implements ISystemUser {
 
     /*
      * @see com.sitewhere.spi.microservice.security.ISystemUser#
-     * getAuthenticationForTenant(com.sitewhere.spi.tenant.ITenant)
+     * getAuthenticationForTenant(io.sitewhere.k8s.crd.tenant.SiteWhereTenant)
      */
     @Override
-    public SiteWhereAuthentication getAuthenticationForTenant(ITenant tenant) throws SiteWhereException {
+    public SiteWhereAuthentication getAuthenticationForTenant(SiteWhereTenant tenant) throws SiteWhereException {
 	SiteWhereAuthentication auth = getAuthentication();
 	auth.setTenant(tenant);
 	return auth;

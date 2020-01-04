@@ -26,6 +26,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.config.ConfigException;
 import org.apache.kafka.common.errors.InvalidReplicationFactorException;
 import org.apache.kafka.common.errors.RetriableException;
 import org.apache.kafka.common.errors.TopicExistsException;
@@ -80,8 +81,6 @@ public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleCom
 	getLogger().info(
 		"Producer connecting to Kafka: " + getMicroservice().getInstanceSettings().getKafkaBootstrapServers());
 	getLogger().info("Will be producing messages for: " + getTargetTopicName());
-	this.producer = new KafkaProducer<String, byte[]>(buildConfiguration());
-	this.kafkaAdmin = AdminClient.create(buildAdminConfiguration());
 	this.kafkaAvailable = new CountDownLatch(1);
 	this.waiterService = Executors.newSingleThreadExecutor();
 	getWaiterService().execute(new KafkaWaiter());
@@ -117,8 +116,11 @@ public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleCom
 	    try {
 		if (getKafkaAvailable().getCount() != 0) {
 		    getLogger().info("Producer waiting on Kafka to become available...");
+		    getKafkaAvailable().await();
 		}
-		getKafkaAvailable().await();
+		if (getProducer() == null) {
+		    this.producer = new KafkaProducer<String, byte[]>(buildConfiguration());
+		}
 		return getProducer().send(record);
 	    } catch (RetriableException e) {
 		// Wait before attempting to send again.
@@ -179,6 +181,7 @@ public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleCom
 	    getLogger().info("Attempting to connect to Kafka...");
 	    while (true) {
 		try {
+		    MicroserviceKafkaProducer.this.kafkaAdmin = AdminClient.create(buildAdminConfiguration());
 		    Map<String, TopicDescription> topicMap = getKafkaAdmin()
 			    .describeTopics(Arrays.asList(getTargetTopicName())).all().get();
 		    TopicDescription topic = topicMap.get(getTargetTopicName());
@@ -224,6 +227,9 @@ public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleCom
 				.warn("Execution exception connecting to Kafka. Will continue attempting to connect. ("
 					+ e.getMessage() + ")", t);
 		    }
+		} catch (ConfigException e) {
+		    getLogger().warn("Configuration issue connecting to Kafka. Will continue attempting to connect.",
+			    e);
 		} catch (Throwable t) {
 		    getLogger().warn("Exception while connecting to Kafka. Will continue attempting to connect.", t);
 		}

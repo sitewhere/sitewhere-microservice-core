@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
@@ -71,6 +73,18 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @Inject
     DefaultKubernetesClient kubernetesClient;
 
+    /** Kafka topic naming */
+    @Inject
+    private IKafkaTopicNaming kafkaTopicNaming;
+
+    /** System superuser */
+    @Inject
+    private ISystemUser systemUser;
+
+    /** JWT token management */
+    @Inject
+    private ITokenManagement tokenManagement;
+
     /** SiteWhere Kubernetes client wrapper */
     private ISiteWhereKubernetesClient sitewhereKubernetesClient;
 
@@ -79,15 +93,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 
     /** Metrics server */
     private IMetricsServer metricsServer = new MetricsServer();
-
-    /** JWT token management */
-    private ITokenManagement tokenManagement;
-
-    /** System superuser */
-    private ISystemUser systemUser;
-
-    /** Kafka topic naming */
-    private IKafkaTopicNaming kafkaTopicNaming;
 
     /** Tenant management implementation */
     private ITenantManagement tenantManagement;
@@ -333,7 +338,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	try {
 	    return getSiteWhereKubernetesClient().getInstances().withName(instanceId).createOrReplace(instance);
 	} catch (KubernetesClientException e) {
-	    throw new ConcurrentK8sUpdateException("Instance update failed due to concurrent update.", e);
+	    throw new ConcurrentK8sUpdateException("Instance resource update failed due to concurrent update.", e);
 	}
     }
 
@@ -353,9 +358,13 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 		    .newCall(new Request.Builder().method("PUT", requestBody).url(statusUri).build()).execute();
 	    byte[] content = response.body().bytes();
 	    response.close();
-	    return MarshalUtils.unmarshalJson(content, SiteWhereInstance.class);
+	    JsonNode json = MarshalUtils.marshalJsonNode(content);
+	    SiteWhereInstance result = MarshalUtils.unmarshalJsonNode(json, SiteWhereInstance.class);
+	    return result;
+	} catch (JsonProcessingException e) {
+	    throw new ConcurrentK8sUpdateException("Instance status update failed due to conflict.", e);
 	} catch (Throwable e) {
-	    throw new SiteWhereException("Unable to update instance status.", e);
+	    throw new SiteWhereException("Unhandled exception updating instance status.", e);
 	}
     }
 

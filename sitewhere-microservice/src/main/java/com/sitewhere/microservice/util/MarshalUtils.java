@@ -7,6 +7,8 @@
  */
 package com.sitewhere.microservice.util;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -80,6 +82,17 @@ public class MarshalUtils {
 	} catch (Throwable e) {
 	    throw new RuntimeException("Unable to parse JSON.", e);
 	}
+    }
+
+    /**
+     * Marshal a response to a JsonNode.
+     * 
+     * @param json
+     * @return
+     * @throws IOException
+     */
+    public static JsonNode marshalJsonNode(byte[] json) throws IOException {
+	return MAPPER.readTree(json);
     }
 
     /**

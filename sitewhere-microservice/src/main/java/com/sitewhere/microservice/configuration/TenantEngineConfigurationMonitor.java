@@ -43,7 +43,7 @@ public class TenantEngineConfigurationMonitor extends SiteWhereResourceControlle
 	implements ITenantEngineConfigurationMonitor {
 
     /** Static logger instance */
-    private static Logger LOGGER = LoggerFactory.getLogger(InstanceConfigurationMonitor.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(TenantEngineConfigurationMonitor.class);
 
     /** Resync period in milliseconds */
     private static final int RESYNC_PERIOD_MS = 10 * 60 * 1000;

@@ -7,8 +7,10 @@
  */
 package com.sitewhere.spi.microservice.security;
 
+import com.sitewhere.microservice.security.SiteWhereAuthentication;
 import com.sitewhere.spi.SiteWhereException;
-import com.sitewhere.spi.tenant.ITenant;
+
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
 /**
  * Support access to a global "superuser" for authorizing calls between
@@ -22,7 +24,7 @@ public interface ISystemUser {
      * @return
      * @throws SiteWhereException
      */
-    Object getAuthentication() throws SiteWhereException;
+    SiteWhereAuthentication getAuthentication() throws SiteWhereException;
 
     /**
      * Get authentication for superuser in context of a given tenant.
@@ -31,5 +33,5 @@ public interface ISystemUser {
      * @return
      * @throws SiteWhereException
      */
-    Object getAuthenticationForTenant(ITenant tenant) throws SiteWhereException;
+    SiteWhereAuthentication getAuthenticationForTenant(SiteWhereTenant tenant) throws SiteWhereException;
 }

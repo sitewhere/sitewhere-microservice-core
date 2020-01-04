@@ -7,12 +7,16 @@
  */
 package com.sitewhere.microservice.multitenant;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.CaseFormat;
 import com.google.inject.CreationException;
 import com.google.inject.Injector;
 import com.sitewhere.microservice.configuration.model.instance.PersistenceConfigurations;
+import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
@@ -35,10 +39,12 @@ import com.sitewhere.spi.microservice.scripting.IScriptManager;
 import io.fabric8.kubernetes.client.utils.URLUtils;
 import io.sitewhere.k8s.crd.ApiConstants;
 import io.sitewhere.k8s.crd.ResourceLabels;
+import io.sitewhere.k8s.crd.common.BootstrapState;
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 import io.sitewhere.k8s.crd.tenant.configuration.TenantConfigurationTemplate;
 import io.sitewhere.k8s.crd.tenant.dataset.TenantDatasetTemplate;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
+import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineList;
 import io.sitewhere.k8s.crd.tenant.engine.configuration.TenantEngineConfigurationTemplate;
 import io.sitewhere.k8s.crd.tenant.engine.dataset.TenantEngineDatasetTemplate;
 import okhttp3.MediaType;
@@ -54,6 +60,9 @@ import okhttp3.Response;
  */
 public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfiguration>
 	extends TenantEngineLifecycleComponent implements IMicroserviceTenantEngine<T> {
+
+    /** Number of milliseconds to wait between dataset bootstrap checks */
+    private static final int DATASET_BOOTSTRAP_CHECK_INTERVAL = 5000;
 
     /** Tenant resource */
     private SiteWhereTenant tenantResource;
@@ -170,7 +179,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	    throw new SiteWhereException("Tenant engine does not have a tenant label. Unable to resolve.");
 	}
 	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
-	getLogger().debug(String.format("Resolving tenant '%s' in namespace '%s'.", tenantToken, namespace));
 	SiteWhereTenant tenant = getMicroservice().getSiteWhereKubernetesClient().getTenants().inNamespace(namespace)
 		.withName(tenantToken).get();
 	if (tenant == null) {
@@ -211,6 +219,34 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
     /*
      * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * updateTenantEngineStatus(io.sitewhere.k8s.crd.tenant.engine.
+     * SiteWhereTenantEngine)
+     */
+    @Override
+    public SiteWhereTenantEngine updateTenantEngineStatus(SiteWhereTenantEngine engine) throws SiteWhereException {
+	try {
+	    final String statusUri = URLUtils.join(getMicroservice().getKubernetesClient().getMasterUrl().toString(),
+		    "apis", ApiConstants.SITEWHERE_API_GROUP, ApiConstants.SITEWHERE_API_VERSION, "namespaces",
+		    engine.getMetadata().getNamespace(), ApiConstants.SITEWHERE_TENANT_ENGINE_CRD_PLURAL,
+		    engine.getMetadata().getName(), "status");
+	    final RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"),
+		    MarshalUtils.marshalJson(engine));
+	    Response response = getMicroservice().getKubernetesClient().getHttpClient()
+		    .newCall(new Request.Builder().method("PUT", requestBody).url(statusUri).build()).execute();
+	    byte[] content = response.body().bytes();
+	    response.close();
+	    JsonNode json = MarshalUtils.marshalJsonNode(content);
+	    SiteWhereTenantEngine result = MarshalUtils.unmarshalJsonNode(json, SiteWhereTenantEngine.class);
+	    return result;
+	} catch (JsonProcessingException e) {
+	    throw new ConcurrentK8sUpdateException("Tenant engine status update failed due to conflict.", e);
+	} catch (Throwable e) {
+	    throw new SiteWhereException("Unhandled exception updating tenant engine status.", e);
+	}
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
      * executeTenantEngineSpecUpdate(com.sitewhere.spi.microservice.multitenant.
      * ITenantEngineSpecUpdateOperation)
      */
@@ -229,29 +265,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     public SiteWhereTenantEngine executeTenantEngineStatusUpdate(ITenantEngineStatusUpdateOperation operation)
 	    throws SiteWhereException {
 	return operation.execute(this);
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * updateTenantEngineStatus(io.sitewhere.k8s.crd.tenant.engine.
-     * SiteWhereTenantEngine)
-     */
-    @Override
-    public SiteWhereTenantEngine updateTenantEngineStatus(SiteWhereTenantEngine engine) throws SiteWhereException {
-	try {
-	    final String statusUri = URLUtils.join(getMicroservice().getKubernetesClient().getMasterUrl().toString(),
-		    "apis", ApiConstants.SITEWHERE_API_GROUP, ApiConstants.SITEWHERE_API_VERSION,
-		    ApiConstants.SITEWHERE_TENANT_ENGINE_CRD_PLURAL, engine.getMetadata().getName(), "status");
-	    final RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"),
-		    MarshalUtils.marshalJson(engine));
-	    Response response = getMicroservice().getKubernetesClient().getHttpClient()
-		    .newCall(new Request.Builder().method("PUT", requestBody).url(statusUri).build()).execute();
-	    byte[] content = response.body().bytes();
-	    response.close();
-	    return MarshalUtils.unmarshalJson(content, SiteWhereTenantEngine.class);
-	} catch (Throwable e) {
-	    throw new SiteWhereException("Unable to update tenant engine status.", e);
-	}
     }
 
     /**
@@ -292,12 +305,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	    } else {
 		getLogger().info(String.format("Found persistence configs:\n%s\n\n",
 			MarshalUtils.marshalJsonAsPrettyString(configs)));
-	    }
-	    PersistenceConfigurations second = getInjector().getInstance(PersistenceConfigurations.class);
-	    if (configs == second) {
-		getLogger().info("PCs are singletons in the injector.");
-	    } else {
-		getLogger().info("PCs are !!!NOT!!! singletons in the injector.");
 	    }
 	} catch (CreationException e) {
 	    throw new SiteWhereException("Guice configuration module failed to initialize.", e);
@@ -565,10 +572,10 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
     /*
      * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
-     * setDatasetBootsrapBindings(com.sitewhere.microservice.scripting.Binding)
+     * setDatasetBootstrapBindings(com.sitewhere.microservice.scripting.Binding)
      */
     @Override
-    public void setDatasetBootsrapBindings(Binding binding) throws SiteWhereException {
+    public void setDatasetBootstrapBindings(Binding binding) throws SiteWhereException {
     }
 
     /*
@@ -578,6 +585,41 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
      */
     @Override
     public void waitForTenantDatasetBootstrapped(IFunctionIdentifier identifier) throws SiteWhereException {
+	while (true) {
+	    Map<String, String> labels = new HashMap<>();
+	    labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, getTenantResource().getMetadata().getName());
+	    labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, identifier.getPath());
+	    SiteWhereTenantEngineList matches = getMicroservice().getSiteWhereKubernetesClient().getTenantEngines()
+		    .inNamespace(getTenantResource().getMetadata().getNamespace()).withLabels(labels).list();
+	    SiteWhereTenantEngine match = null;
+	    if (matches.getItems().size() == 1) {
+		match = matches.getItems().get(0);
+	    } else if (matches.getItems().size() > 1) {
+		throw new SiteWhereException(String.format("Multiple tenant engines found for dependent dataset '%s'",
+			identifier.getPath()));
+	    }
+	    if (match != null) {
+		getLogger().info(String.format("Using tenant engine for dataset bootstrap detection:\n%s\n\n",
+			MarshalUtils.marshalJsonAsPrettyString(match)));
+		BootstrapState state = match.getStatus() != null ? match.getStatus().getBootstrapState() : null;
+		if (state != null && state == BootstrapState.Bootstrapped) {
+		    getLogger().info(String.format("Dataset for '%s' has been bootstrapped.", identifier.getPath()));
+		    return;
+		}
+		getLogger()
+			.info(String.format("Waiting for dataset for '%s' to become available. Current state is '%s'.",
+				identifier.getPath(), state));
+	    } else {
+		getLogger()
+			.info(String.format("Waiting for dataset for '%s' to become available.", identifier.getPath()));
+	    }
+
+	    try {
+		Thread.sleep(DATASET_BOOTSTRAP_CHECK_INTERVAL);
+	    } catch (InterruptedException e) {
+		getLogger().info("Interrupted while waiting for dataset to become available.");
+	    }
+	}
     }
 
     /*

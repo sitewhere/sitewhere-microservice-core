@@ -7,13 +7,53 @@
  */
 package com.sitewhere.microservice.security;
 
-import com.sitewhere.spi.tenant.ITenant;
+import java.util.List;
 
+import com.sitewhere.spi.user.IGrantedAuthority;
+import com.sitewhere.spi.user.IUser;
+
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
+
+/**
+ * Context information for an authenticated user.
+ */
 public class SiteWhereAuthentication {
 
-    public SiteWhereAuthentication(SiteWhereUserDetails details, String jwt) {
+    /** User details */
+    private IUser user;
+
+    /** List of granted authorities */
+    private List<IGrantedAuthority> grantedAuthorities;
+
+    /** JWT */
+    private String jwt;
+
+    /** Tenant */
+    private SiteWhereTenant tenant;
+
+    public SiteWhereAuthentication(IUser user, List<IGrantedAuthority> grantedAuthorities, String jwt) {
+	this.user = user;
+	this.grantedAuthorities = grantedAuthorities;
+	this.jwt = jwt;
     }
 
-    public void setTenant(ITenant tenant) {
+    public void setTenant(SiteWhereTenant tenant) {
+	this.tenant = tenant;
+    }
+
+    public IUser getUser() {
+	return user;
+    }
+
+    public List<IGrantedAuthority> getGrantedAuthorities() {
+	return grantedAuthorities;
+    }
+
+    public String getJwt() {
+	return jwt;
+    }
+
+    public SiteWhereTenant getTenant() {
+	return tenant;
     }
 }

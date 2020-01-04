@@ -162,7 +162,7 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
      * @param binding
      * @throws SiteWhereException
      */
-    void setDatasetBootsrapBindings(Binding binding) throws SiteWhereException;
+    void setDatasetBootstrapBindings(Binding binding) throws SiteWhereException;
 
     /**
      * Get list of tenant engines in other microservices that must be bootstrapped

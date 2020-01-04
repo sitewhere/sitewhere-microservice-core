@@ -37,7 +37,7 @@ public interface IInstanceSettings {
     @ConfigProperty(name = "instance.template.id", defaultValue = "default")
     String getInstanceTemplateId();
 
-    @ConfigProperty(name = "kafka.bootstrap.servers", defaultValue = "cp-kafka:9092")
+    @ConfigProperty(name = "kafka.bootstrap.servers", defaultValue = "sitewhere-kafka-kafka-bootstrap:9092")
     String getKafkaBootstrapServers();
 
     @ConfigProperty(name = "kafka.defaultTopicPartitions", defaultValue = "8")

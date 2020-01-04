@@ -7,6 +7,9 @@
  */
 package com.sitewhere.microservice.kafka;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
 
@@ -15,7 +18,11 @@ import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 /**
  * Class for locating SiteWhere Kafka topics.
  */
+@ApplicationScoped
 public class KafkaTopicNaming implements IKafkaTopicNaming {
+
+    @Inject
+    IInstanceSettings instanceSettings;
 
     /** Separator used to partition topic name */
     protected static final String SEPARATOR = ".";
@@ -73,8 +80,6 @@ public class KafkaTopicNaming implements IKafkaTopicNaming {
 
     /** Topic suffix for failed batch elements */
     protected static final String TENANT_TOPIC_FAILED_BATCH_ELEMENTS = "failed-batch-elements";
-
-    private IInstanceSettings instanceSettings;
 
     /*
      * (non-Javadoc)
@@ -259,9 +264,5 @@ public class KafkaTopicNaming implements IKafkaTopicNaming {
 
     protected IInstanceSettings getInstanceSettings() {
 	return instanceSettings;
-    }
-
-    protected void setInstanceSettings(IInstanceSettings instanceSettings) {
-	this.instanceSettings = instanceSettings;
     }
 }

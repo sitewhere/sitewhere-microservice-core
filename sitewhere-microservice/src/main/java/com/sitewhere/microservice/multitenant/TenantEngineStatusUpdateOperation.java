@@ -15,8 +15,10 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineStatusUpdateOperation;
 
+import io.sitewhere.k8s.crd.common.BootstrapState;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
+import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineStatus;
 
 /**
  * Base class for operations which update the Kubernetes
@@ -38,7 +40,12 @@ public abstract class TenantEngineStatusUpdateOperation implements ITenantEngine
 	while (true) {
 	    try {
 		SiteWhereTenantEngine current = engine.loadTenantEngineResource();
-		update(current);
+		if (current.getStatus() == null) {
+		    current.setStatus(createDefaultStatus());
+		}
+		update(current.getStatus());
+		LOGGER.info(String.format("Tenant engine resource version for update: %s",
+			current.getMetadata().getResourceVersion()));
 		return engine.updateTenantEngineStatus(current);
 	    } catch (ConcurrentK8sUpdateException e) {
 		LOGGER.info("Tenant engine resource updated concurrently. Will retry.");
@@ -52,5 +59,16 @@ public abstract class TenantEngineStatusUpdateOperation implements ITenantEngine
 			"Failed to modify instance. Interrupted while waiting after concurrent update.");
 	    }
 	}
+    }
+
+    /**
+     * Create the default starting status for a tenant engine.
+     * 
+     * @return
+     */
+    protected SiteWhereTenantEngineStatus createDefaultStatus() {
+	SiteWhereTenantEngineStatus status = new SiteWhereTenantEngineStatus();
+	status.setBootstrapState(BootstrapState.NotBootstrapped);
+	return status;
     }
 }

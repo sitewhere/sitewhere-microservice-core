@@ -10,6 +10,10 @@ package com.sitewhere.grpc.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sitewhere.microservice.grpc.GrpcKeys;
+import com.sitewhere.microservice.security.SiteWhereAuthentication;
+import com.sitewhere.microservice.security.UserContext;
+
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -47,19 +51,16 @@ public class JwtClientInterceptor implements ClientInterceptor {
 	     */
 	    @Override
 	    public void start(Listener<RespT> responseListener, Metadata headers) {
-		// Authentication authentication =
-		// SecurityContextHolder.getContext().getAuthentication();
-		// if (authentication == null) {
-		// throw new RuntimeException("Attempting to make remote call with no Spring
-		// Security context.");
-		// }
-		// String jwt = (String) authentication.getCredentials();
-		// if (jwt == null) {
-		// throw new RuntimeException("Attempting to make remote call with no JWT
-		// provided.");
-		// }
-		// LOGGER.trace("Adding JWT into gRPC headers: " + jwt);
-		// headers.put(JWT_KEY, jwt);
+		SiteWhereAuthentication authentication = UserContext.getCurrentUser();
+		if (authentication == null) {
+		    throw new RuntimeException("Attempting to make remote call with no user context.");
+		}
+		String jwt = authentication.getJwt();
+		if (jwt == null) {
+		    throw new RuntimeException("Attempting to make remote call with no JWT provided.");
+		}
+		LOGGER.trace("Adding JWT into gRPC headers: " + jwt);
+		headers.put(GrpcKeys.JWT_KEY, jwt);
 		super.start(responseListener, headers);
 	    }
 	};

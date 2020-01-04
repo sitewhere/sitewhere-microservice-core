@@ -6,11 +6,11 @@ dependencies {
     
 	// Quarkus dependencies.
     compile 'io.quarkus:quarkus-kubernetes-client'
-    compile 'io.quarkus:quarkus-kafka-client'
+    compile 'io.quarkus:quarkus-kafka-streams'
     
 	// SiteWhere model/API.
     compile group: 'com.sitewhere', name: 'sitewhere-java-model', version: '3.0.0.alpha2'
-	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: '0.0.18'
+	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: '0.0.19'
     
     // JSON web token support.
     compile group: 'io.jsonwebtoken', name: 'jjwt', version:'0.7.0'

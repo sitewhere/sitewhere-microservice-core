@@ -15,7 +15,9 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.instance.IInstanceStatusUpdateOperation;
 
+import io.sitewhere.k8s.crd.common.BootstrapState;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
+import io.sitewhere.k8s.crd.instance.SiteWhereInstanceStatus;
 
 /**
  * Base class for operations which update the Kubernetes
@@ -35,7 +37,10 @@ public abstract class InstanceStatusUpdateOperation implements IInstanceStatusUp
 	while (true) {
 	    try {
 		SiteWhereInstance instance = microservice.loadInstanceResource();
-		update(instance);
+		if (instance.getStatus() == null) {
+		    instance.setStatus(createDefaultStatus());
+		}
+		update(instance.getStatus());
 		return microservice.updateInstanceStatus(instance);
 	    } catch (ConcurrentK8sUpdateException e) {
 		LOGGER.info("Instance configuration updated concurrently. Will retry.");
@@ -49,5 +54,17 @@ public abstract class InstanceStatusUpdateOperation implements IInstanceStatusUp
 			"Failed to modify instance. Interrupted while waiting after concurrent update.");
 	    }
 	}
+    }
+
+    /**
+     * Create default status values if none was set.
+     * 
+     * @return
+     */
+    protected SiteWhereInstanceStatus createDefaultStatus() {
+	SiteWhereInstanceStatus status = new SiteWhereInstanceStatus();
+	status.setTenantManagementBootstrapState(BootstrapState.NotBootstrapped);
+	status.setUserManagementBootstrapState(BootstrapState.NotBootstrapped);
+	return status;
     }
 }

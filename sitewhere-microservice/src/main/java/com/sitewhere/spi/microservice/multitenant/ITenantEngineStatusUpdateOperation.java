@@ -10,6 +10,7 @@ package com.sitewhere.spi.microservice.multitenant;
 import com.sitewhere.spi.SiteWhereException;
 
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
+import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineStatus;
 
 /**
  * Operation that mutates the tenant engine resource status.
@@ -31,5 +32,5 @@ public interface ITenantEngineStatusUpdateOperation {
      * @param current
      * @throws SiteWhereException
      */
-    void update(SiteWhereTenantEngine current) throws SiteWhereException;
+    void update(SiteWhereTenantEngineStatus current) throws SiteWhereException;
 }

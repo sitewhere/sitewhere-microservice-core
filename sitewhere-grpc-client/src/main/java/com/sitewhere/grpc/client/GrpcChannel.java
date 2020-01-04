@@ -99,14 +99,7 @@ public abstract class GrpcChannel<B, A> extends TenantEngineLifecycleComponent i
      * @return
      */
     public static String computeHostname(IInstanceSettings settings, IFunctionIdentifier identifier) {
-	String instanceId = "sitewhere".equals(settings.getInstanceId()) ? "sitewhere-"
-		: settings.getInstanceId() + "-sitewhere-";
-	String namespace = settings.getKubernetesNamespace();
-	if (settings.getGrpcResolveFQDN()) {
-	    return instanceId + identifier.getPath() + "-svc." + namespace + ".svc.cluster.local";
-	} else {
-	    return instanceId + identifier.getPath() + "-svc";
-	}
+	return String.format("%s-%s-svc", settings.getProductId(), identifier.getPath());
     }
 
     /*
