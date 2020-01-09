@@ -13,9 +13,7 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
-import com.sitewhere.spi.microservice.lifecycle.IDiscoverableTenantLifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
-import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
 import com.sitewhere.spi.microservice.scripting.IScriptManagement;
 
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
@@ -161,46 +159,6 @@ public interface IConfigurableMicroservice<F extends IFunctionIdentifier, C exte
      */
     void configurationTerminate(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
 	    throws SiteWhereException;
-
-    /**
-     * Initialize components from the given context marked as
-     * {@link IDiscoverableTenantLifecycleComponent}.
-     * 
-     * @param context
-     * @return
-     * @throws SiteWhereException
-     */
-    ILifecycleStep initializeDiscoverableBeans(Object context) throws SiteWhereException;
-
-    /**
-     * Start components from the given context marked as
-     * {@link IDiscoverableTenantLifecycleComponent}.
-     * 
-     * @param context
-     * @return
-     * @throws SiteWhereException
-     */
-    ILifecycleStep startDiscoverableBeans(Object context) throws SiteWhereException;
-
-    /**
-     * Stop components from the given context marked as
-     * {@link IDiscoverableTenantLifecycleComponent}.
-     * 
-     * @param context
-     * @return
-     * @throws SiteWhereException
-     */
-    ILifecycleStep stopDiscoverableBeans(Object context) throws SiteWhereException;
-
-    /**
-     * Terminate components from the given context marked as
-     * {@link IDiscoverableTenantLifecycleComponent}.
-     * 
-     * @param context
-     * @return
-     * @throws SiteWhereException
-     */
-    ILifecycleStep terminateDiscoverableBeans(Object context) throws SiteWhereException;
 
     /**
      * Initialize the current configuration.

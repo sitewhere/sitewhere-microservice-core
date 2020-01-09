@@ -301,9 +301,9 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 		    .createChildInjector(createConfigurationModule());
 	    PersistenceConfigurations configs = getInjector().getInstance(PersistenceConfigurations.class);
 	    if (configs == null) {
-		getLogger().info("Did not find persistence configurations.");
+		getLogger().debug("Did not find persistence configurations.");
 	    } else {
-		getLogger().info(String.format("Found persistence configs:\n%s\n\n",
+		getLogger().debug(String.format("Found persistence configs:\n%s\n\n",
 			MarshalUtils.marshalJsonAsPrettyString(configs)));
 	    }
 	} catch (CreationException e) {
@@ -599,8 +599,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 			identifier.getPath()));
 	    }
 	    if (match != null) {
-		getLogger().info(String.format("Using tenant engine for dataset bootstrap detection:\n%s\n\n",
-			MarshalUtils.marshalJsonAsPrettyString(match)));
 		BootstrapState state = match.getStatus() != null ? match.getStatus().getBootstrapState() : null;
 		if (state != null && state == BootstrapState.Bootstrapped) {
 		    getLogger().info(String.format("Dataset for '%s' has been bootstrapped.", identifier.getPath()));

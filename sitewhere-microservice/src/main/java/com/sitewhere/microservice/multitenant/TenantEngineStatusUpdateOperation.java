@@ -44,8 +44,6 @@ public abstract class TenantEngineStatusUpdateOperation implements ITenantEngine
 		    current.setStatus(createDefaultStatus());
 		}
 		update(current.getStatus());
-		LOGGER.info(String.format("Tenant engine resource version for update: %s",
-			current.getMetadata().getResourceVersion()));
 		return engine.updateTenantEngineStatus(current);
 	    } catch (ConcurrentK8sUpdateException e) {
 		LOGGER.info("Tenant engine resource updated concurrently. Will retry.");
