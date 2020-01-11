@@ -7,10 +7,7 @@
  */
 package com.sitewhere.microservice.api.device;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
+import com.sitewhere.microservice.api.asset.AssetMarshalHelper;
 import com.sitewhere.microservice.api.asset.IAssetManagement;
 import com.sitewhere.microservice.api.event.IDeviceEventManagement;
 import com.sitewhere.rest.model.device.marshaling.MarshaledDeviceState;
@@ -22,9 +19,6 @@ import com.sitewhere.spi.customer.ICustomer;
 import com.sitewhere.spi.device.IDevice;
 import com.sitewhere.spi.device.IDeviceAssignment;
 import com.sitewhere.spi.device.IDeviceType;
-import com.sitewhere.spi.device.event.IDeviceAlert;
-import com.sitewhere.spi.device.event.IDeviceLocation;
-import com.sitewhere.spi.device.event.IDeviceMeasurement;
 import com.sitewhere.spi.device.state.IDeviceState;
 
 /**
@@ -52,7 +46,7 @@ public class DeviceStateMarshalHelper {
     private boolean includeAsset = false;
 
     /** Indicates whether event details should be included */
-    private boolean includeEventDetails = false;
+    private boolean includeRecentEvents = false;
 
     /** Device management */
     private IDeviceManagement deviceManagement;
@@ -60,24 +54,42 @@ public class DeviceStateMarshalHelper {
     /** Device event management */
     private IDeviceEventManagement deviceEventManagement;
 
-    /** Used to control marshaling of devices */
+    /** Asset management */
+    private IAssetManagement assetManagement;
+
+    /** Controls marshaling of devices */
     private DeviceMarshalHelper deviceHelper;
 
-    public DeviceStateMarshalHelper(IDeviceManagement deviceManagement, IDeviceEventManagement deviceEventManagement) {
+    /** Controls marshaling of device types */
+    private DeviceTypeMarshalHelper deviceTypeHelper;
+
+    /** Controls marshaling of device assignments */
+    private DeviceAssignmentMarshalHelper deviceAssignmentHelper;
+
+    /** Controls marshaling of customers */
+    private CustomerMarshalHelper customerHelper;
+
+    /** Controls marshaling of areas */
+    private AreaMarshalHelper areaHelper;
+
+    /** Controls marshaling of assets */
+    private AssetMarshalHelper assetHelper;
+
+    public DeviceStateMarshalHelper(IDeviceManagement deviceManagement, IDeviceEventManagement deviceEventManagement,
+	    IAssetManagement assetManagement) {
 	this.deviceManagement = deviceManagement;
 	this.deviceEventManagement = deviceEventManagement;
+	this.assetManagement = assetManagement;
     }
 
     /**
      * Convert the SPI object into a model object for marshaling.
      * 
      * @param source
-     * @param assetManagement
      * @return
      * @throws SiteWhereException
      */
-    public MarshaledDeviceState convert(IDeviceState source, IAssetManagement assetManagement)
-	    throws SiteWhereException {
+    public MarshaledDeviceState convert(IDeviceState source) throws SiteWhereException {
 	MarshaledDeviceState result = new MarshaledDeviceState();
 	result.setId(source.getId());
 	result.setDeviceId(source.getDeviceId());
@@ -88,23 +100,28 @@ public class DeviceStateMarshalHelper {
 	result.setAssetId(source.getAssetId());
 	result.setLastInteractionDate(source.getLastInteractionDate());
 	result.setPresenceMissingDate(source.getPresenceMissingDate());
-	result.setLastLocationEventId(source.getLastLocationEventId());
-	result.getLastMeasurementEventIds().putAll(source.getLastMeasurementEventIds());
-	result.getLastAlertEventIds().putAll(source.getLastAlertEventIds());
 
-	addAssignmentDetail(source, assetManagement, result);
-	addEventDetail(source, assetManagement, result);
+	addAssignmentDetail(source, result);
+	if (isIncludeRecentEvents()) {
+	    addRecentEvents(source);
+	}
 
 	return result;
     }
 
-    protected void addAssignmentDetail(IDeviceState source, IAssetManagement assetManagement,
-	    MarshaledDeviceState result) throws SiteWhereException {
+    /**
+     * Allow detail for contained references to be returned.
+     * 
+     * @param source
+     * @param result
+     * @throws SiteWhereException
+     */
+    protected void addAssignmentDetail(IDeviceState source, MarshaledDeviceState result) throws SiteWhereException {
 	// Add device information.
 	if (isIncludeDevice()) {
 	    IDevice device = getDeviceManagement().getDevice(source.getDeviceId());
 	    if (device != null) {
-		result.setDevice(getDeviceHelper().convert(device, assetManagement));
+		result.setDevice(getDeviceHelper().convert(device, getAssetManagement()));
 	    }
 	}
 
@@ -112,7 +129,7 @@ public class DeviceStateMarshalHelper {
 	if (isIncludeDeviceType()) {
 	    IDeviceType deviceType = getDeviceManagement().getDeviceType(source.getDeviceTypeId());
 	    if (deviceType != null) {
-		result.setDeviceType(deviceType);
+		result.setDeviceType(getDeviceTypeHelper().convert(deviceType));
 	    }
 	}
 
@@ -121,7 +138,7 @@ public class DeviceStateMarshalHelper {
 	    IDeviceAssignment deviceAssignment = getDeviceManagement()
 		    .getDeviceAssignment(source.getDeviceAssignmentId());
 	    if (deviceAssignment != null) {
-		result.setDeviceAssignment(deviceAssignment);
+		result.setDeviceAssignment(getDeviceAssignmentHelper().convert(deviceAssignment, getAssetManagement()));
 	    }
 	}
 
@@ -131,7 +148,7 @@ public class DeviceStateMarshalHelper {
 	    if (customer == null) {
 		customer = new InvalidCustomer();
 	    }
-	    result.setCustomer(customer);
+	    result.setCustomer(getCustomerHelper().convert(customer));
 	}
 
 	// If area is assigned, look it up.
@@ -140,7 +157,7 @@ public class DeviceStateMarshalHelper {
 	    if (area == null) {
 		area = new InvalidArea();
 	    }
-	    result.setArea(area);
+	    result.setArea(getAreaHelper().convert(area));
 	}
 
 	// If asset is assigned, look it up.
@@ -149,38 +166,17 @@ public class DeviceStateMarshalHelper {
 	    if (asset == null) {
 		asset = new InvalidAsset();
 	    }
-	    result.setAsset(asset);
+	    result.setAsset(getAssetHelper().convert(asset));
 	}
     }
 
-    protected void addEventDetail(IDeviceState source, IAssetManagement assetManagement, MarshaledDeviceState result)
-	    throws SiteWhereException {
-	if (isIncludeEventDetails()) {
-	    if (source.getLastLocationEventId() != null) {
-		IDeviceLocation location = (IDeviceLocation) getDeviceEventManagement()
-			.getDeviceEventById(source.getLastLocationEventId());
-		result.setLastLocationEvent(location);
-	    }
+    /**
+     * Add recent events.
+     * 
+     * @param source
+     */
+    protected void addRecentEvents(IDeviceState source) {
 
-	    if (source.getLastMeasurementEventIds() != null) {
-		Map<String, IDeviceMeasurement> mxs = new HashMap<>();
-		for (String key : source.getLastMeasurementEventIds().keySet()) {
-		    UUID id = source.getLastMeasurementEventIds().get(key);
-		    IDeviceMeasurement mx = (IDeviceMeasurement) getDeviceEventManagement().getDeviceEventById(id);
-		    mxs.put(key, mx);
-		}
-		result.setLastMeasurementEvents(mxs);
-	    }
-	    if (source.getLastAlertEventIds() != null) {
-		Map<String, IDeviceAlert> alerts = new HashMap<>();
-		for (String key : source.getLastAlertEventIds().keySet()) {
-		    UUID id = source.getLastAlertEventIds().get(key);
-		    IDeviceAlert alert = (IDeviceAlert) getDeviceEventManagement().getDeviceEventById(id);
-		    alerts.put(key, alert);
-		}
-		result.setLastAlertEvents(alerts);
-	    }
-	}
     }
 
     /**
@@ -197,6 +193,41 @@ public class DeviceStateMarshalHelper {
 	return deviceHelper;
     }
 
+    protected DeviceTypeMarshalHelper getDeviceTypeHelper() {
+	if (deviceTypeHelper == null) {
+	    deviceTypeHelper = new DeviceTypeMarshalHelper(getDeviceManagement());
+	}
+	return deviceTypeHelper;
+    }
+
+    protected DeviceAssignmentMarshalHelper getDeviceAssignmentHelper() {
+	if (deviceAssignmentHelper == null) {
+	    this.deviceAssignmentHelper = new DeviceAssignmentMarshalHelper(getDeviceManagement());
+	}
+	return deviceAssignmentHelper;
+    }
+
+    protected CustomerMarshalHelper getCustomerHelper() {
+	if (customerHelper == null) {
+	    this.customerHelper = new CustomerMarshalHelper(getDeviceManagement(), getAssetManagement());
+	}
+	return customerHelper;
+    }
+
+    protected AreaMarshalHelper getAreaHelper() {
+	if (areaHelper == null) {
+	    this.areaHelper = new AreaMarshalHelper(getDeviceManagement(), getAssetManagement());
+	}
+	return areaHelper;
+    }
+
+    protected AssetMarshalHelper getAssetHelper() {
+	if (assetHelper == null) {
+	    this.assetHelper = new AssetMarshalHelper(getAssetManagement());
+	}
+	return assetHelper;
+    }
+
     public IDeviceManagement getDeviceManagement() {
 	return deviceManagement;
     }
@@ -211,6 +242,14 @@ public class DeviceStateMarshalHelper {
 
     public void setDeviceEventManagement(IDeviceEventManagement deviceEventManagement) {
 	this.deviceEventManagement = deviceEventManagement;
+    }
+
+    public IAssetManagement getAssetManagement() {
+	return assetManagement;
+    }
+
+    public void setAssetManagement(IAssetManagement assetManagement) {
+	this.assetManagement = assetManagement;
     }
 
     public boolean isIncludeDevice() {
@@ -261,11 +300,11 @@ public class DeviceStateMarshalHelper {
 	this.includeAsset = includeAsset;
     }
 
-    public boolean isIncludeEventDetails() {
-	return includeEventDetails;
+    public boolean isIncludeRecentEvents() {
+	return includeRecentEvents;
     }
 
-    public void setIncludeEventDetails(boolean includeEventDetails) {
-	this.includeEventDetails = includeEventDetails;
+    public void setIncludeRecentEvents(boolean includeRecentEvents) {
+	this.includeRecentEvents = includeRecentEvents;
     }
 }
