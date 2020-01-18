@@ -12,20 +12,19 @@ ext {
 ext['git.revision'] = ext.git.head().id
 ext['git.revision.abbrev'] = ext.git.head().abbreviatedId
 
-ext['sitewhere.grpc.api.version'] = '3.0.0.alpha2'
+ext['sitewhere.grpc.api.version'] = '3.0.0.alpha3'
 ext['jackson.version'] = '2.9.10'
 ext['kafka.version'] = '2.0.0'
 ext['groovy.version'] = '2.4.12'
-ext['grpc.version'] = '1.25.0'
 
 apply plugin: 'distribution'
     
 allprojects {
     group = 'com.sitewhere'
-	version = '3.0.0.alpha15'
+	version = '3.0.0.alpha16'
 	
     repositories {
-        maven { url "http://repo.maven.apache.org/maven2" }
+        maven { url "https://repo.maven.apache.org/maven2" }
 		mavenLocal()
     }
 }

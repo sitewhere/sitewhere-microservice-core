@@ -104,6 +104,12 @@ public class TenantEngineBootstrapper extends AsyncStartLifecycleComponent imple
      */
     protected void bootstrapTenantEngine(SiteWhereTenantEngine engine, TenantEngineDatasetTemplate template)
 	    throws SiteWhereException {
+	if (template == null) {
+	    getLogger().info(String.format("No dataset template found for functional area '%s'. Skipping bootstrap.",
+		    getMicroservice().getIdentifier().getPath()));
+	    setTenantEngineBootstrapState(BootstrapState.Bootstrapped);
+	    return;
+	}
 	switch (engine.getStatus().getBootstrapState()) {
 	case BootstrapFailed: {
 	    getLogger().warn("Skipping tenant engine bootstrap due to previous failure.");

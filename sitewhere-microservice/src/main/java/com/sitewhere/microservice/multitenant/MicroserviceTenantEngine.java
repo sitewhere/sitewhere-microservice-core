@@ -542,7 +542,8 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 		getMicroservice().getIdentifier().getPath());
 	String tedtName = tdt.getSpec().getTenantEngineTemplates().get(functionName);
 	if (tedtName == null) {
-	    throw new SiteWhereException(String.format("No tenant engine dataset template listed for '%s'.", tedtName));
+	    // Not all tenant engines use datasets to bootstrap their data.
+	    return null;
 	}
 	TenantEngineDatasetTemplate tedt = getMicroservice().getSiteWhereKubernetesClient()
 		.getTenantEngineDatasetTemplates().withName(tedtName).get();

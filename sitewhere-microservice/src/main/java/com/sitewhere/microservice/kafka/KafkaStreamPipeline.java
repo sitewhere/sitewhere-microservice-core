@@ -11,6 +11,7 @@ import java.util.Properties;
 
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KafkaStreams.State;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 
@@ -55,7 +56,7 @@ public abstract class KafkaStreamPipeline extends TenantEngineLifecycleComponent
      */
     @Override
     public void start(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-	if (getPipeline() != null) {
+	if (getPipeline() != null && getPipeline().state() == State.RUNNING) {
 	    getPipeline().close();
 	}
 	getPipeline().start();
