@@ -458,7 +458,9 @@ public class DeviceModelConverter {
 	api.setName(grpc.getName());
 	api.setDescription(grpc.getDescription());
 	api.setContainerPolicy(DeviceModelConverter.asApiDeviceContainerPolicy(grpc.getContainerPolicy()));
-	api.setDeviceElementSchemaId(CommonModelConverter.asApiUuid(grpc.getDeviceElementSchemaId()));
+	api.setDeviceElementSchemaId(
+		grpc.hasDeviceElementSchemaId() ? CommonModelConverter.asApiUuid(grpc.getDeviceElementSchemaId())
+			: null);
 	CommonModelConverter.setEntityInformation(api, grpc.getEntityInformation());
 	CommonModelConverter.setBrandingInformation(api, grpc.getBranding());
 	return api;
@@ -476,7 +478,9 @@ public class DeviceModelConverter {
 	grpc.setName(api.getName());
 	grpc.setDescription(api.getDescription());
 	grpc.setContainerPolicy(DeviceModelConverter.asGrpcDeviceContainerPolicy(api.getContainerPolicy()));
-	grpc.setDeviceElementSchemaId(CommonModelConverter.asGrpcUuid(api.getDeviceElementSchemaId()));
+	if (api.getDeviceElementSchemaId() != null) {
+	    grpc.setDeviceElementSchemaId(CommonModelConverter.asGrpcUuid(api.getDeviceElementSchemaId()));
+	}
 	grpc.setEntityInformation(CommonModelConverter.asGrpcEntityInformation(api));
 	grpc.setBranding(CommonModelConverter.asGrpcBrandingInformation(api));
 	return grpc.build();

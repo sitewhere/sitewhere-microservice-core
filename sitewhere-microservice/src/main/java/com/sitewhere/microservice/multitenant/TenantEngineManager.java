@@ -180,7 +180,9 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
 	try {
 	    T engine = getTenantEngineByToken(token);
 	    if (engine == null) {
-		throw new TenantEngineNotAvailableException("No tenant engine found for tenant id.");
+		throw new TenantEngineNotAvailableException(
+			String.format("No '%s' tenant engine found for tenant id '%s'.",
+				getMicroservice().getIdentifier().getPath(), token));
 	    } else if (engine.getLifecycleStatus() == LifecycleStatus.InitializationError) {
 		throw new TenantEngineNotAvailableException("Requested tenant engine failed initialization.");
 	    } else if (engine.getLifecycleStatus() == LifecycleStatus.LifecycleError) {

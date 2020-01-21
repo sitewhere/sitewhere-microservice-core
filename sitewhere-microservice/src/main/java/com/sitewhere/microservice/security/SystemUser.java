@@ -41,7 +41,7 @@ public class SystemUser implements ISystemUser {
 
     /** JWT token management */
     @Inject
-    private ITokenManagement tokenManagement;
+    ITokenManagement tokenManagement;
 
     /** System user information */
     private IUser user = SystemUser.createUser();

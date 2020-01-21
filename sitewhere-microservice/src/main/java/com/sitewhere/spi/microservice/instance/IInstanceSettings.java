@@ -78,4 +78,7 @@ public interface IInstanceSettings {
 
     @ConfigProperty(name = "grpcResolveFQDN", defaultValue = "false")
     public Boolean getGrpcResolveFQDN();
+
+    @ConfigProperty(name = "jwtTokenLifeInMinutes", defaultValue = "60")
+    public Integer getJwtTokenLifeInMinutes();
 }
