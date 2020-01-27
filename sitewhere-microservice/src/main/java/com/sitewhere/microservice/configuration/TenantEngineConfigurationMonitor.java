@@ -108,7 +108,7 @@ public class TenantEngineConfigurationMonitor extends SiteWhereResourceControlle
 	}
 	// Ignore tenant engine updates not related to this microservice.
 	if (!getFunctionIdentifier().getPath().equals(function)) {
-	    LOGGER.info(String.format("Ignoring tenant engine changes for unrelated microservice: '%s'", function));
+	    LOGGER.debug(String.format("Ignoring tenant engine changes for unrelated microservice: '%s'", function));
 	    return;
 	}
 	LOGGER.info(String.format("Detected %s resource change in tenant engine %s.", type.name(),

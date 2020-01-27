@@ -10,6 +10,8 @@ package com.sitewhere.spi.microservice;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.redisson.api.RedissonClient;
+
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.instance.IInstanceSpecUpdateOperation;
@@ -156,6 +158,13 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
      * @throws SiteWhereException
      */
     void createKubernetesResourceControllers(SharedInformerFactory informers) throws SiteWhereException;
+
+    /**
+     * Get client for interacting with Redis cluster for caching.
+     * 
+     * @return
+     */
+    RedissonClient getRedissonClient();
 
     /**
      * Get metrics server.

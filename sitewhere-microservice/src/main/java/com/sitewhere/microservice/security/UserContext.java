@@ -7,6 +7,8 @@
  */
 package com.sitewhere.microservice.security;
 
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
+
 /**
  * {@link ThreadLocal} which tracks the credentials for the authenticated user.
  */
@@ -21,6 +23,16 @@ public class UserContext {
 
     public static SiteWhereAuthentication getCurrentUser() {
 	return CONTEXT.get();
+    }
+
+    public static SiteWhereTenant getCurrentTenant() {
+	SiteWhereAuthentication auth = getCurrentUser();
+	return auth != null ? auth.getTenant() : null;
+    }
+
+    public static String getCurrentTenantId() {
+	SiteWhereTenant tenant = getCurrentTenant();
+	return tenant != null ? tenant.getMetadata().getName() : null;
     }
 
     public static void setContext(SiteWhereAuthentication context) {

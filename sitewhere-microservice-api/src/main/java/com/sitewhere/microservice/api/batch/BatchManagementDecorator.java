@@ -78,7 +78,7 @@ public class BatchManagementDecorator extends TenantEngineLifecycleComponentDeco
      * spi.search.batch.IBatchOperationSearchCriteria)
      */
     @Override
-    public ISearchResults<IBatchOperation> listBatchOperations(IBatchOperationSearchCriteria criteria)
+    public ISearchResults<? extends IBatchOperation> listBatchOperations(IBatchOperationSearchCriteria criteria)
 	    throws SiteWhereException {
 	return getDelegate().listBatchOperations(criteria);
     }
@@ -109,8 +109,8 @@ public class BatchManagementDecorator extends TenantEngineLifecycleComponentDeco
      * com.sitewhere.spi.search.device.IBatchElementSearchCriteria)
      */
     @Override
-    public ISearchResults<IBatchElement> listBatchElements(UUID batchOperationId, IBatchElementSearchCriteria criteria)
-	    throws SiteWhereException {
+    public ISearchResults<? extends IBatchElement> listBatchElements(UUID batchOperationId,
+	    IBatchElementSearchCriteria criteria) throws SiteWhereException {
 	return getDelegate().listBatchElements(batchOperationId, criteria);
     }
 

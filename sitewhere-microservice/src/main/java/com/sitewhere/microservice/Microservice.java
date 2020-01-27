@@ -15,6 +15,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
+import org.redisson.Redisson;
+import org.redisson.api.RMap;
+import org.redisson.api.RedissonClient;
+import org.redisson.codec.CborJacksonCodec;
+import org.redisson.config.Config;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
@@ -88,6 +94,9 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     /** SiteWhere Kubernetes client wrapper */
     private ISiteWhereKubernetesClient sitewhereKubernetesClient;
 
+    /** Redisson Redis client */
+    private RedissonClient redissonClient;
+
     /** Shared informer factory for k8s resources */
     private SharedInformerFactory sharedInformerFactory;
 
@@ -150,6 +159,9 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	// Initialize Kubernetes connectivity.
 	initializeK8sConnectivity();
 
+	// Initialize Redis connectivity.
+	initializeRedisConnectivity();
+
 	// Initialize management APIs.
 	initializeManagementApis();
 
@@ -194,12 +206,33 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      * @throws SiteWhereException
      */
     protected void initializeK8sConnectivity() throws SiteWhereException {
+	getLogger().info("Initializing Kubernetes connectivity...");
 	this.sitewhereKubernetesClient = new SiteWhereKubernetesClient(getKubernetesClient());
 	this.sharedInformerFactory = getKubernetesClient().informers();
 
 	// Create controllers and start informers.
 	createKubernetesResourceControllers(getSharedInformerFactory());
 	getSharedInformerFactory().startAllRegisteredInformers();
+	getLogger().info("Kubernetes connectivity initialized.");
+    }
+
+    /**
+     * Initialize connectivity to Redis.
+     * 
+     * @throws SiteWhereException
+     */
+    protected void initializeRedisConnectivity() throws SiteWhereException {
+	getLogger().info("Initializing Redis connectivity...");
+	Config config = new Config();
+	config.useSentinelServers().setMasterName(getInstanceSettings().getRedisMasterGroupName()).addSentinelAddress(
+		"redis://sitewhere-infrastructure-redis-ha-announce-0:26379",
+		"redis://sitewhere-infrastructure-redis-ha-announce-1:26379",
+		"redis://sitewhere-infrastructure-redis-ha-announce-2:26379");
+	config.setCodec(new CborJacksonCodec());
+	this.redissonClient = Redisson.create(config);
+	getLogger().info("Redis connectivity initialized.");
+	RMap<String, String> map = getRedissonClient().getMap("bubba");
+	map.put("sitewhere", "rocks");
     }
 
     /**
@@ -286,6 +319,14 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @Override
     public ISiteWhereKubernetesClient getSiteWhereKubernetesClient() {
 	return this.sitewhereKubernetesClient;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#getRedissonClient()
+     */
+    @Override
+    public RedissonClient getRedissonClient() {
+	return this.redissonClient;
     }
 
     /*

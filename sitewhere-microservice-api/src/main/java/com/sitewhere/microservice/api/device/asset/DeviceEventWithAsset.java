@@ -11,9 +11,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sitewhere.microservice.api.asset.IAssetManagement;
-import com.sitewhere.rest.model.datatype.JsonDateSerializer;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.asset.IAsset;
 import com.sitewhere.spi.device.asset.IDeviceEventWithAsset;
@@ -142,7 +141,7 @@ public class DeviceEventWithAsset implements IDeviceEventWithAsset {
      * @see com.sitewhere.spi.device.IDeviceEvent#getEventDate()
      */
     @Override
-    @JsonSerialize(using = JsonDateSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public Date getEventDate() {
 	return getWrapped().getEventDate();
     }
@@ -153,7 +152,7 @@ public class DeviceEventWithAsset implements IDeviceEventWithAsset {
      * @see com.sitewhere.spi.device.IDeviceEvent#getReceivedDate()
      */
     @Override
-    @JsonSerialize(using = JsonDateSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public Date getReceivedDate() {
 	return getWrapped().getReceivedDate();
     }

@@ -9,8 +9,7 @@ package com.sitewhere.microservice.scripting;
 
 import java.util.Date;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.sitewhere.rest.model.datatype.JsonDateSerializer;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.sitewhere.spi.microservice.scripting.IScriptVersion;
 
 /**
@@ -55,7 +54,7 @@ public class ScriptVersion implements IScriptVersion {
      * @see com.sitewhere.spi.microservice.scripting.IScriptVersion#getCreatedDate()
      */
     @Override
-    @JsonSerialize(using = JsonDateSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     public Date getCreatedDate() {
 	return createdDate;
     }

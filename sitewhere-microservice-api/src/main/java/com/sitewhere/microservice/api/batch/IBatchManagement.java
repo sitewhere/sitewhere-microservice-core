@@ -72,7 +72,7 @@ public interface IBatchManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IBatchOperation> listBatchOperations(IBatchOperationSearchCriteria criteria)
+    ISearchResults<? extends IBatchOperation> listBatchOperations(IBatchOperationSearchCriteria criteria)
 	    throws SiteWhereException;
 
     /**
@@ -103,8 +103,8 @@ public interface IBatchManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IBatchElement> listBatchElements(UUID batchOperationId, IBatchElementSearchCriteria criteria)
-	    throws SiteWhereException;
+    ISearchResults<? extends IBatchElement> listBatchElements(UUID batchOperationId,
+	    IBatchElementSearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Updates an existing batch operation element.

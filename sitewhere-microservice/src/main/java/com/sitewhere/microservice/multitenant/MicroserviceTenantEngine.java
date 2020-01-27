@@ -18,7 +18,6 @@ import com.google.inject.Injector;
 import com.sitewhere.microservice.configuration.model.instance.PersistenceConfigurations;
 import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
-import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.microservice.scripting.Binding;
 import com.sitewhere.microservice.scripting.ScriptManager;
@@ -28,7 +27,6 @@ import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
-import com.sitewhere.spi.microservice.lifecycle.ILifecycleStep;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineBootstrapper;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineConfiguration;
@@ -159,9 +157,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
 	// Execute initialization steps.
 	init.execute(monitor);
-
-	// Initialize discoverable beans.
-	initializeDiscoverableBeans();
 
 	// Allow subclass to execute initialization logic.
 	tenantInitialize(monitor);
@@ -330,9 +325,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	// Execute startup steps.
 	start.execute(monitor);
 
-	// Start discoverable beans.
-	startDiscoverableBeans();
-
 	// Allow subclass to execute startup logic.
 	tenantStart(monitor);
 
@@ -355,9 +347,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
 	// Allow subclass to execute shutdown logic.
 	tenantStop(monitor);
-
-	// Stop discoverable beans.
-	stopDiscoverableBeans();
 
 	// Create step that will stop components.
 	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Stop tenant engine " + getName());
@@ -386,9 +375,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
 	// Execute terminate steps.
 	stop.execute(monitor);
-
-	// Terminate discoverable beans.
-	terminateDiscoverableBeans();
     }
 
     /*
@@ -397,90 +383,6 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
      */
     @Override
     public void loadEngineComponents() throws SiteWhereException {
-    }
-
-    /**
-     * Initialize discoverable beans in configuration.
-     * 
-     * @return
-     * @throws SiteWhereException
-     */
-    public ILifecycleStep initializeDiscoverableBeans() throws SiteWhereException {
-	return new SimpleLifecycleStep("Initialize discoverable beans") {
-
-	    @Override
-	    public void execute(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-		// Map<String, IDiscoverableTenantLifecycleComponent> components = context
-		// .getBeansOfType(IDiscoverableTenantLifecycleComponent.class);
-		//
-		// for (IDiscoverableTenantLifecycleComponent component : components.values()) {
-		// initializeNestedComponent(component, monitor, component.isRequired());
-		// }
-	    }
-	};
-    }
-
-    /**
-     * Start discoverable beans in configuration.
-     * 
-     * @return
-     * @throws SiteWhereException
-     */
-    public ILifecycleStep startDiscoverableBeans() throws SiteWhereException {
-	return new SimpleLifecycleStep("Start discoverable beans") {
-
-	    @Override
-	    public void execute(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-		// Map<String, IDiscoverableTenantLifecycleComponent> components = context
-		// .getBeansOfType(IDiscoverableTenantLifecycleComponent.class);
-		//
-		// for (IDiscoverableTenantLifecycleComponent component : components.values()) {
-		// startNestedComponent(component, monitor, component.isRequired());
-		// }
-	    }
-	};
-    }
-
-    /**
-     * Stop discoverable beans in configuration.
-     * 
-     * @return
-     * @throws SiteWhereException
-     */
-    public ILifecycleStep stopDiscoverableBeans() throws SiteWhereException {
-	return new SimpleLifecycleStep("Stop discoverable beans") {
-
-	    @Override
-	    public void execute(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-		// Map<String, IDiscoverableTenantLifecycleComponent> components = context
-		// .getBeansOfType(IDiscoverableTenantLifecycleComponent.class);
-		//
-		// for (IDiscoverableTenantLifecycleComponent component : components.values()) {
-		// component.lifecycleStop(monitor);
-		// }
-	    }
-	};
-    }
-
-    /**
-     * Terminate discoverable beans in configuration.
-     * 
-     * @return
-     * @throws SiteWhereException
-     */
-    public ILifecycleStep terminateDiscoverableBeans() throws SiteWhereException {
-	return new SimpleLifecycleStep("Terminate discoverable beans") {
-
-	    @Override
-	    public void execute(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-		// Map<String, IDiscoverableTenantLifecycleComponent> components = context
-		// .getBeansOfType(IDiscoverableTenantLifecycleComponent.class);
-		//
-		// for (IDiscoverableTenantLifecycleComponent component : components.values()) {
-		// component.lifecycleTerminate(monitor);
-		// }
-	    }
-	};
     }
 
     /*

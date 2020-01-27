@@ -46,6 +46,9 @@ public interface IInstanceSettings {
     @ConfigProperty(name = "kafka.defaultTopicReplicationFactor", defaultValue = "3")
     Integer getKafkaDefaultTopicReplicationFactor();
 
+    @ConfigProperty(name = "redis.masterGroupName", defaultValue = "sitewhere")
+    String getRedisMasterGroupName();
+
     @ConfigProperty(name = "metrics.port", defaultValue = "9090")
     Integer getMetricsHttpPort();
 
