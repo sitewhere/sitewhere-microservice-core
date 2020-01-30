@@ -14,6 +14,9 @@ import com.sitewhere.spi.microservice.configuration.IInstanceSpecUpdates;
  */
 public class InstanceSpecUpdates implements IInstanceSpecUpdates {
 
+    /** Indicates if there was not a previous instance */
+    private boolean firstUpdate;
+
     /** Indicates whether instance namespace was updated */
     private boolean instanceNamespaceUpdated;
 
@@ -25,6 +28,19 @@ public class InstanceSpecUpdates implements IInstanceSpecUpdates {
 
     /** Indicates whether configuration was updated */
     private boolean configurationUpdated;
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.IInstanceSpecUpdates#
+     * isFirstUpdate()
+     */
+    @Override
+    public boolean isFirstUpdate() {
+	return firstUpdate;
+    }
+
+    public void setFirstUpdate(boolean firstUpdate) {
+	this.firstUpdate = firstUpdate;
+    }
 
     /*
      * @see com.sitewhere.spi.microservice.configuration.IInstanceSpecUpdates#

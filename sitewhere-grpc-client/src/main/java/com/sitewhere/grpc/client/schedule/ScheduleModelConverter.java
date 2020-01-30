@@ -287,7 +287,7 @@ public class ScheduleModelConverter {
 	    throws SiteWhereException {
 	ScheduledJobCreateRequest api = new ScheduledJobCreateRequest();
 	api.setToken(grpc.hasToken() ? grpc.getToken().getValue() : null);
-	api.setScheduleToken(grpc.getScheduleToken());
+	api.setScheduleToken(grpc.hasScheduleToken() ? grpc.getScheduleToken().getValue() : null);
 	api.setJobType(ScheduleModelConverter.asApiScheduledJobType(grpc.getJobType()));
 	api.setJobConfiguration(grpc.getJobConfigurationMap());
 	api.setJobState(ScheduleModelConverter.asApiScheduledJobState(grpc.getJobState()));
@@ -308,7 +308,9 @@ public class ScheduleModelConverter {
 	if (api.getToken() != null) {
 	    grpc.setToken(GOptionalString.newBuilder().setValue(api.getToken()));
 	}
-	grpc.setScheduleToken(api.getScheduleToken());
+	if (api.getScheduleToken() != null) {
+	    grpc.setScheduleToken(GOptionalString.newBuilder().setValue(api.getScheduleToken()));
+	}
 	grpc.setJobType(ScheduleModelConverter.asGrpcScheduledJobType(api.getJobType()));
 	grpc.putAllJobConfiguration(api.getJobConfiguration());
 	grpc.setJobState(ScheduleModelConverter.asGrpcScheduledJobState(api.getJobState()));
@@ -369,7 +371,7 @@ public class ScheduleModelConverter {
      */
     public static ScheduledJob asApiScheduledJob(GScheduledJob grpc) throws SiteWhereException {
 	ScheduledJob api = new ScheduledJob();
-	api.setScheduleToken(grpc.getScheduleToken());
+	api.setScheduleId(CommonModelConverter.asApiUuid(grpc.getScheduleId()));
 	api.setJobType(ScheduleModelConverter.asApiScheduledJobType(grpc.getJobType()));
 	api.setJobConfiguration(grpc.getJobConfigurationMap());
 	api.setJobState(ScheduleModelConverter.asApiScheduledJobState(grpc.getJobState()));
@@ -386,7 +388,7 @@ public class ScheduleModelConverter {
      */
     public static GScheduledJob asGrpcScheduledJob(IScheduledJob api) throws SiteWhereException {
 	GScheduledJob.Builder grpc = GScheduledJob.newBuilder();
-	grpc.setScheduleToken(api.getScheduleToken());
+	grpc.setScheduleId(CommonModelConverter.asGrpcUuid(api.getScheduleId()));
 	grpc.setJobType(ScheduleModelConverter.asGrpcScheduledJobType(api.getJobType()));
 	grpc.putAllJobConfiguration(api.getJobConfiguration());
 	grpc.setJobState(ScheduleModelConverter.asGrpcScheduledJobState(api.getJobState()));

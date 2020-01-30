@@ -125,13 +125,6 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
     IScriptTemplateManager getScriptTemplateManager();
 
     /**
-     * Get analytics processor.
-     * 
-     * @return
-     */
-    IMicroserviceAnalytics getMicroserviceAnalytics();
-
-    /**
      * Code executed after microservice has been started.
      */
     void afterMicroserviceStarted();

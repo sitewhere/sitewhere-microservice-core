@@ -13,6 +13,13 @@ package com.sitewhere.spi.microservice.configuration;
 public interface IInstanceSpecUpdates {
 
     /**
+     * Indicates if instance is considered new.
+     * 
+     * @return
+     */
+    boolean isFirstUpdate();
+
+    /**
      * Indicates whether instance namespace was updated.
      * 
      * @return

@@ -7,6 +7,8 @@
  */
 package com.sitewhere.microservice.api.schedule;
 
+import java.util.UUID;
+
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 import com.sitewhere.spi.scheduling.ISchedule;
@@ -33,12 +35,21 @@ public interface IScheduleManagement extends ITenantEngineLifecycleComponent {
     /**
      * Update an existing schedule.
      * 
-     * @param token
+     * @param scheduleId
      * @param request
      * @return
      * @throws SiteWhereException
      */
-    ISchedule updateSchedule(String token, IScheduleCreateRequest request) throws SiteWhereException;
+    ISchedule updateSchedule(UUID scheduleId, IScheduleCreateRequest request) throws SiteWhereException;
+
+    /**
+     * Get schedule by unique id.
+     * 
+     * @param scheduleId
+     * @return
+     * @throws SiteWhereException
+     */
+    ISchedule getSchedule(UUID scheduleId) throws SiteWhereException;
 
     /**
      * Get a schedule by unique token.
@@ -56,16 +67,16 @@ public interface IScheduleManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<ISchedule> listSchedules(ISearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends ISchedule> listSchedules(ISearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Delete an existing schedule.
      * 
-     * @param token
+     * @param scheduleId
      * @return
      * @throws SiteWhereException
      */
-    ISchedule deleteSchedule(String token) throws SiteWhereException;
+    ISchedule deleteSchedule(UUID scheduleId) throws SiteWhereException;
 
     /**
      * Create a new scheduled job.
@@ -79,12 +90,21 @@ public interface IScheduleManagement extends ITenantEngineLifecycleComponent {
     /**
      * Update an existing scheduled job.
      * 
-     * @param token
+     * @param scheduledJobId
      * @param request
      * @return
      * @throws SiteWhereException
      */
-    IScheduledJob updateScheduledJob(String token, IScheduledJobCreateRequest request) throws SiteWhereException;
+    IScheduledJob updateScheduledJob(UUID scheduledJobId, IScheduledJobCreateRequest request) throws SiteWhereException;
+
+    /**
+     * Get scheduled job by unique id.
+     * 
+     * @param scheduledJobId
+     * @return
+     * @throws SiteWhereException
+     */
+    IScheduledJob getScheduledJob(UUID scheduledJobId) throws SiteWhereException;
 
     /**
      * Get a scheduled job by unique token.
@@ -102,14 +122,14 @@ public interface IScheduleManagement extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IScheduledJob> listScheduledJobs(ISearchCriteria criteria) throws SiteWhereException;
+    ISearchResults<? extends IScheduledJob> listScheduledJobs(ISearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Delete an existing scheduled job.
      * 
-     * @param token
+     * @param scheduledJobId
      * @return
      * @throws SiteWhereException
      */
-    IScheduledJob deleteScheduledJob(String token) throws SiteWhereException;
+    IScheduledJob deleteScheduledJob(UUID scheduledJobId) throws SiteWhereException;
 }

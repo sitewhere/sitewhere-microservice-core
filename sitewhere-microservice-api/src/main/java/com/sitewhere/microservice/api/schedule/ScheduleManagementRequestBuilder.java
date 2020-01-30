@@ -38,8 +38,4 @@ public class ScheduleManagementRequestBuilder {
     public IScheduleManagement getScheduleManagement() {
 	return scheduleManagement;
     }
-
-    public void setScheduleManagement(IScheduleManagement scheduleManagement) {
-	this.scheduleManagement = scheduleManagement;
-    }
 }

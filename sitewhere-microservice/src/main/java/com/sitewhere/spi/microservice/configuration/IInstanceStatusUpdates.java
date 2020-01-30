@@ -13,6 +13,13 @@ package com.sitewhere.spi.microservice.configuration;
 public interface IInstanceStatusUpdates {
 
     /**
+     * Indicates if instance is considered new.
+     * 
+     * @return
+     */
+    boolean isFirstUpdate();
+
+    /**
      * Indicates whether tenant management bootstrap state was updated.
      * 
      * @return

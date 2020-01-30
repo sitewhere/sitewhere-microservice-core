@@ -14,11 +14,27 @@ import com.sitewhere.spi.microservice.configuration.IInstanceStatusUpdates;
  */
 public class InstanceStatusUpdates implements IInstanceStatusUpdates {
 
+    /** Indicates if there was not a previous instance */
+    private boolean firstUpdate;
+
     /** Indicates whether tenant management bootstrap state was updated */
     private boolean tenantManagementBootstrapStateUpdated;
 
     /** Indicates whether user management bootstrap state was updated */
     private boolean userManagementBootstrapStateUpdated;
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.IInstanceStatusUpdates#
+     * isFirstUpdate()
+     */
+    @Override
+    public boolean isFirstUpdate() {
+	return firstUpdate;
+    }
+
+    public void setFirstUpdate(boolean firstUpdate) {
+	this.firstUpdate = firstUpdate;
+    }
 
     /*
      * @see com.sitewhere.spi.microservice.configuration.IInstanceStatusUpdates#

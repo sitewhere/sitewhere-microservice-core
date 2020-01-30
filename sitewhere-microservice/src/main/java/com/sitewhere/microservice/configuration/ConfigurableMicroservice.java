@@ -174,6 +174,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 
 	// Only interested in configuration updates.
 	if (!specUpdates.isConfigurationUpdated()) {
+	    getLogger().info("Skipping instance update where configuration was not updated.");
 	    return;
 	}
 

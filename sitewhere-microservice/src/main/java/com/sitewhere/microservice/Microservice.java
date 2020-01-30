@@ -35,7 +35,6 @@ import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
-import com.sitewhere.spi.microservice.IMicroserviceAnalytics;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.instance.IInstanceSpecUpdateOperation;
@@ -114,9 +113,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 
     /** Script template manager instance */
     private IScriptTemplateManager scriptTemplateManager = new ScriptTemplateManager();
-
-    /** Microservice runtime analytics interface */
-    private IMicroserviceAnalytics microserviceAnalytics = new MicroserviceAnalytics();
 
     /** Lifecycle operations thread pool */
     private ExecutorService microserviceOperationsService;
@@ -197,7 +193,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 
 	// Record start time.
 	this.startTime = System.currentTimeMillis();
-	getMicroserviceAnalytics().sendMicroserviceStarted(this);
     }
 
     /**
@@ -223,13 +218,26 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     protected void initializeRedisConnectivity() throws SiteWhereException {
 	getLogger().info("Initializing Redis connectivity...");
-	Config config = new Config();
-	config.useSentinelServers().setMasterName(getInstanceSettings().getRedisMasterGroupName()).addSentinelAddress(
-		"redis://sitewhere-infrastructure-redis-ha-announce-0:26379",
-		"redis://sitewhere-infrastructure-redis-ha-announce-1:26379",
-		"redis://sitewhere-infrastructure-redis-ha-announce-2:26379");
-	config.setCodec(new CborJacksonCodec());
-	this.redissonClient = Redisson.create(config);
+	while (true) {
+	    try {
+		Config config = new Config();
+		config.useSentinelServers().setMasterName(getInstanceSettings().getRedisMasterGroupName())
+			.addSentinelAddress("redis://sitewhere-infrastructure-redis-ha-announce-0:26379",
+				"redis://sitewhere-infrastructure-redis-ha-announce-1:26379",
+				"redis://sitewhere-infrastructure-redis-ha-announce-2:26379");
+		config.setCodec(new CborJacksonCodec());
+		this.redissonClient = Redisson.create(config);
+		break;
+	    } catch (Throwable t) {
+		getLogger().warn("Unable to establish Redis connection.", t);
+		try {
+		    Thread.sleep(3000);
+		} catch (InterruptedException e) {
+		    getLogger().info("Interrupted while waiting for Redis connection.");
+		    return;
+		}
+	    }
+	}
 	getLogger().info("Redis connectivity initialized.");
 	RMap<String, String> map = getRedissonClient().getMap("bubba");
 	map.put("sitewhere", "rocks");
@@ -266,8 +274,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public void terminate(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-	getMicroserviceAnalytics().sendMicroserviceStopped(this);
-
 	// Create step that will stop components.
 	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Stop " + getComponentName());
 
@@ -485,14 +491,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @Override
     public IScriptTemplateManager getScriptTemplateManager() {
 	return scriptTemplateManager;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.IMicroservice#getMicroserviceAnalytics()
-     */
-    @Override
-    public IMicroserviceAnalytics getMicroserviceAnalytics() {
-	return microserviceAnalytics;
     }
 
     /*

@@ -135,27 +135,32 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
 	    return updates;
 	}
 
+	// Indicate if spec didn't exist before.
+	if (oldSpec == null) {
+	    updates.setFirstUpdate(true);
+	}
+
 	// Detect instance namespace updated.
-	if (oldSpec != null && oldSpec.getInstanceNamespace() != null
-		&& !oldSpec.getInstanceNamespace().equals(newSpec.getInstanceNamespace())) {
+	if (oldSpec == null || (oldSpec.getInstanceNamespace() != null
+		&& !oldSpec.getInstanceNamespace().equals(newSpec.getInstanceNamespace()))) {
 	    updates.setInstanceNamespaceUpdated(true);
 	}
 
 	// Check whether configuration template was updated.
-	if (oldSpec != null && oldSpec.getConfigurationTemplate() != null
-		&& !oldSpec.getConfigurationTemplate().equals(newSpec.getConfigurationTemplate())) {
+	if (oldSpec == null || (oldSpec.getConfigurationTemplate() != null
+		&& !oldSpec.getConfigurationTemplate().equals(newSpec.getConfigurationTemplate()))) {
 	    updates.setConfigurationTemplateUpdated(true);
 	}
 
 	// Check whether dataset template was updated.
-	if (oldSpec != null && oldSpec.getDatasetTemplate() != null
-		&& !oldSpec.getDatasetTemplate().equals(newSpec.getDatasetTemplate())) {
+	if (oldSpec == null || (oldSpec.getDatasetTemplate() != null
+		&& !oldSpec.getDatasetTemplate().equals(newSpec.getDatasetTemplate()))) {
 	    updates.setDatasetTemplateUpdated(true);
 	}
 
 	// Check whether configuration was updated.
-	if (oldSpec != null && oldSpec.getConfiguration() != null
-		&& !oldSpec.getConfiguration().equals(newSpec.getConfiguration())) {
+	if (oldSpec == null || (oldSpec.getConfiguration() != null
+		&& !oldSpec.getConfiguration().equals(newSpec.getConfiguration()))) {
 	    updates.setConfigurationUpdated(true);
 	}
 
@@ -180,15 +185,20 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
 	    return updates;
 	}
 
+	// Indicate if status didn't exist before.
+	if (oldStatus == null) {
+	    updates.setFirstUpdate(true);
+	}
+
 	// Detect tenant management bootstrap state updated.
-	if (oldStatus != null
-		&& oldStatus.getTenantManagementBootstrapState() != newStatus.getTenantManagementBootstrapState()) {
+	if (oldStatus == null
+		|| (oldStatus.getTenantManagementBootstrapState() != newStatus.getTenantManagementBootstrapState())) {
 	    updates.setTenantManagementBootstrapStateUpdated(true);
 	}
 
 	// Detect user management bootstrap state updated.
-	if (oldStatus != null
-		&& oldStatus.getUserManagementBootstrapState() != newStatus.getUserManagementBootstrapState()) {
+	if (oldStatus == null
+		|| (oldStatus.getUserManagementBootstrapState() != newStatus.getUserManagementBootstrapState())) {
 	    updates.setUserManagementBootstrapStateUpdated(true);
 	}
 
