@@ -35,6 +35,10 @@ public abstract class KafkaStreamPipeline extends TenantEngineLifecycleComponent
      */
     @Override
     public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
+	// Wait for source topics to be verified or created.
+	KafkaMultiTopicWaiter waiter = new KafkaMultiTopicWaiter(this, getSourceTopicNames());
+	waiter.verify();
+
 	Properties props = new Properties();
 	String appId = String.format("%s-%s", getMicroservice().getInstanceSettings().getKubernetesName(),
 		getMicroservice().getIdentifier().getShortName());

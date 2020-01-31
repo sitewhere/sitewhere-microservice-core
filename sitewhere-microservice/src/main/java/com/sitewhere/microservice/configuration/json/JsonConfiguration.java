@@ -11,6 +11,7 @@ import org.apache.commons.text.StringSubstitutor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 
 /**
  * Base class for configuration based on parsing data from a {@link JsonNode}.
@@ -18,6 +19,13 @@ import com.sitewhere.spi.SiteWhereException;
  * may be injected.
  */
 public class JsonConfiguration {
+
+    /** Component for resolving variable references */
+    private ITenantEngineLifecycleComponent component;
+
+    public JsonConfiguration(ITenantEngineLifecycleComponent component) {
+	this.component = component;
+    }
 
     /**
      * Parse an integer value using variable substitution.
@@ -33,7 +41,7 @@ public class JsonConfiguration {
 	if (field == null) {
 	    return defaultValue;
 	}
-	StringSubstitutor sub = new StringSubstitutor(new SiteWhereStringLookup());
+	StringSubstitutor sub = new StringSubstitutor(new SiteWhereStringLookup(getComponent()));
 	try {
 	    return field.isTextual() ? Integer.parseInt(sub.replace(field.textValue())) : field.asInt();
 	} catch (NumberFormatException e) {
@@ -57,7 +65,7 @@ public class JsonConfiguration {
 	if (field == null) {
 	    return defaultValue;
 	}
-	StringSubstitutor sub = new StringSubstitutor(new SiteWhereStringLookup());
+	StringSubstitutor sub = new StringSubstitutor(new SiteWhereStringLookup(getComponent()));
 	return sub.replace(field.textValue());
     }
 
@@ -76,7 +84,7 @@ public class JsonConfiguration {
 	if (field == null) {
 	    return defaultValue;
 	}
-	StringSubstitutor sub = new StringSubstitutor(new SiteWhereStringLookup());
+	StringSubstitutor sub = new StringSubstitutor(new SiteWhereStringLookup(getComponent()));
 	try {
 	    return field.isBoolean() ? field.asBoolean() : Boolean.parseBoolean(sub.replace(field.textValue()));
 	} catch (NumberFormatException e) {
@@ -84,5 +92,9 @@ public class JsonConfiguration {
 		    String.format("Unable to parse boolean configuration parameter '%s' with value of '%s'.", fieldName,
 			    field.toString()));
 	}
+    }
+
+    protected ITenantEngineLifecycleComponent getComponent() {
+	return component;
     }
 }

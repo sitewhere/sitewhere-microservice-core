@@ -16,16 +16,16 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.MapMaker;
-import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.microservice.lifecycle.LifecycleProgressContext;
 import com.sitewhere.microservice.lifecycle.LifecycleProgressMonitor;
+import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.microservice.security.SystemUserRunnable;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
-import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationListener;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineManager;
@@ -43,7 +43,7 @@ import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
  * @param <T>
  */
 public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration, T extends IMicroserviceTenantEngine<?>>
-	extends LifecycleComponent implements ITenantEngineManager<T>, ITenantEngineConfigurationListener {
+	extends TenantEngineLifecycleComponent implements ITenantEngineManager<T>, ITenantEngineConfigurationListener {
 
     /** Max number of tenants being added/removed concurrently */
     private static final int MAX_CONCURRENT_TENANT_OPERATIONS = 5;
@@ -94,8 +94,8 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
     public void start(ILifecycleProgressMonitor monitor) throws SiteWhereException {
 	super.start(monitor);
 
-	tenantOperations.execute(new TenantEngineStarter(getMicroservice()));
-	tenantOperations.execute(new TenantEngineStopper(getMicroservice()));
+	tenantOperations.execute(new TenantEngineStarter(this));
+	tenantOperations.execute(new TenantEngineStopper(this));
     }
 
     /*
@@ -343,9 +343,8 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
      */
     private class TenantEngineStarter extends SystemUserRunnable {
 
-	public TenantEngineStarter(
-		IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice) {
-	    super(microservice, null);
+	public TenantEngineStarter(ITenantEngineLifecycleComponent component) {
+	    super(component);
 	}
 
 	/*
@@ -457,9 +456,8 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
      */
     private class TenantEngineStopper extends SystemUserRunnable {
 
-	public TenantEngineStopper(
-		IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice) {
-	    super(microservice, null);
+	public TenantEngineStopper(ITenantEngineLifecycleComponent component) {
+	    super(component);
 	}
 
 	/*

@@ -9,14 +9,19 @@ package com.sitewhere.grpc.kafka.serdes;
 
 import org.apache.kafka.common.serialization.Serde;
 
-import com.sitewhere.rest.model.device.event.kafka.EnrichedEventPayload;
+import com.sitewhere.grpc.model.DeviceEventModel.GDecodedEventPayload;
+import com.sitewhere.grpc.model.DeviceEventModel.GEnrichedEventPayload;
 
 /**
  * Kafka {@link Serde} implementations for standard payloads.
  */
 public class SiteWhereSerdes {
 
-    public static Serde<EnrichedEventPayload> forEnrichedEventPayload() {
+    public static Serde<GDecodedEventPayload> forDecodedEventPayload() {
+	return new DecodedEventPayloadSerde();
+    }
+
+    public static Serde<GEnrichedEventPayload> forEnrichedEventPayload() {
 	return new EnrichedEventPayloadSerde();
     }
 }

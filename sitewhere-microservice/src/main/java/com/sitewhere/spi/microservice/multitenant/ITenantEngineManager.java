@@ -9,13 +9,13 @@ package com.sitewhere.spi.microservice.multitenant;
 
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationListener;
-import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
+import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 
 /**
  * Manages tenant engines for a multitenant microservice.
  */
 public interface ITenantEngineManager<T extends IMicroserviceTenantEngine<?>>
-	extends ITenantEngineConfigurationListener, ILifecycleComponent {
+	extends ITenantEngineConfigurationListener, ITenantEngineLifecycleComponent {
 
     /**
      * Get tenant engine corresponding to the given id.

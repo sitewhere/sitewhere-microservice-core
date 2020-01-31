@@ -11,6 +11,8 @@ import org.apache.commons.text.lookup.StringLookup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
+
 /**
  * Handles variable substitution in configuration attributes.
  */
@@ -18,6 +20,16 @@ public class SiteWhereStringLookup implements StringLookup {
 
     /** Static logger instance */
     private static Logger LOGGER = LoggerFactory.getLogger(SiteWhereStringLookup.class);
+
+    /** Replace with token of current tenant */
+    private static final String TENANT_TOKEN = "tenant.token";
+
+    /** Component to resolve against */
+    private ITenantEngineLifecycleComponent component;
+
+    public SiteWhereStringLookup(ITenantEngineLifecycleComponent component) {
+	this.component = component;
+    }
 
     /*
      * @see org.apache.commons.text.lookup.StringLookup#lookup(java.lang.String)
@@ -34,6 +46,16 @@ public class SiteWhereStringLookup implements StringLookup {
 		    String.format("Looked up '%s' as ENV value %s=%s default=%s", key, env, envValue, defaultValue));
 	    return envValue != null ? envValue : defaultValue;
 	}
+	// Only resolve component-relative references if available.
+	if (getComponent() != null) {
+	    if (TENANT_TOKEN.equals(key)) {
+		return getComponent().getTenantEngine().getTenantResource().getMetadata().getName();
+	    }
+	}
 	return key;
+    }
+
+    protected ITenantEngineLifecycleComponent getComponent() {
+	return component;
     }
 }

@@ -15,22 +15,22 @@ import org.apache.kafka.common.serialization.Serdes.WrapperSerde;
 import org.apache.kafka.common.serialization.Serializer;
 
 import com.sitewhere.grpc.client.event.EventModelMarshaler;
-import com.sitewhere.grpc.model.DeviceEventModel.GEnrichedEventPayload;
+import com.sitewhere.grpc.model.DeviceEventModel.GDecodedEventPayload;
 import com.sitewhere.spi.SiteWhereException;
 
 /**
- * Kafka {@link Serde} implementation for gRPC enriched event payload message.
+ * Kafka {@link Serde} implementation for gRPC decoded event payload message.
  */
-public class EnrichedEventPayloadSerde extends WrapperSerde<GEnrichedEventPayload> {
+public class DecodedEventPayloadSerde extends WrapperSerde<GDecodedEventPayload> {
 
-    public EnrichedEventPayloadSerde() {
-	super(new EnrichedEventPayloadSerializer(), new EnrichedEventPayloadDeserializer());
+    public DecodedEventPayloadSerde() {
+	super(new DecodedEventPayloadSerializer(), new DecodedEventPayloadDeserializer());
     }
 
     /**
-     * Serializer for gRPC enriched event payload message.
+     * Serializer for gRPC decoded event payload message.
      */
-    public static class EnrichedEventPayloadSerializer implements Serializer<GEnrichedEventPayload> {
+    public static class DecodedEventPayloadSerializer implements Serializer<GDecodedEventPayload> {
 
 	/*
 	 * @see
@@ -47,9 +47,9 @@ public class EnrichedEventPayloadSerde extends WrapperSerde<GEnrichedEventPayloa
 	 * java.lang.Object)
 	 */
 	@Override
-	public byte[] serialize(String topic, GEnrichedEventPayload data) {
+	public byte[] serialize(String topic, GDecodedEventPayload data) {
 	    try {
-		return EventModelMarshaler.buildEnrichedEventPayloadMessage(data);
+		return EventModelMarshaler.buildDecodedEventPayloadMessage(data);
 	    } catch (SiteWhereException e) {
 		throw new RuntimeException("Unable to deserialize payload.", e);
 	    }
@@ -64,9 +64,9 @@ public class EnrichedEventPayloadSerde extends WrapperSerde<GEnrichedEventPayloa
     }
 
     /**
-     * Deserializer for gRPC enriched event payload message.
+     * Deserializer for gRPC decoded event payload message.
      */
-    public static class EnrichedEventPayloadDeserializer implements Deserializer<GEnrichedEventPayload> {
+    public static class DecodedEventPayloadDeserializer implements Deserializer<GDecodedEventPayload> {
 
 	/*
 	 * @see
@@ -83,9 +83,9 @@ public class EnrichedEventPayloadSerde extends WrapperSerde<GEnrichedEventPayloa
 	 * String, byte[])
 	 */
 	@Override
-	public GEnrichedEventPayload deserialize(String topic, byte[] data) {
+	public GDecodedEventPayload deserialize(String topic, byte[] data) {
 	    try {
-		return EventModelMarshaler.parseEnrichedEventPayloadMessage(data);
+		return EventModelMarshaler.parseDecodedEventPayloadMessage(data);
 	    } catch (SiteWhereException e) {
 		throw new RuntimeException("Unable to deserialize payload.", e);
 	    }

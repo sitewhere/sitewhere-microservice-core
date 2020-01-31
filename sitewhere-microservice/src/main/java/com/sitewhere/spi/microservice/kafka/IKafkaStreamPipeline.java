@@ -7,6 +7,8 @@
  */
 package com.sitewhere.spi.microservice.kafka;
 
+import java.util.List;
+
 import org.apache.kafka.streams.StreamsBuilder;
 
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
@@ -16,6 +18,13 @@ import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
  * Kafka topics.
  */
 public interface IKafkaStreamPipeline extends ITenantEngineLifecycleComponent {
+
+    /**
+     * Gets a list of source topic names.
+     * 
+     * @return
+     */
+    List<String> getSourceTopicNames();
 
     /**
      * Build streams used realize the pipeline.

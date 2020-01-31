@@ -11,11 +11,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.sitewhere.spi.SiteWhereException;
-import com.sitewhere.spi.microservice.IFunctionIdentifier;
-import com.sitewhere.spi.microservice.IMicroservice;
-import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
-
-import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
+import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 
 /**
  * Allows code to be run in a separate thread along with thread local security
@@ -27,17 +23,11 @@ public abstract class SystemUserRunnable implements Runnable {
     /** Static logger instance */
     private static Log LOGGER = LogFactory.getLog(SystemUserRunnable.class);
 
-    /** Tenant engine if tenant operation */
-    private IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice;
+    /** Tenant component executing runnable */
+    private ITenantEngineLifecycleComponent component;
 
-    /** Tenant */
-    private SiteWhereTenant tenant;
-
-    public SystemUserRunnable(
-	    IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> microservice,
-	    SiteWhereTenant tenant) {
-	this.microservice = microservice;
-	this.tenant = tenant;
+    public SystemUserRunnable(ITenantEngineLifecycleComponent component) {
+	this.component = component;
     }
 
     /**
@@ -55,12 +45,12 @@ public abstract class SystemUserRunnable implements Runnable {
     public void run() {
 	SiteWhereAuthentication previous = UserContext.getCurrentUser();
 	try {
-	    if (tenant != null) {
-		SiteWhereAuthentication system = getMicroservice().getSystemUser()
-			.getAuthenticationForTenant(getTenant());
+	    if (getComponent().getTenantEngine() != null) {
+		SiteWhereAuthentication system = getComponent().getMicroservice().getSystemUser()
+			.getAuthenticationForTenant(getComponent().getTenantEngine().getTenantResource());
 		UserContext.setContext(system);
 	    } else {
-		SiteWhereAuthentication system = getMicroservice().getSystemUser().getAuthentication();
+		SiteWhereAuthentication system = getComponent().getMicroservice().getSystemUser().getAuthentication();
 		UserContext.setContext(system);
 	    }
 	    runAsSystemUser();
@@ -71,11 +61,7 @@ public abstract class SystemUserRunnable implements Runnable {
 	}
     }
 
-    protected IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration> getMicroservice() {
-	return microservice;
-    }
-
-    protected SiteWhereTenant getTenant() {
-	return tenant;
+    protected ITenantEngineLifecycleComponent getComponent() {
+	return component;
     }
 }

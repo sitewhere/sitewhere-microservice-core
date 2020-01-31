@@ -117,6 +117,10 @@ public abstract class TenantEngineLifecycleComponent extends LifecycleComponent
 	all.add(0, getTenantEngine().getTenantResource().getMetadata().getName());
 	all.add(0, getMicroservice().getInstanceSettings().getKubernetesPodAddress());
 	all.add(0, getMicroservice().getIdentifier().getPath());
+	// getLogger().debug(String.format("For labels: tenant: %s k8s-pod: %s fa: %s",
+	// getTenantEngine().getTenantResource().getMetadata().getName(),
+	// getMicroservice().getInstanceSettings().getKubernetesPodAddress(),
+	// getMicroservice().getIdentifier().getPath()));
 	return all.toArray(new String[all.size()]);
     }
 
