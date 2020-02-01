@@ -29,6 +29,13 @@ public abstract class KafkaStreamPipeline extends TenantEngineLifecycleComponent
     /** Pipeline instance */
     private KafkaStreams pipeline;
 
+    /**
+     * Get unique name suffix for pipeline.
+     * 
+     * @return
+     */
+    public abstract String getPipelineName();
+
     /*
      * @see com.sitewhere.microservice.lifecycle.LifecycleComponent#initialize(com.
      * sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
@@ -40,8 +47,10 @@ public abstract class KafkaStreamPipeline extends TenantEngineLifecycleComponent
 	waiter.verify();
 
 	Properties props = new Properties();
-	String appId = String.format("%s-%s", getMicroservice().getInstanceSettings().getKubernetesName(),
-		getMicroservice().getIdentifier().getShortName());
+	String appId = String.format("%s-%s-%s-%s-%s", getMicroservice().getInstanceSettings().getProductId(),
+		getMicroservice().getInstanceSettings().getInstanceId(),
+		getTenantEngine().getTenantResource().getMetadata().getName(),
+		getMicroservice().getIdentifier().getPath(), getPipelineName());
 	props.put(StreamsConfig.APPLICATION_ID_CONFIG, appId);
 	props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
 		getMicroservice().getInstanceSettings().getKafkaBootstrapServers());

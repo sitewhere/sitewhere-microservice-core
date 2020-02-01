@@ -11,6 +11,7 @@ import org.apache.kafka.common.serialization.Serde;
 
 import com.sitewhere.grpc.model.DeviceEventModel.GDecodedEventPayload;
 import com.sitewhere.grpc.model.DeviceEventModel.GEnrichedEventPayload;
+import com.sitewhere.grpc.model.DeviceModel.GDeviceRegistationPayload;
 
 /**
  * Kafka {@link Serde} implementations for standard payloads.
@@ -23,5 +24,9 @@ public class SiteWhereSerdes {
 
     public static Serde<GEnrichedEventPayload> forEnrichedEventPayload() {
 	return new EnrichedEventPayloadSerde();
+    }
+
+    public static Serde<GDeviceRegistationPayload> forDeviceRegistrationPayload() {
+	return new DeviceRegistrationPayloadSerde();
     }
 }
