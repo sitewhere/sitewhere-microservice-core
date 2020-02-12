@@ -5,8 +5,9 @@
  * license, a copy of which has been included with this distribution in the
  * LICENSE.txt file.
  */
-package com.sitewhere.grpc.client.common.converter;
+package com.sitewhere.grpc.client.common.kafka;
 
+import com.sitewhere.grpc.common.CommonModelConverter;
 import com.sitewhere.grpc.kafka.model.KafkaModel.GLifecycleComponentState;
 import com.sitewhere.grpc.kafka.model.KafkaModel.GLifecycleStatus;
 import com.sitewhere.spi.SiteWhereException;

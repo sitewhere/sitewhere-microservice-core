@@ -5,7 +5,7 @@
  * license, a copy of which has been included with this distribution in the
  * LICENSE.txt file.
  */
-package com.sitewhere.grpc.client.common.marshaler;
+package com.sitewhere.grpc.client.common.kafka;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
