@@ -212,6 +212,27 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     }
 
     /**
+     * Build sentinel addresses based on configuration.
+     * 
+     * @return
+     */
+    protected String[] buildRedisSentinelAddresses() {
+	int nodeCount = 3;
+	String[] addresses = new String[nodeCount];
+
+	int nodeIndex = nodeCount;
+	while (nodeIndex > 0) {
+	    int index = nodeCount - nodeIndex;
+	    String nodeName = String.format("%s://%s-%d.%s:26379", "redis",
+		    getInstanceSettings().getRedisSentinelHostnameBase(), index, "default");
+	    addresses[index] = nodeName;
+	    getLogger().info(String.format("Computed Redis Sentinal node name '%s' and added to list.", nodeName));
+	    nodeIndex--;
+	}
+	return addresses;
+    }
+
+    /**
      * Initialize connectivity to Redis.
      * 
      * @throws SiteWhereException
@@ -222,9 +243,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	    try {
 		Config config = new Config();
 		config.useSentinelServers().setMasterName(getInstanceSettings().getRedisMasterGroupName())
-			.addSentinelAddress("redis://sitewhere-infrastructure-redis-ha-announce-0:26379",
-				"redis://sitewhere-infrastructure-redis-ha-announce-1:26379",
-				"redis://sitewhere-infrastructure-redis-ha-announce-2:26379");
+			.addSentinelAddress(buildRedisSentinelAddresses());
 		config.setCodec(new CborJacksonCodec());
 		this.redissonClient = Redisson.create(config);
 		break;

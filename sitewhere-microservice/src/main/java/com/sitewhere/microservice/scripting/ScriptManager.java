@@ -20,62 +20,35 @@ import com.sitewhere.spi.microservice.scripting.IScriptMetadata;
  */
 public class ScriptManager extends TenantEngineLifecycleComponent implements IScriptManager {
 
-    /** Map of bootstrap scripts by identifier */
-    private Map<String, String> bootstrapScriptsById = new HashMap<>();
-
     /** Map of managed scripts by identifier */
-    private Map<String, ScriptMetadataAndContent> managedScriptsById = new HashMap<>();
+    private Map<String, ScriptMetadataAndContent> scriptsById = new HashMap<>();
 
     /*
-     * @see
-     * com.sitewhere.spi.microservice.scripting.IScriptManager#addBootstrapScript(
-     * java.lang.String, java.lang.String)
-     */
-    @Override
-    public void addBootstrapScript(String identifier, String content) throws SiteWhereException {
-	getBootstrapScriptsById().put(identifier, content);
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.microservice.scripting.IScriptManager#addManagedScript(com.
+     * @see com.sitewhere.spi.microservice.scripting.IScriptManager#addScript(com.
      * sitewhere.spi.microservice.scripting.IScriptMetadata, java.lang.String)
      */
     @Override
-    public void addManagedScript(IScriptMetadata metadata, String content) throws SiteWhereException {
+    public void addScript(IScriptMetadata metadata, String content) throws SiteWhereException {
 	ScriptMetadataAndContent script = new ScriptMetadataAndContent(metadata, content);
-	getManagedScriptsById().put(metadata.getId(), script);
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.scripting.IScriptManager#
-     * resolveBootstrapScript(java.lang.String)
-     */
-    @Override
-    public String resolveBootstrapScript(String identifier) throws SiteWhereException {
-	return getBootstrapScriptsById().get(identifier);
+	getScriptsById().put(metadata.getId(), script);
     }
 
     /*
      * @see
-     * com.sitewhere.spi.microservice.scripting.IScriptManager#resolveManagedScript(
-     * java.lang.String)
+     * com.sitewhere.spi.microservice.scripting.IScriptManager#resolveScript(java.
+     * lang.String)
      */
     @Override
-    public String resolveManagedScript(String identifier) throws SiteWhereException {
-	ScriptMetadataAndContent script = getManagedScriptsById().get(identifier);
+    public String resolveScript(String identifier) throws SiteWhereException {
+	ScriptMetadataAndContent script = getScriptsById().get(identifier);
 	if (script != null) {
 	    return script.getContent();
 	}
 	return null;
     }
 
-    protected Map<String, String> getBootstrapScriptsById() {
-	return bootstrapScriptsById;
-    }
-
-    protected Map<String, ScriptMetadataAndContent> getManagedScriptsById() {
-	return managedScriptsById;
+    protected Map<String, ScriptMetadataAndContent> getScriptsById() {
+	return scriptsById;
     }
 
     /**

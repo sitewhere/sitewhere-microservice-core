@@ -7,19 +7,33 @@
  */
 package com.sitewhere.microservice.scripting;
 
-import java.nio.ByteBuffer;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
+
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
-import com.sitewhere.microservice.util.Base58;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.SiteWhereSystemException;
+import com.sitewhere.spi.error.ErrorCode;
+import com.sitewhere.spi.error.ErrorLevel;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.scripting.IScriptCreateRequest;
 import com.sitewhere.spi.microservice.scripting.IScriptManagement;
 import com.sitewhere.spi.microservice.scripting.IScriptMetadata;
 import com.sitewhere.spi.microservice.scripting.IScriptVersion;
+
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.sitewhere.k8s.crd.ResourceLabels;
+import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScript;
+import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScriptList;
+import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScriptSpec;
+import io.sitewhere.k8s.crd.tenant.scripting.version.SiteWhereScriptVersion;
+import io.sitewhere.k8s.crd.tenant.scripting.version.SiteWhereScriptVersionList;
+import io.sitewhere.k8s.crd.tenant.scripting.version.SiteWhereScriptVersionSpec;
 
 /**
  * Default {@link IScriptManagement} implementation. Stores scripts in
@@ -27,246 +41,196 @@ import com.sitewhere.spi.microservice.scripting.IScriptVersion;
  */
 public class KubernetesScriptManagement extends LifecycleComponent implements IScriptManagement {
 
-    /*
-     * @see com.sitewhere.spi.microservice.scripting.IScriptManagement#
-     * getScriptMetadataZkPath(com.sitewhere.spi.microservice.IFunctionIdentifier,
-     * java.util.UUID)
-     */
-    @Override
-    public String getScriptMetadataZkPath(IFunctionIdentifier identifier, UUID tenantId) throws SiteWhereException {
-	return null;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.scripting.IScriptManagement#
-     * getScriptContentZkPath(com.sitewhere.spi.microservice.IFunctionIdentifier,
-     * java.util.UUID)
-     */
-    @Override
-    public String getScriptContentZkPath(IFunctionIdentifier identifier, UUID tenantId) throws SiteWhereException {
-	return null;
-    }
+    /** Parser for ISO dates */
+    private static DateTimeFormatter FORMATTER = ISODateTimeFormat.dateTime();
 
     /*
      * @see com.sitewhere.spi.microservice.scripting.IScriptManagement#
      * getScriptMetadataList(com.sitewhere.spi.microservice.IFunctionIdentifier,
-     * java.util.UUID)
+     * java.lang.String)
      */
     @Override
-    public List<IScriptMetadata> getScriptMetadataList(IFunctionIdentifier identifier, UUID tenantId)
+    public List<IScriptMetadata> getScriptMetadataList(IFunctionIdentifier identifier, String tenantId)
 	    throws SiteWhereException {
-	return null;
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	Map<String, String> labels = new HashMap<>();
+	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, identifier.getPath());
+	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, tenantId);
+	SiteWhereScriptList list = getMicroservice().getSiteWhereKubernetesClient().getScripts().inNamespace(namespace)
+		.withLabels(labels).list();
+
+	// Convert scripts to SiteWhere API format.
+	List<IScriptMetadata> results = new ArrayList<>();
+	for (SiteWhereScript script : list.getItems()) {
+	    results.add(convertScriptMetadata(script, false));
+	}
+	return results;
     }
 
     /*
      * @see
      * com.sitewhere.spi.microservice.scripting.IScriptManagement#getScriptMetadata(
-     * com.sitewhere.spi.microservice.IFunctionIdentifier, java.util.UUID,
+     * com.sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
      * java.lang.String)
      */
     @Override
-    public IScriptMetadata getScriptMetadata(IFunctionIdentifier identifier, UUID tenantId, String scriptId)
+    public IScriptMetadata getScriptMetadata(IFunctionIdentifier identifier, String tenantId, String scriptId)
 	    throws SiteWhereException {
-	return null;
+	SiteWhereScript match = getK8sScript(identifier, tenantId, scriptId);
+	return convertScriptMetadata(match, true);
     }
 
     /*
      * @see
      * com.sitewhere.spi.microservice.scripting.IScriptManagement#createScript(com.
-     * sitewhere.spi.microservice.IFunctionIdentifier, java.util.UUID,
+     * sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
      * com.sitewhere.spi.microservice.scripting.IScriptCreateRequest)
      */
     @Override
-    public IScriptMetadata createScript(IFunctionIdentifier identifier, UUID tenantId, IScriptCreateRequest request)
+    public IScriptMetadata createScript(IFunctionIdentifier identifier, String tenantId, IScriptCreateRequest request)
 	    throws SiteWhereException {
-	IScriptMetadata existing = getScriptMetadata(identifier, tenantId, request.getId());
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	SiteWhereScript existing = getK8sScript(identifier, tenantId, request.getId());
 	if (existing != null) {
 	    throw new SiteWhereException("A script with that id already exists.");
 	}
-	ScriptMetadata created = createScriptMetadata(request);
-	try {
-	    IScriptVersion version = created.getVersions().get(0);
-	    store(identifier, tenantId, created, version, request.getContent());
-	    activateScript(identifier, tenantId, request.getId(), version.getVersionId());
-	    return created;
-	} catch (Exception e) {
-	    throw new SiteWhereException("Unable to store script metadata.", e);
-	}
+
+	// Create script k8s object and populate metadata.
+	SiteWhereScript k8sScript = createK8sScript(identifier, tenantId, request);
+	k8sScript = getMicroservice().getSiteWhereKubernetesClient().getScripts().inNamespace(namespace)
+		.create(k8sScript);
+
+	SiteWhereScriptVersion k8sVersion = createK8sScriptVersion(k8sScript, request, "Initial version.");
+	k8sVersion = getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions().inNamespace(namespace)
+		.create(k8sVersion);
+
+	ScriptMetadata created = convertScriptMetadata(k8sScript, false);
+	IScriptVersion version = convertScriptVersion(k8sVersion);
+
+	activateScript(identifier, tenantId, request.getId(), version.getVersionId());
+	return created;
     }
 
     /*
      * @see
      * com.sitewhere.spi.microservice.scripting.IScriptManagement#getScriptContent(
-     * com.sitewhere.spi.microservice.IFunctionIdentifier, java.util.UUID,
+     * com.sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
      * java.lang.String, java.lang.String)
      */
     @Override
-    public byte[] getScriptContent(IFunctionIdentifier identifier, UUID tenantId, String scriptId, String versionId)
+    public byte[] getScriptContent(IFunctionIdentifier identifier, String tenantId, String scriptId, String versionId)
 	    throws SiteWhereException {
-	return null;
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	SiteWhereScriptVersion version = getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions()
+		.inNamespace(namespace).withName(versionId).get();
+	return version != null ? version.getSpec().getContent().getBytes() : null;
     }
 
     /*
      * @see
      * com.sitewhere.spi.microservice.scripting.IScriptManagement#updateScript(com.
-     * sitewhere.spi.microservice.IFunctionIdentifier, java.util.UUID,
+     * sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
      * java.lang.String, java.lang.String,
      * com.sitewhere.spi.microservice.scripting.IScriptCreateRequest)
      */
     @Override
-    public IScriptMetadata updateScript(IFunctionIdentifier identifier, UUID tenantId, String scriptId,
+    public IScriptMetadata updateScript(IFunctionIdentifier identifier, String tenantId, String scriptId,
 	    String versionId, IScriptCreateRequest request) throws SiteWhereException {
-	IScriptMetadata meta = assureScriptMetadata(identifier, tenantId, scriptId);
-	IScriptVersion version = assureScriptVersion(meta, versionId);
-	try {
-	    store(identifier, tenantId, meta, version, request.getContent());
-	    return meta;
-	} catch (Exception e) {
-	    throw new SiteWhereException("Unable to store script metadata.", e);
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	SiteWhereScript match = getK8sScript(identifier, tenantId, scriptId);
+	if (match == null) {
+	    throw new SiteWhereSystemException(ErrorCode.Error, ErrorLevel.ERROR);
 	}
+
+	match.getSpec().setName(request.getName());
+	match.getSpec().setDescription(request.getDescription());
+	getMicroservice().getSiteWhereKubernetesClient().getScripts().inNamespace(namespace).createOrReplace(match);
+
+	SiteWhereScriptVersion version = getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions()
+		.inNamespace(namespace).withName(versionId).get();
+	if (version != null) {
+	    version.getSpec().setContent(request.getContent());
+	}
+	return convertScriptMetadata(match, false);
     }
 
     /*
      * @see
      * com.sitewhere.spi.microservice.scripting.IScriptManagement#cloneScript(com.
-     * sitewhere.spi.microservice.IFunctionIdentifier, java.util.UUID,
+     * sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
      * java.lang.String, java.lang.String, java.lang.String)
      */
     @Override
-    public IScriptVersion cloneScript(IFunctionIdentifier identifier, UUID tenantId, String scriptId, String versionId,
-	    String comment) throws SiteWhereException {
-	// IScriptMetadata meta = assureScriptMetadata(identifier, tenantId, scriptId);
-	// assureScriptVersion(meta, versionId);
-	// ScriptVersion created = new ScriptVersion();
-	// created.setVersionId(generateUniqueId());
-	// created.setComment(comment);
-	// created.setCreatedDate(new Date());
-	// meta.getVersions().add(created);
-	//
-	// try {
-	// // Save updated metadata.
-	// String metaPath = getScriptMetadataZkPath(identifier, tenantId) + "/" +
-	// getMetadataFilePath(meta);
-	// byte[] metaContent = MarshalUtils.marshalJson(meta);
-	// if (getZookeeperManager().getCurator().checkExists().forPath(metaPath) ==
-	// null) {
-	// getZookeeperManager().getCurator().create().creatingParentsIfNeeded().forPath(metaPath,
-	// metaContent);
-	// } else {
-	// getZookeeperManager().getCurator().setData().forPath(metaPath, metaContent);
-	// }
-	//
-	// // Save new version.
-	// String contentPath = getScriptMetadataZkPath(identifier, tenantId) + "/"
-	// + getVersionContentPath(meta, created);
-	// byte[] content = getScriptContent(identifier, tenantId, scriptId, versionId);
-	// if (getZookeeperManager().getCurator().checkExists().forPath(contentPath) ==
-	// null) {
-	// getZookeeperManager().getCurator().create().creatingParentsIfNeeded().forPath(contentPath,
-	// content);
-	// } else {
-	// getZookeeperManager().getCurator().setData().forPath(contentPath, content);
-	// }
-	// return created;
-	// } catch (Exception e) {
-	// throw new SiteWhereException("Unable to clone script.", e);
-	// }
-	return null;
+    public IScriptVersion cloneScript(IFunctionIdentifier identifier, String tenantId, String scriptId,
+	    String versionId, String comment) throws SiteWhereException {
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	SiteWhereScript match = getK8sScript(identifier, tenantId, scriptId);
+	if (match == null) {
+	    throw new SiteWhereSystemException(ErrorCode.Error, ErrorLevel.ERROR);
+	}
+
+	SiteWhereScriptVersion version = getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions()
+		.inNamespace(namespace).withName(versionId).get();
+	if (version == null) {
+	    throw new SiteWhereSystemException(ErrorCode.Error, ErrorLevel.ERROR);
+	}
+
+	ScriptCreateRequest request = new ScriptCreateRequest();
+	request.setContent(version.getSpec().getContent());
+	SiteWhereScriptVersion k8sVersion = createK8sScriptVersion(match, request, comment);
+	k8sVersion = getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions().inNamespace(namespace)
+		.create(k8sVersion);
+	return convertScriptVersion(k8sVersion);
     }
 
     /*
      * @see
      * com.sitewhere.spi.microservice.scripting.IScriptManagement#activateScript(com
-     * .sitewhere.spi.microservice.IFunctionIdentifier, java.util.UUID,
+     * .sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
      * java.lang.String, java.lang.String)
      */
     @Override
-    public IScriptMetadata activateScript(IFunctionIdentifier identifier, UUID tenantId, String scriptId,
+    public IScriptMetadata activateScript(IFunctionIdentifier identifier, String tenantId, String scriptId,
 	    String versionId) throws SiteWhereException {
-	// IScriptMetadata meta = assureScriptMetadata(identifier, tenantId, scriptId);
-	// assureScriptVersion(meta, versionId);
-	//
-	// try {
-	// // Update active version id if changed.
-	// if (!meta.getActiveVersion().equals(versionId)) {
-	// ((ScriptMetadata) meta).setActiveVersion(versionId);
-	// String metaPath = getScriptMetadataZkPath(identifier, tenantId) + "/" +
-	// getMetadataFilePath(meta);
-	// byte[] metaContent = MarshalUtils.marshalJson(meta);
-	// if (getZookeeperManager().getCurator().checkExists().forPath(metaPath) ==
-	// null) {
-	// getZookeeperManager().getCurator().create().creatingParentsIfNeeded().forPath(metaPath,
-	// metaContent);
-	// } else {
-	// getZookeeperManager().getCurator().setData().forPath(metaPath, metaContent);
-	// }
-	// }
-	//
-	// // Create content file.
-	// String contentPath = getScriptContentZkPath(identifier, tenantId) + "/" +
-	// meta.getId() + "."
-	// + meta.getType();
-	// byte[] content = getScriptContent(identifier, tenantId, scriptId, versionId);
-	// if (getZookeeperManager().getCurator().checkExists().forPath(contentPath) ==
-	// null) {
-	// getZookeeperManager().getCurator().create().creatingParentsIfNeeded().forPath(contentPath,
-	// content);
-	// } else {
-	// getZookeeperManager().getCurator().setData().forPath(contentPath, content);
-	// }
-	// return meta;
-	// } catch (Exception e) {
-	// throw new SiteWhereException("Unable to activate script version.", e);
-	// }
-	return null;
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	SiteWhereScript match = getK8sScript(identifier, tenantId, scriptId);
+	if (match == null) {
+	    throw new SiteWhereSystemException(ErrorCode.Error, ErrorLevel.ERROR);
+	}
+
+	SiteWhereScriptVersion version = getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions()
+		.inNamespace(namespace).withName(versionId).get();
+	if (version == null) {
+	    throw new SiteWhereSystemException(ErrorCode.Error, ErrorLevel.ERROR);
+	}
+
+	match.getSpec().setActiveVersion(versionId);
+	match = getMicroservice().getSiteWhereKubernetesClient().getScripts().inNamespace(namespace)
+		.createOrReplace(match);
+	return convertScriptMetadata(match, false);
     }
 
     /*
      * @see
      * com.sitewhere.spi.microservice.scripting.IScriptManagement#deleteScript(com.
-     * sitewhere.spi.microservice.IFunctionIdentifier, java.util.UUID,
+     * sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
      * java.lang.String)
      */
     @Override
-    public IScriptMetadata deleteScript(IFunctionIdentifier identifier, UUID tenantId, String scriptId)
+    public IScriptMetadata deleteScript(IFunctionIdentifier identifier, String tenantId, String scriptId)
 	    throws SiteWhereException {
-	// IScriptMetadata meta = assureScriptMetadata(identifier, tenantId, scriptId);
-	//
-	// try {
-	// // Delete metadata.
-	// String metaPath = getScriptMetadataZkPath(identifier, tenantId) + "/" +
-	// getMetadataFilePath(meta);
-	// if (getZookeeperManager().getCurator().checkExists().forPath(metaPath) !=
-	// null) {
-	// getZookeeperManager().getCurator().delete().forPath(metaPath);
-	// }
-	//
-	// // Delete all versions.
-	// String versionsPath = getScriptMetadataZkPath(identifier, tenantId) + "/" +
-	// meta.getId();
-	// if (getZookeeperManager().getCurator().checkExists().forPath(versionsPath) !=
-	// null) {
-	// getZookeeperManager().getCurator().delete().deletingChildrenIfNeeded().forPath(versionsPath);
-	// }
-	//
-	// // Delete content.
-	// String contentPath = getScriptContentZkPath(identifier, tenantId) + "/" +
-	// meta.getId() + "."
-	// + meta.getType();
-	// if (getZookeeperManager().getCurator().checkExists().forPath(contentPath) !=
-	// null) {
-	// getZookeeperManager().getCurator().delete().forPath(contentPath);
-	// }
-	// return meta;
-	// } catch (Exception e) {
-	// throw new SiteWhereException("Unable to delete script.", e);
-	// }
-	//
-	return null;
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	SiteWhereScript match = getK8sScript(identifier, tenantId, scriptId);
+	if (match == null) {
+	    throw new SiteWhereSystemException(ErrorCode.Error, ErrorLevel.ERROR);
+	}
+	getMicroservice().getSiteWhereKubernetesClient().getScripts().inNamespace(namespace)
+		.withName(match.getMetadata().getName()).delete();
+	return convertScriptMetadata(match, false);
     }
 
     /**
-     * Assure that script metadata exists for the given id.
+     * Get k8s script based on criteria.
      * 
      * @param identifier
      * @param tenantId
@@ -274,133 +238,147 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
      * @return
      * @throws SiteWhereException
      */
-    protected IScriptMetadata assureScriptMetadata(IFunctionIdentifier identifier, UUID tenantId, String scriptId)
+    protected SiteWhereScript getK8sScript(IFunctionIdentifier identifier, String tenantId, String scriptId)
 	    throws SiteWhereException {
-	IScriptMetadata meta = getScriptMetadata(identifier, tenantId, scriptId);
-	if (meta == null) {
-	    throw new SiteWhereException("Script not found: " + scriptId);
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	Map<String, String> labels = new HashMap<>();
+	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, identifier.getPath());
+	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, tenantId);
+	labels.put(ResourceLabels.LABEL_SCRIPTING_SCRIPT_ID, scriptId);
+	SiteWhereScriptList list = getMicroservice().getSiteWhereKubernetesClient().getScripts().inNamespace(namespace)
+		.withLabels(labels).list();
+	if (list.getItems().size() > 1) {
+	    throw new SiteWhereException("Multiple scripts found matching criteria.");
 	}
+	if (list.getItems().size() == 0) {
+	    return null;
+	}
+	return list.getItems().get(0);
+    }
+
+    /**
+     * Create k8s script from request information.
+     * 
+     * @param identifier
+     * @param tenantId
+     * @param request
+     * @return
+     */
+    protected SiteWhereScript createK8sScript(IFunctionIdentifier identifier, String tenantId,
+	    IScriptCreateRequest request) {
+	SiteWhereScript script = new SiteWhereScript();
+
+	ObjectMeta meta = new ObjectMeta();
+	String name = String.format("%s-%s-%s", identifier.getPath(), request.getId(),
+		String.valueOf(System.currentTimeMillis()));
+	meta.setName(name);
+	meta.setNamespace(getMicroservice().getInstanceSettings().getKubernetesNamespace());
+	Map<String, String> labels = new HashMap<>();
+	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, tenantId);
+	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, identifier.getPath());
+	labels.put(ResourceLabels.LABEL_SCRIPTING_SCRIPT_ID, request.getId());
+	meta.setLabels(labels);
+	script.setMetadata(meta);
+
+	SiteWhereScriptSpec spec = new SiteWhereScriptSpec();
+	spec.setScriptId(request.getId());
+	spec.setName(request.getName());
+	spec.setDescription(request.getDescription());
+	spec.setInterpreterType(request.getType());
+	script.setSpec(spec);
+
+	return script;
+    }
+
+    /**
+     * Create k8s version from request information.
+     * 
+     * @param script
+     * @param request
+     * @param comment
+     * @return
+     */
+    protected SiteWhereScriptVersion createK8sScriptVersion(SiteWhereScript script, IScriptCreateRequest request,
+	    String comment) {
+	Map<String, String> scriptLabels = script.getMetadata().getLabels();
+	SiteWhereScriptVersion version = new SiteWhereScriptVersion();
+
+	ObjectMeta meta = new ObjectMeta();
+	String name = String.format("%s-v%s", script.getMetadata().getName(),
+		String.valueOf(System.currentTimeMillis()));
+	meta.setName(name);
+	meta.setNamespace(getMicroservice().getInstanceSettings().getKubernetesNamespace());
+	Map<String, String> labels = new HashMap<>();
+	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, scriptLabels.get(ResourceLabels.LABEL_SITEWHERE_TENANT));
+	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA,
+		scriptLabels.get(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA));
+	labels.put(ResourceLabels.LABEL_SCRIPTING_SCRIPT_ID,
+		scriptLabels.get(ResourceLabels.LABEL_SCRIPTING_SCRIPT_ID));
+	meta.setLabels(labels);
+	version.setMetadata(meta);
+
+	SiteWhereScriptVersionSpec spec = new SiteWhereScriptVersionSpec();
+	spec.setComment(comment);
+	spec.setContent(request.getContent());
+	version.setSpec(spec);
+
+	return version;
+    }
+
+    /**
+     * Create {@link ScriptMetadata} based on k8s {@link SiteWhereScript}.
+     * 
+     * @param script
+     * @param includeVersions
+     * @return
+     */
+    protected ScriptMetadata convertScriptMetadata(SiteWhereScript script, boolean includeVersions) {
+	ScriptMetadata meta = new ScriptMetadata();
+	meta.setId(script.getSpec().getScriptId());
+	meta.setName(script.getSpec().getName());
+	meta.setDescription(script.getSpec().getDescription());
+	meta.setType(script.getSpec().getInterpreterType());
+	meta.setActiveVersion(script.getSpec().getActiveVersion());
+
+	// TODO: This is expensive since it's a k8s API query for each script.
+	if (includeVersions) {
+	    meta.setVersions(new ArrayList<ScriptVersion>());
+	    SiteWhereScriptVersionList k8sVersions = getVersionsForScript(script);
+	    for (SiteWhereScriptVersion k8sVersion : k8sVersions.getItems()) {
+		meta.getVersions().add(convertScriptVersion(k8sVersion));
+	    }
+	}
+
 	return meta;
     }
 
     /**
-     * Assure that the script meta content contains the given version id.
+     * Create {@link ScriptVersion} based on k8s {@link SiteWhereScriptVersion}.
      * 
-     * @param meta
-     * @param versionId
-     * @return
-     * @throws SiteWhereException
-     */
-    protected IScriptVersion assureScriptVersion(IScriptMetadata meta, String versionId) throws SiteWhereException {
-	IScriptVersion version = getScriptVersion(meta, versionId);
-	if (version == null) {
-	    throw new SiteWhereException("No version of '" + meta.getId() + "' matches '" + versionId + "'.");
-	}
-	return version;
-    }
-
-    /**
-     * Store updated metadata and content for a script/version.
-     * 
-     * @param identifier
-     * @param tenantId
-     * @param meta
-     * @param version
-     * @param contentStr
-     * @throws SiteWhereException
-     */
-    protected void store(IFunctionIdentifier identifier, UUID tenantId, IScriptMetadata meta, IScriptVersion version,
-	    String contentStr) throws SiteWhereException {
-	// try {
-	// // Store metadata.
-	// String metaPath = getScriptMetadataZkPath(identifier, tenantId) + "/" +
-	// getMetadataFilePath(meta);
-	// byte[] metaContent = MarshalUtils.marshalJson(meta);
-	// if (getZookeeperManager().getCurator().checkExists().forPath(metaPath) ==
-	// null) {
-	// getZookeeperManager().getCurator().create().creatingParentsIfNeeded().forPath(metaPath,
-	// metaContent);
-	// } else {
-	// getZookeeperManager().getCurator().setData().forPath(metaPath, metaContent);
-	// }
-	//
-	// // Store version content.
-	// String contentPath = getScriptMetadataZkPath(identifier, tenantId) + "/"
-	// + getVersionContentPath(meta, version);
-	// byte[] content = Base64.getDecoder().decode(contentStr);
-	// if (getZookeeperManager().getCurator().checkExists().forPath(contentPath) ==
-	// null) {
-	// getZookeeperManager().getCurator().create().creatingParentsIfNeeded().forPath(contentPath,
-	// content);
-	// } else {
-	// getZookeeperManager().getCurator().setData().forPath(contentPath, content);
-	// }
-	// } catch (Exception e) {
-	// throw new SiteWhereException("Unable to store script metadata.", e);
-	// }
-    }
-
-    /**
-     * Create script metadata from request information.
-     * 
-     * @param request
+     * @param k8s
      * @return
      */
-    protected ScriptMetadata createScriptMetadata(IScriptCreateRequest request) {
-	ScriptMetadata created = new ScriptMetadata();
-	created.setId(request.getId());
-	created.setName(request.getName());
-	created.setDescription(request.getDescription());
-	created.setType(request.getType());
-	String versionId = generateUniqueId();
-	created.setActiveVersion(versionId);
+    protected ScriptVersion convertScriptVersion(SiteWhereScriptVersion k8s) {
 	ScriptVersion version = new ScriptVersion();
-	version.setVersionId(versionId);
-	version.setCreatedDate(new Date());
-	version.setComment(request.getDescription());
-	created.getVersions().add(version);
-	return created;
-    }
-
-    /**
-     * Generate unique id by creating a UUID and encoding the bytes in base 58.
-     * 
-     * @return
-     */
-    protected String generateUniqueId() {
-	UUID uuid = UUID.randomUUID();
-	ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
-	bb.putLong(uuid.getMostSignificantBits());
-	bb.putLong(uuid.getLeastSignificantBits());
-	return Base58.encode(bb.array());
-    }
-
-    /**
-     * Get relative path for version content.
-     * 
-     * @param metadata
-     * @param version
-     * @return
-     */
-    protected String getVersionContentPath(IScriptMetadata metadata, IScriptVersion version) {
-	return metadata.getId() + "/" + version.getVersionId();
-    }
-
-    /**
-     * Get version information based on unique version id.
-     * 
-     * @param metadata
-     * @param versionId
-     * @return
-     */
-    protected IScriptVersion getScriptVersion(IScriptMetadata metadata, String versionId) {
-	IScriptVersion version = null;
-	for (IScriptVersion current : metadata.getVersions()) {
-	    if (current.getVersionId().equals(versionId)) {
-		version = current;
-		break;
-	    }
-	}
+	version.setVersionId(k8s.getMetadata().getName());
+	version.setCreatedDate(FORMATTER.parseDateTime(k8s.getMetadata().getCreationTimestamp()).toDate());
+	version.setComment(k8s.getSpec().getComment());
 	return version;
+    }
+
+    /**
+     * Get versions for a given script.
+     * 
+     * @param script
+     * @return
+     */
+    protected SiteWhereScriptVersionList getVersionsForScript(SiteWhereScript script) {
+	String tenantId = script.getMetadata().getLabels().get(ResourceLabels.LABEL_SITEWHERE_TENANT);
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	Map<String, String> labels = new HashMap<>();
+	labels.put(ResourceLabels.LABEL_SCRIPTING_SCRIPT_ID, script.getSpec().getScriptId());
+	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, tenantId);
+	return getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions().inNamespace(namespace)
+		.withLabels(labels).list();
     }
 }

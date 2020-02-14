@@ -16,31 +16,13 @@ import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 public interface IScriptManager extends ITenantEngineLifecycleComponent {
 
     /**
-     * Adds bootstrap script with a given identifier.
-     * 
-     * @param identifier
-     * @param content
-     * @throws SiteWhereException
-     */
-    void addBootstrapScript(String identifier, String content) throws SiteWhereException;
-
-    /**
-     * Adds content from a managed script.
+     * Adds content for a managed script.
      * 
      * @param metadata
      * @param content
      * @throws SiteWhereException
      */
-    void addManagedScript(IScriptMetadata metadata, String content) throws SiteWhereException;
-
-    /**
-     * Resolve a bootstrap script based on identifier.
-     * 
-     * @param identifier
-     * @return
-     * @throws SiteWhereException
-     */
-    String resolveBootstrapScript(String identifier) throws SiteWhereException;
+    void addScript(IScriptMetadata metadata, String content) throws SiteWhereException;
 
     /**
      * Resolve a managed script based on identifier.
@@ -49,5 +31,5 @@ public interface IScriptManager extends ITenantEngineLifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    String resolveManagedScript(String identifier) throws SiteWhereException;
+    String resolveScript(String identifier) throws SiteWhereException;
 }

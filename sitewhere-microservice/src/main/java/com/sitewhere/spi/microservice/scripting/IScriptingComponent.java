@@ -24,13 +24,11 @@ public interface IScriptingComponent<T> extends ITenantEngineLifecycleComponent 
     String getScriptId();
 
     /**
-     * Run script in the given scope with the given binding.
+     * Run script with the given binding.
      * 
-     * @param scope
-     * @param type
      * @param binding
      * @return
      * @throws SiteWhereException
      */
-    T run(ScriptScope scope, ScriptType type, Binding binding) throws SiteWhereException;
+    T run(Binding binding) throws SiteWhereException;
 }

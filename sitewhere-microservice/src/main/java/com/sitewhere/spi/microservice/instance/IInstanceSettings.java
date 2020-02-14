@@ -37,7 +37,7 @@ public interface IInstanceSettings {
     @ConfigProperty(name = "instance.template.id", defaultValue = "default")
     String getInstanceTemplateId();
 
-    @ConfigProperty(name = "kafka.bootstrap.servers", defaultValue = "sitewhere-kafka-kafka-bootstrap:9092")
+    @ConfigProperty(name = "kafka.bootstrap.servers", defaultValue = "sitewhere-kafka-kafka-bootstrap.default:9092")
     String getKafkaBootstrapServers();
 
     @ConfigProperty(name = "kafka.defaultTopicPartitions", defaultValue = "8")
@@ -48,6 +48,9 @@ public interface IInstanceSettings {
 
     @ConfigProperty(name = "redis.masterGroupName", defaultValue = "sitewhere")
     String getRedisMasterGroupName();
+
+    @ConfigProperty(name = "redis.sentinel.hostname.base", defaultValue = "sitewhere-infrastructure-redis-ha-announce")
+    String getRedisSentinelHostnameBase();
 
     @ConfigProperty(name = "metrics.port", defaultValue = "9090")
     Integer getMetricsHttpPort();

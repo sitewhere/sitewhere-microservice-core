@@ -8,7 +8,6 @@
 package com.sitewhere.spi.microservice.scripting;
 
 import java.util.List;
-import java.util.UUID;
 
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
@@ -27,7 +26,7 @@ public interface IScriptManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    List<IScriptMetadata> getScriptMetadataList(IFunctionIdentifier identifier, UUID tenantId)
+    List<IScriptMetadata> getScriptMetadataList(IFunctionIdentifier identifier, String tenantId)
 	    throws SiteWhereException;
 
     /**
@@ -39,7 +38,7 @@ public interface IScriptManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    IScriptMetadata getScriptMetadata(IFunctionIdentifier identifier, UUID tenantId, String scriptId)
+    IScriptMetadata getScriptMetadata(IFunctionIdentifier identifier, String tenantId, String scriptId)
 	    throws SiteWhereException;
 
     /**
@@ -51,7 +50,7 @@ public interface IScriptManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    IScriptMetadata createScript(IFunctionIdentifier identifier, UUID tenantId, IScriptCreateRequest request)
+    IScriptMetadata createScript(IFunctionIdentifier identifier, String tenantId, IScriptCreateRequest request)
 	    throws SiteWhereException;
 
     /**
@@ -64,7 +63,7 @@ public interface IScriptManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    byte[] getScriptContent(IFunctionIdentifier identifier, UUID tenantId, String scriptId, String versionId)
+    byte[] getScriptContent(IFunctionIdentifier identifier, String tenantId, String scriptId, String versionId)
 	    throws SiteWhereException;
 
     /**
@@ -78,7 +77,7 @@ public interface IScriptManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    IScriptMetadata updateScript(IFunctionIdentifier identifier, UUID tenantId, String scriptId, String versionId,
+    IScriptMetadata updateScript(IFunctionIdentifier identifier, String tenantId, String scriptId, String versionId,
 	    IScriptCreateRequest request) throws SiteWhereException;
 
     /**
@@ -92,7 +91,7 @@ public interface IScriptManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    IScriptVersion cloneScript(IFunctionIdentifier identifier, UUID tenantId, String scriptId, String versionId,
+    IScriptVersion cloneScript(IFunctionIdentifier identifier, String tenantId, String scriptId, String versionId,
 	    String comment) throws SiteWhereException;
 
     /**
@@ -107,7 +106,7 @@ public interface IScriptManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    IScriptMetadata activateScript(IFunctionIdentifier identifier, UUID tenantId, String scriptId, String versionId)
+    IScriptMetadata activateScript(IFunctionIdentifier identifier, String tenantId, String scriptId, String versionId)
 	    throws SiteWhereException;
 
     /**
@@ -119,26 +118,6 @@ public interface IScriptManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    IScriptMetadata deleteScript(IFunctionIdentifier identifier, UUID tenantId, String scriptId)
+    IScriptMetadata deleteScript(IFunctionIdentifier identifier, String tenantId, String scriptId)
 	    throws SiteWhereException;
-
-    /**
-     * Get path for Zk container that holds script metadata.
-     * 
-     * @param identifier
-     * @param tenantId
-     * @return
-     * @throws SiteWhereException
-     */
-    String getScriptMetadataZkPath(IFunctionIdentifier identifier, UUID tenantId) throws SiteWhereException;
-
-    /**
-     * Get path for Zk container that holds script content.
-     * 
-     * @param identifier
-     * @param tenantId
-     * @return
-     * @throws SiteWhereException
-     */
-    String getScriptContentZkPath(IFunctionIdentifier identifier, UUID tenantId) throws SiteWhereException;
 }
