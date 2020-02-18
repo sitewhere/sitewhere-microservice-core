@@ -24,8 +24,8 @@ import org.apache.kafka.common.errors.TopicExistsException;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
 import org.slf4j.Logger;
 
+import com.sitewhere.microservice.configuration.model.instance.infrastructure.KafkaConfiguration;
 import com.sitewhere.spi.SiteWhereException;
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 
 /**
@@ -65,12 +65,14 @@ public abstract class KafkaTopicWaiter implements Runnable {
     protected Properties buildAdminConfiguration() throws SiteWhereException {
 	Properties config = new Properties();
 	config.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,
-		getComponent().getMicroservice().getInstanceSettings().getKafkaBootstrapServers());
+		KafkaUtils.getBootstrapServers(getComponent().getMicroservice()));
 	return config;
     }
 
     @Override
     public void run() {
+	KafkaConfiguration kafka = getComponent().getMicroservice().getInstanceConfiguration().getInfrastructure()
+		.getKafka();
 	getLogger().info("Attempting to connect to Kafka...");
 	while (true) {
 	    try {
@@ -87,9 +89,8 @@ public abstract class KafkaTopicWaiter implements Runnable {
 		Throwable t = e.getCause();
 		if (t instanceof UnknownTopicOrPartitionException) {
 		    try {
-			IInstanceSettings settings = getComponent().getMicroservice().getInstanceSettings();
-			NewTopic newTopic = new NewTopic(getTopicName(), settings.getKafkaDefaultTopicPartitions(),
-				(short) settings.getKafkaDefaultTopicReplicationFactor().intValue());
+			NewTopic newTopic = new NewTopic(getTopicName(), kafka.getDefaultTopicPartitions(),
+				(short) kafka.getDefaultTopicReplicationFactor());
 			CreateTopicsResult result = getKafkaAdmin().createTopics(Collections.singletonList(newTopic));
 			result.all().get();
 			getLogger().info(String.format("Kafka topic '%s' created.", getTopicName()));

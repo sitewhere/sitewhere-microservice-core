@@ -9,7 +9,7 @@ package com.sitewhere.microservice.configuration;
 
 import com.google.inject.AbstractModule;
 import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
-import com.sitewhere.microservice.configuration.model.instance.PersistenceConfigurations;
+import com.sitewhere.microservice.configuration.model.instance.persistence.PersistenceConfigurations;
 import com.sitewhere.spi.microservice.configuration.IInstanceModule;
 
 /**

@@ -59,8 +59,7 @@ public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleCom
      */
     @Override
     public void start(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-	getLogger().info(
-		"Producer connecting to Kafka: " + getMicroservice().getInstanceSettings().getKafkaBootstrapServers());
+	getLogger().info("Producer connecting to Kafka: " + KafkaUtils.getBootstrapServers(getMicroservice()));
 	getLogger().info("Will be producing messages for: " + getTargetTopicName());
 	this.kafkaAvailable = new CountDownLatch(1);
 	this.waiterService = Executors.newSingleThreadExecutor();
@@ -131,8 +130,7 @@ public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleCom
      */
     protected Properties buildConfiguration() throws SiteWhereException {
 	Properties config = new Properties();
-	config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-		getMicroservice().getInstanceSettings().getKafkaBootstrapServers());
+	config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaUtils.getBootstrapServers(getMicroservice()));
 	config.put(ProducerConfig.ACKS_CONFIG, getAckPolicy().getConfig());
 	config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 	config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());

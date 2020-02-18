@@ -7,6 +7,9 @@
  */
 package com.sitewhere.microservice.configuration.model.instance;
 
+import com.sitewhere.microservice.configuration.model.instance.infrastructure.InfrastructureConfiguration;
+import com.sitewhere.microservice.configuration.model.instance.persistence.PersistenceConfigurations;
+
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /**
@@ -15,8 +18,19 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class InstanceConfiguration {
 
+    /** Infrastructure configuration */
+    private InfrastructureConfiguration infrastructure;
+
     /** Persistence configurations */
     private PersistenceConfigurations persistenceConfigurations;
+
+    public InfrastructureConfiguration getInfrastructure() {
+	return infrastructure;
+    }
+
+    public void setInfrastructure(InfrastructureConfiguration infrastructure) {
+	this.infrastructure = infrastructure;
+    }
 
     public PersistenceConfigurations getPersistenceConfigurations() {
 	return persistenceConfigurations;

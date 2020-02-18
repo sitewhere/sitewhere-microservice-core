@@ -334,13 +334,14 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
+	// Wait for instance/microservice config available.
+	waitForConfigurationReady();
+
+	// Handle standard initialization.
 	super.initialize(monitor);
 
 	// Create script management support.
 	this.scriptManagement = new KubernetesScriptManagement();
-
-	// Wait for instance/microservice config available.
-	waitForConfigurationReady();
 
 	// Organizes steps for initializing microservice.
 	ICompositeLifecycleStep initialize = new CompositeLifecycleStep("Initialize " + getName());
@@ -376,8 +377,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     }
 
     /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * getInstanceConfiguration()
+     * @see com.sitewhere.spi.microservice.IMicroservice#getInstanceConfiguration()
      */
     @Override
     public InstanceConfiguration getInstanceConfiguration() {

@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.CaseFormat;
 import com.google.inject.CreationException;
 import com.google.inject.Injector;
-import com.sitewhere.microservice.configuration.model.instance.PersistenceConfigurations;
+import com.sitewhere.microservice.configuration.model.instance.persistence.PersistenceConfigurations;
 import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;

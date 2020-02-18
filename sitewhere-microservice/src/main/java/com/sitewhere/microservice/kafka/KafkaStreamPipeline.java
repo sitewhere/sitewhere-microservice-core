@@ -52,8 +52,7 @@ public abstract class KafkaStreamPipeline extends TenantEngineLifecycleComponent
 		getTenantEngine().getTenantResource().getMetadata().getName(),
 		getMicroservice().getIdentifier().getPath(), getPipelineName());
 	props.put(StreamsConfig.APPLICATION_ID_CONFIG, appId);
-	props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG,
-		getMicroservice().getInstanceSettings().getKafkaBootstrapServers());
+	props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaUtils.getBootstrapServers(getMicroservice()));
 	props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 	props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 

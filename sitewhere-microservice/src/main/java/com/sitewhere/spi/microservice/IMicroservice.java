@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.redisson.api.RedissonClient;
 
+import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.instance.IInstanceSpecUpdateOperation;
@@ -81,6 +82,13 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
     IInstanceSettings getInstanceSettings();
 
     /**
+     * Get global instance configuration settings.
+     * 
+     * @return
+     */
+    InstanceConfiguration getInstanceConfiguration();
+
+    /**
      * Get token management interface.
      * 
      * @return
@@ -123,6 +131,14 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
      * @return
      */
     IScriptTemplateManager getScriptTemplateManager();
+
+    /**
+     * Connects microservice to k8s API server to allow it to respond to resource
+     * events.
+     * 
+     * @throws SiteWhereException
+     */
+    void install() throws SiteWhereException;
 
     /**
      * Code executed after microservice has been started.

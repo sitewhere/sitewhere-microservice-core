@@ -68,13 +68,6 @@ public interface IConfigurableMicroservice<F extends IFunctionIdentifier, C exte
     SiteWhereInstance getLastInstanceResource();
 
     /**
-     * Get instance configuration (loaded from instance k8s resource).
-     * 
-     * @return
-     */
-    InstanceConfiguration getInstanceConfiguration();
-
-    /**
      * Get most recent k8s microservice resource.
      * 
      * @return

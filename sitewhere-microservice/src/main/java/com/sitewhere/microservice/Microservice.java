@@ -23,6 +23,7 @@ import org.redisson.config.Config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.sitewhere.microservice.configuration.model.instance.infrastructure.RedisConfiguration;
 import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
@@ -147,14 +148,20 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     }
 
     /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#install()
+     */
+    @Override
+    public void install() throws SiteWhereException {
+	// Initialize Kubernetes connectivity.
+	initializeK8sConnectivity();
+    }
+
+    /*
      * @see com.sitewhere.microservice.lifecycle.LifecycleComponent#initialize(com.
      * sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
      */
     @Override
     public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-	// Initialize Kubernetes connectivity.
-	initializeK8sConnectivity();
-
 	// Initialize Redis connectivity.
 	initializeRedisConnectivity();
 
@@ -217,14 +224,16 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      * @return
      */
     protected String[] buildRedisSentinelAddresses() {
-	int nodeCount = 3;
+	String systemNamespace = getInstanceConfiguration().getInfrastructure().getNamespace();
+	RedisConfiguration redis = getInstanceConfiguration().getInfrastructure().getRedis();
+	int nodeCount = redis.getNodeCount();
 	String[] addresses = new String[nodeCount];
 
 	int nodeIndex = nodeCount;
 	while (nodeIndex > 0) {
 	    int index = nodeCount - nodeIndex;
-	    String nodeName = String.format("%s://%s-%d.%s:26379", "redis",
-		    getInstanceSettings().getRedisSentinelHostnameBase(), index, "default");
+	    String nodeName = String.format("%s://%s-%d.%s:%d", "redis", redis.getHostname(), index, systemNamespace,
+		    redis.getPort());
 	    addresses[index] = nodeName;
 	    getLogger().info(String.format("Computed Redis Sentinal node name '%s' and added to list.", nodeName));
 	    nodeIndex--;
@@ -241,8 +250,9 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	getLogger().info("Initializing Redis connectivity...");
 	while (true) {
 	    try {
+		RedisConfiguration redis = getInstanceConfiguration().getInfrastructure().getRedis();
 		Config config = new Config();
-		config.useSentinelServers().setMasterName(getInstanceSettings().getRedisMasterGroupName())
+		config.useSentinelServers().setMasterName(redis.getMasterGroupName())
 			.addSentinelAddress(buildRedisSentinelAddresses());
 		config.setCodec(new CborJacksonCodec());
 		this.redissonClient = Redisson.create(config);

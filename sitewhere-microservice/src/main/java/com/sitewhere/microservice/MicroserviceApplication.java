@@ -121,6 +121,9 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
 	    String message = Boilerplate.boilerplate(messages, "*");
 	    getMicroservice().getLogger().info("\n" + message + "\n");
 
+	    // Start listening to k8s event stream.
+	    getMicroservice().install();
+
 	    // Initialize microservice.
 	    LifecycleProgressMonitor initMonitor = new LifecycleProgressMonitor(
 		    new LifecycleProgressContext(1, "Initialize " + getMicroservice().getName()), getMicroservice());
