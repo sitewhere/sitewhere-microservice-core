@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sitewhere.grpc.client.spi.IGrpcChannel;
+import com.sitewhere.microservice.configuration.model.instance.infrastructure.GrpcConfiguration;
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
@@ -156,11 +157,12 @@ public abstract class GrpcChannel<B, A> extends TenantEngineLifecycleComponent i
      * @return
      */
     protected Map<String, Object> buildRetryPolicy() {
+	GrpcConfiguration grpc = getMicroservice().getInstanceConfiguration().getInfrastructure().getGrpc();
 	Map<String, Object> retryPolicy = new HashMap<>();
-	retryPolicy.put("maxAttempts", getInstanceSettings().getGrpcMaxRetryCount());
-	retryPolicy.put("initialBackoff", String.format("%ds", getInstanceSettings().getGrpcInitialBackoffInSeconds()));
-	retryPolicy.put("maxBackoff", String.format("%ds", getInstanceSettings().getGrpcMaxBackoffInSeconds()));
-	retryPolicy.put("backoffMultiplier", getInstanceSettings().getGrpcBackoffMultiplier());
+	retryPolicy.put("maxAttempts", grpc.getMaxRetryCount());
+	retryPolicy.put("initialBackoff", String.format("%ds", grpc.getInitialBackoffSeconds()));
+	retryPolicy.put("maxBackoff", String.format("%ds", grpc.getMaxBackoffSeconds()));
+	retryPolicy.put("backoffMultiplier", grpc.getBackoffMultiplier());
 	retryPolicy.put("retryableStatusCodes", Arrays.<Object>asList("UNAVAILABLE"));
 	return retryPolicy;
     }

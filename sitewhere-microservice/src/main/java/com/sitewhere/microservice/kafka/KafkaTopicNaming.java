@@ -89,7 +89,7 @@ public class KafkaTopicNaming implements IKafkaTopicNaming {
      */
     @Override
     public String getInstancePrefix() {
-	return getInstanceSettings().getProductId() + SEPARATOR + getInstanceSettings().getInstanceId();
+	return getInstanceSettings().getProductId() + SEPARATOR + getInstanceSettings().getKubernetesNamespace();
     }
 
     /*

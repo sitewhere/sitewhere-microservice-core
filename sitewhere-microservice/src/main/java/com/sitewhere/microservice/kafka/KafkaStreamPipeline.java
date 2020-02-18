@@ -48,7 +48,7 @@ public abstract class KafkaStreamPipeline extends TenantEngineLifecycleComponent
 
 	Properties props = new Properties();
 	String appId = String.format("%s-%s-%s-%s-%s", getMicroservice().getInstanceSettings().getProductId(),
-		getMicroservice().getInstanceSettings().getInstanceId(),
+		getMicroservice().getInstanceSettings().getKubernetesNamespace(),
 		getTenantEngine().getTenantResource().getMetadata().getName(),
 		getMicroservice().getIdentifier().getPath(), getPipelineName());
 	props.put(StreamsConfig.APPLICATION_ID_CONFIG, appId);

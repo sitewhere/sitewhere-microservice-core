@@ -9,6 +9,7 @@ package com.sitewhere.microservice.metrics;
 
 import java.io.IOException;
 
+import com.sitewhere.microservice.configuration.model.instance.infrastructure.MetricsConfiguration;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
@@ -31,13 +32,18 @@ public class MetricsServer extends LifecycleComponent implements IMetricsServer 
      */
     @Override
     public void start(ILifecycleProgressMonitor monitor) throws SiteWhereException {
+	MetricsConfiguration metrics = getMicroservice().getInstanceConfiguration().getInfrastructure().getMetrics();
 	if (getHttpServer() != null) {
 	    getHttpServer().stop();
 	}
 	try {
-	    this.httpServer = new HTTPServer(getMicroservice().getInstanceSettings().getMetricsHttpPort());
-	    getLogger().info(String.format("Microservice metrics available via HTTP on port %s.",
-		    getMicroservice().getInstanceSettings().getMetricsHttpPort()));
+	    if (metrics.isEnabled()) {
+		this.httpServer = new HTTPServer(metrics.getHttpPort());
+		getLogger().info(
+			String.format("Microservice metrics available via HTTP on port %s.", metrics.getHttpPort()));
+	    } else {
+		getLogger().info("Metrics HTTP server is configured as disabled.");
+	    }
 	} catch (IOException e) {
 	    throw new SiteWhereException("Unable to initialize metrics HTTP server.", e);
 	}

@@ -369,7 +369,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public SiteWhereInstance loadInstanceResource() throws SiteWhereException {
-	String instanceId = getInstanceSettings().getInstanceId();
+	String instanceId = getInstanceSettings().getKubernetesNamespace();
 	if (instanceId == null) {
 	    throw new SiteWhereException("Instance id not set on microservice.");
 	}
@@ -406,7 +406,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public SiteWhereInstance updateInstanceResource(SiteWhereInstance instance) throws SiteWhereException {
-	String instanceId = getInstanceSettings().getInstanceId();
+	String instanceId = getInstanceSettings().getKubernetesNamespace();
 	if (!instanceId.equals(instance.getMetadata().getName())) {
 	    throw new SiteWhereException(
 		    String.format("Attempting to edit wrong instance: '%s'", instance.getMetadata().getName()));

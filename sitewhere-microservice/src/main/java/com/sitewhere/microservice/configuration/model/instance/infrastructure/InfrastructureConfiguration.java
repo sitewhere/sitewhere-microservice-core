@@ -24,6 +24,12 @@ public class InfrastructureConfiguration {
     /** Kafka configuration */
     private KafkaConfiguration kafka;
 
+    /** Metrics configuration */
+    private MetricsConfiguration metrics;
+
+    /** gRPC configuration */
+    private GrpcConfiguration grpc;
+
     public String getNamespace() {
 	return namespace;
     }
@@ -46,5 +52,21 @@ public class InfrastructureConfiguration {
 
     public void setKafka(KafkaConfiguration kafka) {
 	this.kafka = kafka;
+    }
+
+    public MetricsConfiguration getMetrics() {
+	return metrics;
+    }
+
+    public void setMetrics(MetricsConfiguration metrics) {
+	this.metrics = metrics;
+    }
+
+    public GrpcConfiguration getGrpc() {
+	return grpc;
+    }
+
+    public void setGrpc(GrpcConfiguration grpc) {
+	this.grpc = grpc;
     }
 }
