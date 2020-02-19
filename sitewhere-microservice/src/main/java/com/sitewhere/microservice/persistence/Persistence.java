@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.sitewhere.microservice.security.UserContext;
 import com.sitewhere.rest.model.common.BrandedEntity;
 import com.sitewhere.rest.model.common.MetadataProvider;
 import com.sitewhere.rest.model.common.PersistentEntity;
@@ -42,7 +43,7 @@ public class Persistence {
 	    entity.setToken(UUID.randomUUID().toString());
 	}
 	entity.setCreatedDate(new Date());
-	entity.setCreatedBy(null);
+	entity.setCreatedBy(UserContext.getCurrentUser().getUser().getUsername());
 	MetadataProvider.copy(request.getMetadata(), entity);
     }
 
@@ -59,7 +60,7 @@ public class Persistence {
 	    entity.setToken(request.getToken());
 	}
 	entity.setUpdatedDate(new Date());
-	entity.setUpdatedBy(null);
+	entity.setUpdatedBy(UserContext.getCurrentUser().getUser().getUsername());
 
 	if (request.getMetadata() != null) {
 	    entity.getMetadata().clear();
