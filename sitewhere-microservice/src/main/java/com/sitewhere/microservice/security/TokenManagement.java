@@ -7,16 +7,13 @@
  */
 package com.sitewhere.microservice.security;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import com.sitewhere.rest.model.user.GrantedAuthority;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
-import com.sitewhere.spi.user.IGrantedAuthority;
 import com.sitewhere.spi.user.IUser;
 
 import io.jsonwebtoken.Claims;
@@ -104,32 +101,21 @@ public class TokenManagement implements ITokenManagement {
     }
 
     /*
-     * (non-Javadoc)
-     * 
-     * @see com.sitewhere.microservice.spi.security.ITokenManagement#
+     * @see com.sitewhere.spi.microservice.security.ITokenManagement#
      * getGrantedAuthoritiesFromToken(java.lang.String)
      */
-    public List<IGrantedAuthority> getGrantedAuthoritiesFromToken(String token) throws SiteWhereException {
+    public List<String> getGrantedAuthoritiesFromToken(String token) throws SiteWhereException {
 	return getGrantedAuthoritiesFromClaims(getClaimsForToken(token));
     }
 
     /*
-     * (non-Javadoc)
-     * 
-     * @see com.sitewhere.microservice.spi.security.ITokenManagement#
+     * @see com.sitewhere.spi.microservice.security.ITokenManagement#
      * getGrantedAuthoritiesFromClaims(io.jsonwebtoken.Claims)
      */
     @Override
     @SuppressWarnings("unchecked")
-    public List<IGrantedAuthority> getGrantedAuthoritiesFromClaims(Claims claims) throws SiteWhereException {
-	List<String> authIds = (List<String>) claims.get(CLAIM_GRANTED_AUTHORITIES, List.class);
-	List<IGrantedAuthority> auths = new ArrayList<IGrantedAuthority>();
-	for (String authId : authIds) {
-	    GrantedAuthority auth = new GrantedAuthority();
-	    auth.setAuthority(authId);
-	    auths.add(auth);
-	}
-	return auths;
+    public List<String> getGrantedAuthoritiesFromClaims(Claims claims) throws SiteWhereException {
+	return (List<String>) claims.get(CLAIM_GRANTED_AUTHORITIES, List.class);
     }
 
     public Date getExpirationDate(int expirationInMinutes) {

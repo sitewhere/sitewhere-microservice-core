@@ -105,7 +105,7 @@ public abstract class RedissonCacheProvider<K, V> implements ICacheProvider<K, V
      * @return
      */
     protected String getCacheName(String tenantId) {
-	return String.format("%s:%s", tenantId, getCacheIdentifier());
+	return String.format("%s:%s", tenantId == null ? "_global_" : tenantId, getCacheIdentifier());
     }
 
     /**

@@ -10,7 +10,6 @@ package com.sitewhere.grpc.client;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,17 +20,15 @@ import com.sitewhere.grpc.client.common.tracing.DebugParameter;
 import com.sitewhere.grpc.client.spi.IApiChannel;
 import com.sitewhere.grpc.client.spi.server.IGrpcApiImplementation;
 import com.sitewhere.microservice.grpc.GrpcKeys;
+import com.sitewhere.microservice.security.SiteWhereAuthentication;
+import com.sitewhere.microservice.security.UserContext;
 import com.sitewhere.microservice.util.MarshalUtils;
-import com.sitewhere.rest.model.user.User;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.SiteWhereSystemException;
 import com.sitewhere.spi.error.ErrorCode;
 import com.sitewhere.spi.error.ErrorLevel;
 import com.sitewhere.spi.microservice.ServiceNotAvailableException;
-import com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice;
 import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableException;
-import com.sitewhere.spi.tenant.ITenant;
-import com.sitewhere.spi.user.IGrantedAuthority;
 
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
@@ -87,30 +84,18 @@ public class GrpcUtils {
      */
     public static void handleServerMethodEntry(IGrpcApiImplementation api, MethodDescriptor<?, ?> method) {
 	LOGGER.debug("Server received call to  " + method.getFullMethodName() + ".");
-	displaySecurityContext();
 	String jwt = GrpcKeys.JWT_CONTEXT_KEY.get();
 	if (jwt == null) {
 	    throw new RuntimeException("JWT not found in server request.");
 	}
-	ITenant tenant = null;
 	try {
-	    if (api.getMicroservice() instanceof IMultitenantMicroservice) {
-		String tenantId = GrpcKeys.TENANT_CONTEXT_KEY.get();
-		if (tenantId != null) {
-		    // IMicroserviceTenantEngine<?> engine = ((IMultitenantMicroservice<?, ?, ?>)
-		    // api.getMicroservice())
-		    // .assureTenantEngineAvailable(tenantId);
-		    // tenant = engine.getTenant();
-		}
-	    }
 	    Claims claims = getClaimsForJwt(api, jwt);
 	    String username = api.getMicroservice().getTokenManagement().getUsernameFromClaims(claims);
-	    List<IGrantedAuthority> gauths = api.getMicroservice().getTokenManagement()
-		    .getGrantedAuthoritiesFromClaims(claims);
-	    List<String> auths = gauths.stream().map(g -> g.getAuthority()).collect(Collectors.toList());
-	    establishSecurityContext(jwt, username, gauths, auths, tenant);
+	    List<String> auths = api.getMicroservice().getTokenManagement().getGrantedAuthoritiesFromClaims(claims);
+	    UserContext.setContext(new SiteWhereAuthentication(username, auths, jwt));
 	} catch (SiteWhereException e) {
-	    LOGGER.error("Error in gRPC server method " + method.getFullMethodName(), e);
+	    LOGGER.error(String.format("Unable to resolve user context from JWT in call to '%s'",
+		    method.getFullMethodName()));
 	}
     }
 
@@ -131,41 +116,6 @@ public class GrpcUtils {
 	return claims;
     }
 
-    /**
-     * Indicate that Spring security content was not properly cleared previously.
-     */
-    protected static void displaySecurityContext() {
-	// Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-	// if (auth != null) {
-	// String user = (String) auth.getPrincipal();
-	// LOGGER.warn("!!! Thread already has Spring Security auth info !!! user=" +
-	// user);
-	// }
-    }
-
-    /**
-     * Build Spring Security context based on values passed via gRPC interceptors.
-     * 
-     * @param jwt
-     * @param username
-     * @param gauths
-     * @param auths
-     * @param tenant
-     */
-    protected static void establishSecurityContext(String jwt, String username, List<IGrantedAuthority> gauths,
-	    List<String> auths, ITenant tenant) {
-	User user = new User();
-	user.setUsername(username);
-	user.setAuthorities(auths);
-	// SitewhereUserDetails details = new SitewhereUserDetails(user, gauths);
-	// SitewhereAuthentication auth = new SitewhereAuthentication(details, jwt);
-	// if (tenant != null) {
-	// auth.setTenant(tenant);
-	// }
-	// SecurityContextHolder.getContext().setAuthentication(auth);
-	LOGGER.trace("Set security context: username=" + username + " jwt=" + jwt);
-    }
-
     public static void logServerApiResult(MethodDescriptor<?, ?> method, Object result) throws SiteWhereException {
 	if (result != null) {
 	    if (LOGGER.isTraceEnabled()) {
@@ -179,7 +129,7 @@ public class GrpcUtils {
 
     public static void handleServerMethodExit(MethodDescriptor<?, ?> method) {
 	LOGGER.debug("Server finished call to  " + method.getFullMethodName() + ".");
-	// SecurityContextHolder.getContext().setAuthentication(null);
+	UserContext.clearContext();
     }
 
     /**

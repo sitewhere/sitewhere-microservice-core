@@ -185,8 +185,8 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
     public IDeviceType createDeviceType(IDeviceTypeCreateRequest request) throws SiteWhereException {
 	IDeviceType created = getWrapped().createDeviceType(request);
 	String tenantId = UserContext.getCurrentTenantId();
-	getDeviceTypeByIdCache().setCacheEntry(tenantId, created.getId(), created);
 	getDeviceTypeCache().setCacheEntry(tenantId, created.getToken(), created);
+	getDeviceTypeByIdCache().setCacheEntry(tenantId, created.getId(), created);
 	return created;
     }
 
@@ -197,7 +197,11 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
      */
     @Override
     public IDeviceType updateDeviceType(UUID id, IDeviceTypeCreateRequest request) throws SiteWhereException {
-	return getWrapped().updateDeviceType(id, request);
+	String tenantId = UserContext.getCurrentTenantId();
+	IDeviceType updated = getWrapped().updateDeviceType(id, request);
+	getDeviceTypeCache().setCacheEntry(tenantId, updated.getToken(), updated);
+	getDeviceTypeByIdCache().setCacheEntry(tenantId, updated.getId(), updated);
+	return updated;
     }
 
     /*
@@ -233,6 +237,19 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
 
     /*
      * @see
+     * com.sitewhere.spi.device.IDeviceManagement#deleteDeviceType(java.util.UUID)
+     */
+    @Override
+    public IDeviceType deleteDeviceType(UUID id) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IDeviceType deleted = getWrapped().deleteDeviceType(id);
+	getDeviceTypeCache().removeCacheEntry(tenantId, deleted.getToken());
+	getDeviceTypeByIdCache().removeCacheEntry(tenantId, deleted.getId());
+	return deleted;
+    }
+
+    /*
+     * @see
      * com.sitewhere.grpc.client.device.DeviceManagementApiChannel#getDeviceByToken(
      * java.lang.String)
      */
@@ -249,6 +266,20 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
 
     /*
      * @see
+     * com.sitewhere.spi.device.IDeviceManagement#createDevice(com.sitewhere.spi.
+     * device.request.IDeviceCreateRequest)
+     */
+    @Override
+    public IDevice createDevice(IDeviceCreateRequest device) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IDevice created = getWrapped().createDevice(device);
+	getDeviceCache().setCacheEntry(tenantId, created.getToken(), created);
+	getDeviceByIdCache().setCacheEntry(tenantId, created.getId(), created);
+	return created;
+    }
+
+    /*
+     * @see
      * com.sitewhere.grpc.client.device.DeviceManagementApiChannel#getDevice(java.
      * util.UUID)
      */
@@ -261,6 +292,31 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
 	    getDeviceByIdCache().setCacheEntry(tenantId, deviceId, device);
 	}
 	return device;
+    }
+
+    /*
+     * @see com.sitewhere.spi.device.IDeviceManagement#updateDevice(java.util.UUID,
+     * com.sitewhere.spi.device.request.IDeviceCreateRequest)
+     */
+    @Override
+    public IDevice updateDevice(UUID deviceId, IDeviceCreateRequest request) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IDevice updated = getWrapped().updateDevice(deviceId, request);
+	getDeviceCache().setCacheEntry(tenantId, updated.getToken(), updated);
+	getDeviceByIdCache().setCacheEntry(tenantId, updated.getId(), updated);
+	return updated;
+    }
+
+    /*
+     * @see com.sitewhere.spi.device.IDeviceManagement#deleteDevice(java.util.UUID)
+     */
+    @Override
+    public IDevice deleteDevice(UUID deviceId) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IDevice deleted = getWrapped().deleteDevice(deviceId);
+	getDeviceCache().removeCacheEntry(tenantId, deleted.getToken());
+	getDeviceByIdCache().removeCacheEntry(tenantId, deleted.getId());
+	return deleted;
     }
 
     /*
@@ -295,21 +351,41 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
 
     /*
      * @see
+     * com.sitewhere.spi.device.IDeviceManagement#updateDeviceAssignment(java.util.
+     * UUID, com.sitewhere.spi.device.request.IDeviceAssignmentCreateRequest)
+     */
+    @Override
+    public IDeviceAssignment updateDeviceAssignment(UUID id, IDeviceAssignmentCreateRequest request)
+	    throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IDeviceAssignment updated = getWrapped().updateDeviceAssignment(id, request);
+	getDeviceAssignmentCache().setCacheEntry(tenantId, updated.getToken(), updated);
+	getDeviceAssignmentByIdCache().setCacheEntry(tenantId, updated.getId(), updated);
+	return updated;
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.device.IDeviceManagement#deleteDeviceAssignment(java.util.
+     * UUID)
+     */
+    @Override
+    public IDeviceAssignment deleteDeviceAssignment(UUID id) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IDeviceAssignment deleted = getWrapped().deleteDeviceAssignment(id);
+	getDeviceAssignmentCache().removeCacheEntry(tenantId, deleted.getToken());
+	getDeviceAssignmentByIdCache().removeCacheEntry(tenantId, deleted.getId());
+	return deleted;
+    }
+
+    /*
+     * @see
      * com.sitewhere.spi.device.IDeviceManagement#listDeviceTypes(com.sitewhere.spi.
      * search.ISearchCriteria)
      */
     @Override
     public ISearchResults<? extends IDeviceType> listDeviceTypes(ISearchCriteria criteria) throws SiteWhereException {
 	return getWrapped().listDeviceTypes(criteria);
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.device.IDeviceManagement#deleteDeviceType(java.util.UUID)
-     */
-    @Override
-    public IDeviceType deleteDeviceType(UUID id) throws SiteWhereException {
-	return getWrapped().deleteDeviceType(id);
     }
 
     /*
@@ -433,25 +509,6 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
 
     /*
      * @see
-     * com.sitewhere.spi.device.IDeviceManagement#createDevice(com.sitewhere.spi.
-     * device.request.IDeviceCreateRequest)
-     */
-    @Override
-    public IDevice createDevice(IDeviceCreateRequest device) throws SiteWhereException {
-	return getWrapped().createDevice(device);
-    }
-
-    /*
-     * @see com.sitewhere.spi.device.IDeviceManagement#updateDevice(java.util.UUID,
-     * com.sitewhere.spi.device.request.IDeviceCreateRequest)
-     */
-    @Override
-    public IDevice updateDevice(UUID deviceId, IDeviceCreateRequest request) throws SiteWhereException {
-	return getWrapped().updateDevice(deviceId, request);
-    }
-
-    /*
-     * @see
      * com.sitewhere.spi.device.IDeviceManagement#listDevices(com.sitewhere.spi.
      * search.device.IDeviceSearchCriteria)
      */
@@ -481,14 +538,6 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
     }
 
     /*
-     * @see com.sitewhere.spi.device.IDeviceManagement#deleteDevice(java.util.UUID)
-     */
-    @Override
-    public IDevice deleteDevice(UUID deviceId) throws SiteWhereException {
-	return getWrapped().deleteDevice(deviceId);
-    }
-
-    /*
      * @see com.sitewhere.spi.device.IDeviceManagement#createDeviceAssignment(com.
      * sitewhere.spi.device.request.IDeviceAssignmentCreateRequest)
      */
@@ -505,17 +554,6 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
     @Override
     public List<? extends IDeviceAssignment> getActiveDeviceAssignments(UUID deviceId) throws SiteWhereException {
 	return getWrapped().getActiveDeviceAssignments(deviceId);
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.device.IDeviceManagement#updateDeviceAssignment(java.util.
-     * UUID, com.sitewhere.spi.device.request.IDeviceAssignmentCreateRequest)
-     */
-    @Override
-    public IDeviceAssignment updateDeviceAssignment(UUID id, IDeviceAssignmentCreateRequest request)
-	    throws SiteWhereException {
-	return getWrapped().updateDeviceAssignment(id, request);
     }
 
     /*
@@ -537,16 +575,6 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
     @Override
     public IDeviceAssignment endDeviceAssignment(UUID id) throws SiteWhereException {
 	return getWrapped().endDeviceAssignment(id);
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.device.IDeviceManagement#deleteDeviceAssignment(java.util.
-     * UUID)
-     */
-    @Override
-    public IDeviceAssignment deleteDeviceAssignment(UUID id) throws SiteWhereException {
-	return getWrapped().deleteDeviceAssignment(id);
     }
 
     /*

@@ -9,9 +9,6 @@ package com.sitewhere.microservice.security;
 
 import java.util.List;
 
-import com.sitewhere.spi.user.IGrantedAuthority;
-import com.sitewhere.spi.user.IUser;
-
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
 /**
@@ -19,11 +16,11 @@ import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
  */
 public class SiteWhereAuthentication {
 
-    /** User details */
-    private IUser user;
+    /** Username */
+    private String username;
 
     /** List of granted authorities */
-    private List<IGrantedAuthority> grantedAuthorities;
+    private List<String> grantedAuthorities;
 
     /** JWT */
     private String jwt;
@@ -31,8 +28,8 @@ public class SiteWhereAuthentication {
     /** Tenant */
     private SiteWhereTenant tenant;
 
-    public SiteWhereAuthentication(IUser user, List<IGrantedAuthority> grantedAuthorities, String jwt) {
-	this.user = user;
+    public SiteWhereAuthentication(String username, List<String> grantedAuthorities, String jwt) {
+	this.username = username;
 	this.grantedAuthorities = grantedAuthorities;
 	this.jwt = jwt;
     }
@@ -41,11 +38,11 @@ public class SiteWhereAuthentication {
 	this.tenant = tenant;
     }
 
-    public IUser getUser() {
-	return user;
+    public String getUsername() {
+	return username;
     }
 
-    public List<IGrantedAuthority> getGrantedAuthorities() {
+    public List<String> getGrantedAuthorities() {
 	return grantedAuthorities;
     }
 

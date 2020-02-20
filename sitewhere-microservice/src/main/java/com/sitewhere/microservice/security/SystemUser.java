@@ -10,17 +10,14 @@ package com.sitewhere.microservice.security;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.sitewhere.rest.model.user.GrantedAuthority;
 import com.sitewhere.rest.model.user.User;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
-import com.sitewhere.spi.user.IGrantedAuthority;
 import com.sitewhere.spi.user.IUser;
 import com.sitewhere.spi.user.SiteWhereAuthority;
 
@@ -47,7 +44,7 @@ public class SystemUser implements ISystemUser {
     private IUser user = SystemUser.createUser();
 
     /** System user authorities */
-    private List<IGrantedAuthority> auths = SystemUser.getNonGroupAuthorities();
+    private List<String> auths = SystemUser.getNonGroupAuthorities();
 
     /** Last authentication result */
     private SiteWhereAuthentication last = null;
@@ -61,8 +58,8 @@ public class SystemUser implements ISystemUser {
     @Override
     public SiteWhereAuthentication getAuthentication() throws SiteWhereException {
 	if ((System.currentTimeMillis() - lastGenerated) > (RENEW_INTERVAL_SEC * 1000)) {
-	    String jwt = tokenManagement.generateToken(user, SYSTEM_USER_TOKEN_EXPIRATION_IN_MINS);
-	    this.last = new SiteWhereAuthentication(user, auths, jwt);
+	    String jwt = getTokenManagement().generateToken(user, SYSTEM_USER_TOKEN_EXPIRATION_IN_MINS);
+	    this.last = new SiteWhereAuthentication(user.getUsername(), auths, jwt);
 	    this.lastGenerated = System.currentTimeMillis();
 	}
 	return this.last;
@@ -84,31 +81,30 @@ public class SystemUser implements ISystemUser {
      * 
      * @return
      */
-    private static IUser createUser() {
+    protected static IUser createUser() {
 	User user = new User();
 	user.setUsername("system");
 	user.setFirstName("System");
 	user.setLastName("User");
 	user.setCreatedDate(new Date());
 
-	List<IGrantedAuthority> auths = getNonGroupAuthorities();
-	List<String> roles = auths.stream().map(x -> x.getAuthority()).collect(Collectors.toList());
+	List<String> auths = getNonGroupAuthorities();
 
-	user.setAuthorities(roles);
+	user.setAuthorities(auths);
 	return user;
     }
 
-    private static List<IGrantedAuthority> getNonGroupAuthorities() {
-	List<IGrantedAuthority> matches = new ArrayList<IGrantedAuthority>();
+    protected static List<String> getNonGroupAuthorities() {
+	List<String> matches = new ArrayList<String>();
 	for (SiteWhereAuthority auth : SiteWhereAuthority.values()) {
 	    if (!auth.isGroup()) {
-		GrantedAuthority ga = new GrantedAuthority();
-		ga.setAuthority(auth.getName());
-		ga.setDescription(auth.getDescription());
-		ga.setParent(auth.getParent());
-		matches.add(ga);
+		matches.add(auth.getName());
 	    }
 	}
 	return matches;
+    }
+
+    protected ITokenManagement getTokenManagement() {
+	return tokenManagement;
     }
 }

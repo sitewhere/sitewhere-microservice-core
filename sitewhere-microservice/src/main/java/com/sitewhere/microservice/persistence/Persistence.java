@@ -43,7 +43,7 @@ public class Persistence {
 	    entity.setToken(UUID.randomUUID().toString());
 	}
 	entity.setCreatedDate(new Date());
-	entity.setCreatedBy(UserContext.getCurrentUser().getUser().getUsername());
+	entity.setCreatedBy(UserContext.getCurrentUser().getUsername());
 	MetadataProvider.copy(request.getMetadata(), entity);
     }
 
@@ -60,7 +60,7 @@ public class Persistence {
 	    entity.setToken(request.getToken());
 	}
 	entity.setUpdatedDate(new Date());
-	entity.setUpdatedBy(UserContext.getCurrentUser().getUser().getUsername());
+	entity.setUpdatedBy(UserContext.getCurrentUser().getUsername());
 
 	if (request.getMetadata() != null) {
 	    entity.getMetadata().clear();
