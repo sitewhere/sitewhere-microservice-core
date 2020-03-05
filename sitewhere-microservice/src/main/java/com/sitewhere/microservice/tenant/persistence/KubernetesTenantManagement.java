@@ -7,13 +7,12 @@
  */
 package com.sitewhere.microservice.tenant.persistence;
 
-import java.util.Arrays;
 import java.util.UUID;
 
+import com.sitewhere.microservice.kubernetes.K8sModelConverter;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.rest.model.search.Pager;
 import com.sitewhere.rest.model.search.SearchResults;
-import com.sitewhere.rest.model.tenant.Tenant;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
@@ -50,7 +49,7 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
     public ITenant createTenant(ITenantCreateRequest request) throws SiteWhereException {
 	SiteWhereTenant tenant = fromApiRequest(request, getMicroservice().getInstanceSettings());
 	tenant = getMicroservice().getSiteWhereKubernetesClient().getTenants().create(tenant);
-	return asApiTenant(tenant);
+	return K8sModelConverter.convert(tenant);
     }
 
     /*
@@ -62,7 +61,7 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
     public ITenant updateTenant(UUID id, ITenantCreateRequest request) throws SiteWhereException {
 	SiteWhereTenant tenant = fromApiRequest(request, getMicroservice().getInstanceSettings());
 	tenant = getMicroservice().getSiteWhereKubernetesClient().getTenants().createOrReplace(tenant);
-	return asApiTenant(tenant);
+	return K8sModelConverter.convert(tenant);
     }
 
     /*
@@ -85,7 +84,7 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
 	SiteWhereTenantList list = getMicroservice().getSiteWhereKubernetesClient().getTenants().list();
 	for (SiteWhereTenant tenant : list.getItems()) {
 	    if (tenant.getMetadata().getName().equals(token)) {
-		return asApiTenant(tenant);
+		return K8sModelConverter.convert(tenant);
 	    }
 	}
 	return null;
@@ -100,7 +99,7 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
 	SiteWhereTenantList list = getMicroservice().getSiteWhereKubernetesClient().getTenants().list();
 	Pager<ITenant> pager = new Pager<ITenant>(criteria);
 	for (SiteWhereTenant tenant : list.getItems()) {
-	    pager.process(asApiTenant(tenant));
+	    pager.process(K8sModelConverter.convert(tenant));
 	}
 	return new SearchResults<>(pager.getResults(), pager.getTotal());
     }
@@ -113,30 +112,6 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
     @Override
     public ITenant deleteTenant(UUID tenantId) throws SiteWhereException {
 	throw new RuntimeException("Not implemented yet.");
-    }
-
-    /**
-     * Convert k8s tenant resource to SiteWhere API.
-     * 
-     * @param tenant
-     * @return
-     */
-    protected static ITenant asApiTenant(SiteWhereTenant tenant) {
-	Tenant api = new Tenant();
-	api.setToken(tenant.getMetadata().getName());
-	api.setName(tenant.getSpec().getName());
-	api.setAuthenticationToken(tenant.getSpec().getAuthenticationToken());
-	api.setAuthorizedUserIds(Arrays.asList(tenant.getSpec().getAuthorizedUserIds()));
-	api.setBackgroundColor(tenant.getSpec().getBranding().getBackgroundColor());
-	api.setForegroundColor(tenant.getSpec().getBranding().getForegroundColor());
-	api.setBorderColor(tenant.getSpec().getBranding().getBorderColor());
-	api.setIcon(tenant.getSpec().getBranding().getIcon());
-	api.setImageUrl(tenant.getSpec().getBranding().getImageUrl());
-	api.setLogoUrl(tenant.getSpec().getBranding().getImageUrl());
-	api.setConfigurationTemplateId(tenant.getSpec().getConfigurationTemplate());
-	api.setDatasetTemplateId(tenant.getSpec().getDatasetTemplate());
-	api.setMetadata(tenant.getSpec().getMetadata());
-	return api;
     }
 
     /**

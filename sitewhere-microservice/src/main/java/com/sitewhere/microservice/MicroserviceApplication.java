@@ -7,6 +7,10 @@
  */
 package com.sitewhere.microservice;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -110,6 +114,9 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
 	protected void startMicroservice() throws SiteWhereException {
 	    long start = System.currentTimeMillis();
 
+	    // Adds banner to the top of the log.
+	    String banner = getBanner();
+
 	    // Display banner indicating service information.
 	    List<String> messages = new ArrayList<String>();
 	    messages.add(getMicroservice().getName() + " Microservice");
@@ -119,7 +126,7 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
 	    messages.add("Build Date: " + getMicroservice().getVersion().getBuildTimestamp());
 	    messages.add("Hostname: " + getMicroservice().getHostname());
 	    String message = Boilerplate.boilerplate(messages, "*");
-	    getMicroservice().getLogger().info("\n" + message + "\n");
+	    getMicroservice().getLogger().info(String.format("\n%s\n%s\n", banner, message));
 
 	    // Start listening to k8s event stream.
 	    getMicroservice().install();
@@ -154,6 +161,31 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
 	    // Execute any post-startup code.
 	    getMicroservice().afterMicroserviceStarted();
 	}
+    }
+
+    /**
+     * Get banner content from file.
+     * 
+     * @return
+     */
+    protected String getBanner() {
+	InputStream banner = getClass().getResourceAsStream("/banner.txt");
+	if (banner != null) {
+	    StringBuilder builder = new StringBuilder();
+	    try (BufferedReader reader = new BufferedReader(new InputStreamReader(banner))) {
+		String line = reader.readLine();
+		while (line != null) {
+		    builder.append(line).append("\n");
+		    line = reader.readLine();
+		}
+		return builder.toString();
+	    } catch (IOException e) {
+		getMicroservice().getLogger().warn("Unable to read banner.");
+	    }
+	} else {
+	    getMicroservice().getLogger().warn("No banner file found.");
+	}
+	return "";
     }
 
     /**

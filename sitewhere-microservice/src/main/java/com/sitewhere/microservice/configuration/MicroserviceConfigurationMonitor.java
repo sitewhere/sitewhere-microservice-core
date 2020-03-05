@@ -18,7 +18,6 @@ import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sitewhere.microservice.MicroserviceUtils;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationListener;
@@ -95,7 +94,7 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
      */
     @Override
     public void reconcileResourceChange(ResourceChangeType type, SiteWhereMicroservice microservice) {
-	String function = MicroserviceUtils.getFunctionalArea(microservice);
+	String function = getSitewhereClient().getFunctionalArea(microservice);
 
 	// Skip changes that don't affect specification.
 	SiteWhereMicroservice previous = this.microservicesByFunction.get(function);

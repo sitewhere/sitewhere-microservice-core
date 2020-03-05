@@ -315,14 +315,12 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	// Terminate script template manager.
 	stop.addStopStep(this, getScriptTemplateManager());
 
-	// Terminate script manager.
-	stop.addStopStep(this, getScriptTemplateManager());
-
 	// Add step for stopping k8s client.
 	stop.addStep(new SimpleLifecycleStep("Stop Kubernetes client") {
 
 	    @Override
 	    public void execute(ILifecycleProgressMonitor monitor) throws SiteWhereException {
+		getKubernetesClient().informers().stopAllRegisteredInformers();
 		getKubernetesClient().close();
 	    }
 	});

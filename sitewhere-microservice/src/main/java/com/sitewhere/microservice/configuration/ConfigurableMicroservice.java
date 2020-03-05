@@ -15,7 +15,6 @@ import com.google.inject.CreationException;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sitewhere.microservice.Microservice;
-import com.sitewhere.microservice.MicroserviceUtils;
 import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleProgressContext;
@@ -139,194 +138,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     }
 
     /*
-     * @see
-     * com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener#
-     * onInstanceAdded(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
-     */
-    @Override
-    public void onInstanceAdded(SiteWhereInstance instance) {
-	// Reflect configuration updated if not null.
-	InstanceSpecUpdates specUpdates = new InstanceSpecUpdates();
-	specUpdates.setConfigurationUpdated(instance.getSpec().getConfiguration() != null);
-
-	// No status updates.
-	InstanceStatusUpdates statusUpdates = new InstanceStatusUpdates();
-
-	onInstanceUpdated(instance, specUpdates, statusUpdates);
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener#
-     * onInstanceUpdated(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
-     */
-    @Override
-    public void onInstanceUpdated(SiteWhereInstance instance, IInstanceSpecUpdates specUpdates,
-	    IInstanceStatusUpdates statusUpdates) {
-	// Save resource reference.
-	this.lastInstanceResource = instance;
-
-	// Skip partially configured instance.
-	if (instance.getSpec().getConfiguration() == null) {
-	    getLogger().info("Skipping instance configuration which has not yet been bootstrapped.");
-	    return;
-	}
-
-	// Only interested in configuration updates.
-	if (!specUpdates.isConfigurationUpdated()) {
-	    getLogger().info("Skipping instance update where configuration was not updated.");
-	    return;
-	}
-
-	// Save updated resource and parse configuration.
-	try {
-	    this.instanceConfiguration = MarshalUtils.unmarshalJsonNode(instance.getSpec().getConfiguration(),
-		    InstanceConfiguration.class);
-	    this.instanceConfigurationModule = new InstanceModule(getInstanceConfiguration());
-	} catch (JsonProcessingException e) {
-	    getLogger().error(String.format("Invalid instance configuration (%s). Content is: \n\n%s\n", e.getMessage(),
-		    instance.getSpec().getConfiguration()));
-	    return;
-	}
-
-	// Handle updated configuration.
-	onConfigurationUpdated();
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener#
-     * onInstanceDeleted(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
-     */
-    @Override
-    public void onInstanceDeleted(SiteWhereInstance instance) {
-	this.lastInstanceResource = null;
-	onConfigurationDeleted();
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.
-     * IMicroserviceConfigurationListener#onMicroserviceAdded(io.sitewhere.k8s.crd.
-     * microservice.SiteWhereMicroservice)
-     */
-    @Override
-    public void onMicroserviceAdded(SiteWhereMicroservice microservice) {
-	onMicroserviceUpdated(microservice);
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.
-     * IMicroserviceConfigurationListener#onMicroserviceUpdated(io.sitewhere.k8s.crd
-     * .microservice.SiteWhereMicroservice)
-     */
-    @Override
-    public void onMicroserviceUpdated(SiteWhereMicroservice microservice) {
-	// Only process updates for the functional area of this microservice.
-	if (!getIdentifier().getPath().equals(MicroserviceUtils.getFunctionalArea(microservice))) {
-	    return;
-	}
-
-	boolean wasConfigured = getLastMicroserviceResource() != null
-		&& getLastMicroserviceResource().getSpec().getConfiguration() != null;
-	boolean configUpdated = wasConfigured && !getLastMicroserviceResource().getSpec().getConfiguration()
-		.equals(microservice.getSpec().getConfiguration());
-
-	getLogger().info(String.format("Handling microservice resource update. configured=%s updated=%s",
-		String.valueOf(wasConfigured), String.valueOf(configUpdated)));
-
-	// Save updated resource and parse configuration.
-	this.lastMicroserviceResource = microservice;
-	try {
-	    C configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
-		    getConfigurationClass());
-	    this.microserviceConfiguration = configuration;
-	    this.microserviceConfigurationModule = createConfigurationModule();
-	} catch (JsonProcessingException e) {
-	    getLogger().error(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
-		    e.getMessage(), microservice.getSpec().getConfiguration()));
-	}
-
-	// If configuration was not updated, skip context restart.
-	if (wasConfigured && !configUpdated) {
-	    return;
-	}
-
-	// Handle updated configuration.
-	if (!wasConfigured || configUpdated) {
-	    onConfigurationUpdated();
-	}
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.
-     * IMicroserviceConfigurationListener#onMicroserviceDeleted(io.sitewhere.k8s.crd
-     * .microservice.SiteWhereMicroservice)
-     */
-    @Override
-    public void onMicroserviceDeleted(SiteWhereMicroservice microservice) {
-	this.lastMicroserviceResource = null;
-	onConfigurationDeleted();
-    }
-
-    /**
-     * Called when configuration is added or updated.
-     */
-    protected void onConfigurationUpdated() {
-	if (getInstanceConfigurationModule() == null) {
-	    getLogger().info("Waiting for instance configuration to be loaded before starting.");
-	    return;
-	}
-	if (getMicroserviceConfigurationModule() == null) {
-	    getLogger().info("Waiting for microservice configuration to be loaded before starting.");
-	    return;
-	}
-
-	// Create Guice injector with the instance and microservice bindings.
-	try {
-	    this.injector = Guice.createInjector(getInstanceConfigurationModule(),
-		    getMicroserviceConfigurationModule());
-	} catch (CreationException e) {
-	    getLogger().error("Guice configuration module failed to initialize.", e);
-	}
-
-	getMicroserviceOperationsService().execute(new Runnable() {
-
-	    @Override
-	    public void run() {
-		try {
-		    if (getLifecycleStatus() == LifecycleStatus.Stopped) {
-			getLogger().info("Initializing and starting microservice configuration...");
-			initializeAndStart();
-		    } else {
-			getLogger().info("Detected configuration update. Restarting configuration...");
-			restartConfiguration();
-		    }
-		    getConfigurationAvailable().countDown();
-		} catch (SiteWhereException e) {
-		    getLogger().error("Unable to restart microservice.", e);
-		}
-	    }
-	});
-    }
-
-    /**
-     * Called when configuration for instance or microservice has been deleted.
-     */
-    protected void onConfigurationDeleted() {
-	getMicroserviceOperationsService().execute(new Runnable() {
-
-	    @Override
-	    public void run() {
-		try {
-		    stopAndTerminate();
-		} catch (SiteWhereException e) {
-		    getLogger().error("Unable to stop microservice.", e);
-		}
-	    }
-	});
-    }
-
-    /*
      * (non-Javadoc)
      * 
      * @see com.sitewhere.server.lifecycle.LifecycleComponent#initialize(com.
@@ -377,6 +188,246 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     }
 
     /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * com.sitewhere.server.lifecycle.LifecycleComponent#terminate(com.sitewhere
+     * .spi.server.lifecycle.ILifecycleProgressMonitor)
+     */
+    @Override
+    public void terminate(ILifecycleProgressMonitor monitor) throws SiteWhereException {
+	// Stop and terminate the configuration components.
+	getLogger().info("Shutting down configurable microservice components...");
+	stopAndTerminateConfiguration();
+	
+	super.terminate(monitor);
+
+	// Organizes steps for stopping microservice.
+	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Stop " + getName());
+
+	// Stop script management.
+	stop.addStopStep(this, getScriptManagement());
+
+	// Terminate script management.
+	stop.addTerminateStep(this, getScriptManagement());
+
+	// Execute shutdown steps.
+	stop.execute(monitor);
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener#
+     * onInstanceAdded(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
+     */
+    @Override
+    public void onInstanceAdded(SiteWhereInstance instance) {
+	// Reflect configuration updated if not null.
+	InstanceSpecUpdates specUpdates = new InstanceSpecUpdates();
+	specUpdates.setConfigurationUpdated(instance.getSpec().getConfiguration() != null);
+
+	// No status updates.
+	InstanceStatusUpdates statusUpdates = new InstanceStatusUpdates();
+
+	handleInstanceUpdated(instance, specUpdates, statusUpdates, true);
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener#
+     * onInstanceUpdated(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
+     */
+    @Override
+    public void onInstanceUpdated(SiteWhereInstance instance, IInstanceSpecUpdates specUpdates,
+	    IInstanceStatusUpdates statusUpdates) {
+	handleInstanceUpdated(instance, specUpdates, statusUpdates, false);
+    }
+
+    /**
+     * Handle instance resource add/update.
+     * 
+     * @param instance
+     * @param specUpdates
+     * @param statusUpdates
+     * @param isNew
+     */
+    protected void handleInstanceUpdated(SiteWhereInstance instance, IInstanceSpecUpdates specUpdates,
+	    IInstanceStatusUpdates statusUpdates, boolean isNew) {
+	// Save resource reference.
+	this.lastInstanceResource = instance;
+
+	// Skip partially configured instance.
+	if (instance.getSpec().getConfiguration() == null) {
+	    getLogger().info("Skipping instance configuration which has not yet been bootstrapped.");
+	    return;
+	}
+
+	// Only interested in configuration updates.
+	if (!specUpdates.isConfigurationUpdated()) {
+	    getLogger().info("Skipping instance update where configuration was not updated.");
+	    return;
+	}
+
+	// Save updated resource and parse configuration.
+	try {
+	    this.instanceConfiguration = MarshalUtils.unmarshalJsonNode(instance.getSpec().getConfiguration(),
+		    InstanceConfiguration.class);
+	    this.instanceConfigurationModule = new InstanceModule(getInstanceConfiguration());
+	} catch (JsonProcessingException e) {
+	    getLogger().error(String.format("Invalid instance configuration (%s). Content is: \n\n%s\n", e.getMessage(),
+		    instance.getSpec().getConfiguration()));
+	    return;
+	}
+
+	// Handle updated configuration.
+	onConfigurationUpdated();
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener#
+     * onInstanceDeleted(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
+     */
+    @Override
+    public void onInstanceDeleted(SiteWhereInstance instance) {
+	this.lastInstanceResource = null;
+	onConfigurationDeleted();
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.
+     * IMicroserviceConfigurationListener#onMicroserviceAdded(io.sitewhere.k8s.crd.
+     * microservice.SiteWhereMicroservice)
+     */
+    @Override
+    public void onMicroserviceAdded(SiteWhereMicroservice microservice) {
+	handleMicroserviceUpdated(microservice, true);
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.
+     * IMicroserviceConfigurationListener#onMicroserviceUpdated(io.sitewhere.k8s.crd
+     * .microservice.SiteWhereMicroservice)
+     */
+    @Override
+    public void onMicroserviceUpdated(SiteWhereMicroservice microservice) {
+	handleMicroserviceUpdated(microservice, false);
+    }
+
+    /**
+     * Handle an add/update for the microservice k8s resource.
+     * 
+     * @param microservice
+     * @param isNew
+     */
+    protected void handleMicroserviceUpdated(SiteWhereMicroservice microservice, boolean isNew) {
+	// Only process updates for the functional area of this microservice.
+	if (!getIdentifier().getPath()
+		.equals(getMicroservice().getSiteWhereKubernetesClient().getFunctionalArea(microservice))) {
+	    return;
+	}
+
+	boolean wasConfigured = getLastMicroserviceResource() != null
+		&& getLastMicroserviceResource().getSpec().getConfiguration() != null;
+	boolean configUpdated = wasConfigured && !getLastMicroserviceResource().getSpec().getConfiguration()
+		.equals(microservice.getSpec().getConfiguration());
+
+	getLogger().info(String.format("Handling microservice resource update. configured=%s updated=%s",
+		String.valueOf(wasConfigured), String.valueOf(configUpdated)));
+
+	// Save updated resource and parse configuration.
+	this.lastMicroserviceResource = microservice;
+	try {
+	    C configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
+		    getConfigurationClass());
+	    this.microserviceConfiguration = configuration;
+	    this.microserviceConfigurationModule = createConfigurationModule();
+	} catch (JsonProcessingException e) {
+	    getLogger().error(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
+		    e.getMessage(), microservice.getSpec().getConfiguration()));
+	}
+
+	// If configuration was not updated, skip context restart.
+	if (wasConfigured && !configUpdated) {
+	    return;
+	}
+
+	// Handle updated configuration.
+	if (!wasConfigured || configUpdated) {
+	    onConfigurationUpdated();
+	}
+    }
+
+    /**
+     * Called when configuration is added or updated.
+     */
+    protected void onConfigurationUpdated() {
+	if (getInstanceConfigurationModule() == null) {
+	    getLogger().info("Waiting for instance configuration to be loaded before starting.");
+	    return;
+	}
+	if (getMicroserviceConfigurationModule() == null) {
+	    getLogger().info("Waiting for microservice configuration to be loaded before starting.");
+	    return;
+	}
+
+	// Create Guice injector with the instance and microservice bindings.
+	try {
+	    this.injector = Guice.createInjector(getInstanceConfigurationModule(),
+		    getMicroserviceConfigurationModule());
+	} catch (CreationException e) {
+	    getLogger().error("Guice configuration module failed to initialize.", e);
+	}
+
+	getMicroserviceOperationsService().execute(new Runnable() {
+
+	    @Override
+	    public void run() {
+		try {
+		    if (getLifecycleStatus() == LifecycleStatus.Stopped) {
+			getLogger().info("Initializing and starting microservice configuration...");
+			initializeAndStartConfiguration();
+		    } else {
+			getLogger().info("Detected configuration update. Restarting configuration...");
+			restartConfiguration();
+		    }
+		    getConfigurationAvailable().countDown();
+		} catch (SiteWhereException e) {
+		    getLogger().error("Unable to restart microservice.", e);
+		}
+	    }
+	});
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.
+     * IMicroserviceConfigurationListener#onMicroserviceDeleted(io.sitewhere.k8s.crd
+     * .microservice.SiteWhereMicroservice)
+     */
+    @Override
+    public void onMicroserviceDeleted(SiteWhereMicroservice microservice) {
+	this.lastMicroserviceResource = null;
+	onConfigurationDeleted();
+    }
+
+    /**
+     * Called when configuration for instance or microservice has been deleted.
+     */
+    protected void onConfigurationDeleted() {
+	getMicroserviceOperationsService().execute(new Runnable() {
+
+	    @Override
+	    public void run() {
+		try {
+		    stopAndTerminateConfiguration();
+		} catch (SiteWhereException e) {
+		    getLogger().error("Unable to stop microservice.", e);
+		}
+	    }
+	});
+    }
+
+    /*
      * @see com.sitewhere.spi.microservice.IMicroservice#getInstanceConfiguration()
      */
     @Override
@@ -394,9 +445,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public void configurationInitialize(InstanceConfiguration instance, C microservice,
 	    ILifecycleProgressMonitor monitor) throws SiteWhereException {
-	// if (local != null) {
-	// initializeDiscoverableBeans(local).execute(monitor);
-	// }
     }
 
     /*
@@ -409,9 +457,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public void configurationStart(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
 	    throws SiteWhereException {
-	// if (local != null) {
-	// startDiscoverableBeans(local).execute(monitor);
-	// }
     }
 
     /*
@@ -424,9 +469,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public void configurationStop(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
 	    throws SiteWhereException {
-	// if (local != null) {
-	// stopDiscoverableBeans(local).execute(monitor);
-	// }
     }
 
     /*
@@ -439,38 +481,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public void configurationTerminate(InstanceConfiguration instance, C microservice,
 	    ILifecycleProgressMonitor monitor) throws SiteWhereException {
-	// if (local != null) {
-	// terminateDiscoverableBeans(local).execute(monitor);
-	// }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * com.sitewhere.server.lifecycle.LifecycleComponent#terminate(com.sitewhere
-     * .spi.server.lifecycle.ILifecycleProgressMonitor)
-     */
-    @Override
-    public void terminate(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-	// Stop and terminate the configuration components.
-	getLogger().info("Shutting down configurable microservice components...");
-	stopConfiguration();
-	terminateConfiguration();
-
-	super.terminate(monitor);
-
-	// Organizes steps for stopping microservice.
-	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Stop " + getName());
-
-	// Stop script management.
-	stop.addStopStep(this, getScriptManagement());
-
-	// Terminate script management.
-	stop.addTerminateStep(this, getScriptManagement());
-
-	// Execute shutdown steps.
-	stop.execute(monitor);
     }
 
     /*
@@ -479,6 +489,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void initializeConfiguration() throws SiteWhereException {
+	getLogger().info("Initializing configurable microservice elements.");
 	try {
 	    // Load microservice configuration.
 	    SiteWhereInstance instance = getLastInstanceResource();
@@ -492,7 +503,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 		InstanceConfiguration instanceConfiguration = MarshalUtils.unmarshalJsonNode(instanceJson,
 			InstanceConfiguration.class);
 		if (getLogger().isDebugEnabled()) {
-		    getLogger().debug(String.format("\nINSTANCE CONFIG:\n\n%s\n",
+		    getLogger().debug(String.format("\nInstance configuration:\n\n%s\n",
 			    MarshalUtils.marshalJsonAsPrettyString(instanceConfiguration)));
 		}
 		this.instanceConfiguration = instanceConfiguration;
@@ -524,6 +535,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void startConfiguration() throws SiteWhereException {
+	getLogger().info("Starting configurable microservice elements.");
 	try {
 	    // Start microservice.
 	    ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
@@ -547,6 +559,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void stopConfiguration() throws SiteWhereException {
+	getLogger().info("Stopping configurable microservice elements.");
 	try {
 	    // Stop microservice.
 	    if (getLifecycleStatus() != LifecycleStatus.Stopped) {
@@ -572,6 +585,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void terminateConfiguration() throws SiteWhereException {
+	getLogger().info("Terminating configurable microservice elements.");
 	try {
 	    // Terminate microservice.
 	    if (getLifecycleStatus() != LifecycleStatus.Terminated) {
@@ -596,7 +610,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      * 
      * @throws SiteWhereException
      */
-    protected void initializeAndStart() throws SiteWhereException {
+    protected void initializeAndStartConfiguration() throws SiteWhereException {
 	initializeConfiguration();
 	startConfiguration();
     }
@@ -606,7 +620,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      * 
      * @throws SiteWhereException
      */
-    protected void stopAndTerminate() throws SiteWhereException {
+    protected void stopAndTerminateConfiguration() throws SiteWhereException {
 	stopConfiguration();
 	terminateConfiguration();
     }
@@ -617,8 +631,8 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void restartConfiguration() throws SiteWhereException {
-	stopAndTerminate();
-	initializeAndStart();
+	stopAndTerminateConfiguration();
+	initializeAndStartConfiguration();
     }
 
     /*

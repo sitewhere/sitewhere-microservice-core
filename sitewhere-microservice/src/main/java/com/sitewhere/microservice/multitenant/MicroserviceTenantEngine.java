@@ -177,8 +177,9 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	SiteWhereTenant tenant = getMicroservice().getSiteWhereKubernetesClient().getTenants().inNamespace(namespace)
 		.withName(tenantToken).get();
 	if (tenant == null) {
-	    throw new SiteWhereException(
-		    String.format("Tenant engine label references a tenant '%s' which does not exist.", tenantToken));
+	    throw new SiteWhereException(String.format(
+		    "Tenant engine label references a tenant '%s' which does not exist in namespace '%s'.", tenantToken,
+		    namespace));
 	}
 	this.tenantResource = tenant;
     }
