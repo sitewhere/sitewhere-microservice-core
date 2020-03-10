@@ -7,6 +7,7 @@
  */
 package com.sitewhere.microservice.multitenant;
 
+import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -28,11 +29,13 @@ import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
+import com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineManager;
 import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableException;
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 
 import io.sitewhere.k8s.crd.ResourceLabels;
+import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 
 /**
@@ -96,6 +99,17 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
 
 	tenantOperations.execute(new TenantEngineStarter(this));
 	tenantOperations.execute(new TenantEngineStopper(this));
+
+	// Loop through all existing engines and add them to initialization queue.
+	SiteWhereMicroservice k8sMicroservice = ((IMultitenantMicroservice<?, ?, ?>) getMicroservice())
+		.getLastMicroserviceResource();
+	Map<String, SiteWhereTenantEngine> tenantsById = getMicroservice().getSiteWhereKubernetesClient()
+		.getTenantEnginesForMicroserviceByTenant(k8sMicroservice);
+	for (SiteWhereTenantEngine engine : tenantsById.values()) {
+	    getLogger().info(String.format("Adding existing tenant engine to initialization queue: '%s'",
+		    engine.getMetadata().getName()));
+	    getTenantInitializationQueue().offer(engine);
+	}
     }
 
     /*
@@ -133,8 +147,8 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
      */
     @Override
     public void onTenantEngineCreated(SiteWhereTenantEngine engine) {
-	getLogger().info(
-		String.format("Adding tenant engine to initialization queue: '%s'", engine.getMetadata().getName()));
+	getLogger().info(String.format("Adding new tenant engine to initialization queue: '%s'",
+		engine.getMetadata().getName()));
 	getTenantInitializationQueue().offer(engine);
     }
 

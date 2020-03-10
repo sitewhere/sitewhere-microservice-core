@@ -10,15 +10,13 @@ package com.sitewhere.microservice.configuration;
 import java.util.concurrent.CountDownLatch;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.CreationException;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sitewhere.microservice.Microservice;
+import com.sitewhere.microservice.MicroserviceApplication;
 import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
-import com.sitewhere.microservice.lifecycle.LifecycleProgressContext;
-import com.sitewhere.microservice.lifecycle.LifecycleProgressMonitor;
 import com.sitewhere.microservice.scripting.KubernetesScriptManagement;
 import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
@@ -35,7 +33,6 @@ import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationMo
 import com.sitewhere.spi.microservice.configuration.IMicroserviceModule;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
-import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.microservice.scripting.IScriptManagement;
 
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
@@ -196,10 +193,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void terminate(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-	// Stop and terminate the configuration components.
-	getLogger().info("Shutting down configurable microservice components...");
-	stopAndTerminateConfiguration();
-	
 	super.terminate(monitor);
 
 	// Organizes steps for stopping microservice.
@@ -281,6 +274,16 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 
 	// Handle updated configuration.
 	onConfigurationUpdated();
+
+	// Restart microservice if config changed.
+	if (!isNew) {
+	    try {
+		getLogger().info("Restarting microservice due to instance configuration update.");
+		restart();
+	    } catch (SiteWhereException e) {
+		getLogger().error("Unable to restart microservice.", e);
+	    }
+	}
     }
 
     /*
@@ -291,7 +294,11 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public void onInstanceDeleted(SiteWhereInstance instance) {
 	this.lastInstanceResource = null;
-	onConfigurationDeleted();
+	try {
+	    MicroserviceApplication.stopMicroservice(this);
+	} catch (SiteWhereException e) {
+	    getLogger().error("Error stopping deleted microservice.", e);
+	}
     }
 
     /*
@@ -356,6 +363,16 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	if (!wasConfigured || configUpdated) {
 	    onConfigurationUpdated();
 	}
+
+	// Restart microservice if config changed.
+	if (wasConfigured && configUpdated) {
+	    try {
+		getLogger().info("Restarting microservice due to microservice configuration update.");
+		restart();
+	    } catch (SiteWhereException e) {
+		getLogger().error("Unable to restart microservice.", e);
+	    }
+	}
     }
 
     /**
@@ -379,24 +396,8 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	    getLogger().error("Guice configuration module failed to initialize.", e);
 	}
 
-	getMicroserviceOperationsService().execute(new Runnable() {
-
-	    @Override
-	    public void run() {
-		try {
-		    if (getLifecycleStatus() == LifecycleStatus.Stopped) {
-			getLogger().info("Initializing and starting microservice configuration...");
-			initializeAndStartConfiguration();
-		    } else {
-			getLogger().info("Detected configuration update. Restarting configuration...");
-			restartConfiguration();
-		    }
-		    getConfigurationAvailable().countDown();
-		} catch (SiteWhereException e) {
-		    getLogger().error("Unable to restart microservice.", e);
-		}
-	    }
-	});
+	// Signal that configuration is available.
+	getConfigurationAvailable().countDown();
     }
 
     /*
@@ -407,24 +408,11 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public void onMicroserviceDeleted(SiteWhereMicroservice microservice) {
 	this.lastMicroserviceResource = null;
-	onConfigurationDeleted();
-    }
-
-    /**
-     * Called when configuration for instance or microservice has been deleted.
-     */
-    protected void onConfigurationDeleted() {
-	getMicroserviceOperationsService().execute(new Runnable() {
-
-	    @Override
-	    public void run() {
-		try {
-		    stopAndTerminateConfiguration();
-		} catch (SiteWhereException e) {
-		    getLogger().error("Unable to stop microservice.", e);
-		}
-	    }
-	});
+	try {
+	    MicroserviceApplication.stopMicroservice(this);
+	} catch (SiteWhereException e) {
+	    getLogger().error("Error stopping deleted microservice.", e);
+	}
     }
 
     /*
@@ -433,206 +421,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public InstanceConfiguration getInstanceConfiguration() {
 	return this.instanceConfiguration;
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * configurationInitialize(com.sitewhere.microservice.configuration.model.
-     * instance.InstanceConfiguration,
-     * com.sitewhere.spi.microservice.IMicroserviceConfiguration,
-     * com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
-     */
-    @Override
-    public void configurationInitialize(InstanceConfiguration instance, C microservice,
-	    ILifecycleProgressMonitor monitor) throws SiteWhereException {
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * configurationStart(com.sitewhere.microservice.configuration.model.instance.
-     * InstanceConfiguration,
-     * com.sitewhere.spi.microservice.IMicroserviceConfiguration,
-     * com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
-     */
-    @Override
-    public void configurationStart(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
-	    throws SiteWhereException {
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * configurationStop(com.sitewhere.microservice.configuration.model.instance.
-     * InstanceConfiguration,
-     * com.sitewhere.spi.microservice.IMicroserviceConfiguration,
-     * com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
-     */
-    @Override
-    public void configurationStop(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
-	    throws SiteWhereException {
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * configurationTerminate(com.sitewhere.microservice.configuration.model.
-     * instance.InstanceConfiguration,
-     * com.sitewhere.spi.microservice.IMicroserviceConfiguration,
-     * com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
-     */
-    @Override
-    public void configurationTerminate(InstanceConfiguration instance, C microservice,
-	    ILifecycleProgressMonitor monitor) throws SiteWhereException {
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * initializeConfiguration()
-     */
-    @Override
-    public void initializeConfiguration() throws SiteWhereException {
-	getLogger().info("Initializing configurable microservice elements.");
-	try {
-	    // Load microservice configuration.
-	    SiteWhereInstance instance = getLastInstanceResource();
-	    if (instance == null || instance.getSpec() == null || instance.getSpec().getConfiguration() == null) {
-		throw new SiteWhereException("Global instance configuration not set. Unable to start microservice.");
-	    }
-
-	    // Load instance YAML configuration as JSON.
-	    try {
-		JsonNode instanceJson = instance.getSpec().getConfiguration();
-		InstanceConfiguration instanceConfiguration = MarshalUtils.unmarshalJsonNode(instanceJson,
-			InstanceConfiguration.class);
-		if (getLogger().isDebugEnabled()) {
-		    getLogger().debug(String.format("\nInstance configuration:\n\n%s\n",
-			    MarshalUtils.marshalJsonAsPrettyString(instanceConfiguration)));
-		}
-		this.instanceConfiguration = instanceConfiguration;
-	    } catch (JsonProcessingException e) {
-		throw new SiteWhereException(String.format("Invalid instance configuration (%s). Content is: \n\n%s\n",
-			e.getMessage(), instance.getSpec().getConfiguration()));
-	    }
-
-	    ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
-		    new LifecycleProgressContext(1, "Initialize microservice configuration."), getMicroservice());
-	    long start = System.currentTimeMillis();
-	    getLogger().info("Initializing from updated configuration...");
-	    configurationInitialize(getInstanceConfiguration(), getMicroserviceConfiguration(), monitor);
-	    if (getLifecycleStatus() == LifecycleStatus.LifecycleError) {
-		throw getMicroservice().getLifecycleError();
-	    }
-	    getLogger().info("Microservice configuration '" + getMicroservice().getName() + "' initialized in "
-		    + (System.currentTimeMillis() - start) + "ms.");
-	} catch (Throwable t) {
-	    getLogger().error("Unable to initialize microservice configuration '" + getMicroservice().getName() + "'.",
-		    t);
-	    throw t;
-	}
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * startConfiguration()
-     */
-    @Override
-    public void startConfiguration() throws SiteWhereException {
-	getLogger().info("Starting configurable microservice elements.");
-	try {
-	    // Start microservice.
-	    ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
-		    new LifecycleProgressContext(1, "Start microservice configuration."), getMicroservice());
-	    long start = System.currentTimeMillis();
-	    configurationStart(getInstanceConfiguration(), getMicroserviceConfiguration(), monitor);
-	    if (getMicroservice().getLifecycleStatus() == LifecycleStatus.LifecycleError) {
-		throw getMicroservice().getLifecycleError();
-	    }
-	    getLogger().info("Microservice configuration '" + getMicroservice().getName() + "' started in "
-		    + (System.currentTimeMillis() - start) + "ms.");
-	} catch (Throwable t) {
-	    getLogger().error("Unable to start microservice configuration '" + getMicroservice().getName() + "'.", t);
-	    throw t;
-	}
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * stopConfiguration()
-     */
-    @Override
-    public void stopConfiguration() throws SiteWhereException {
-	getLogger().info("Stopping configurable microservice elements.");
-	try {
-	    // Stop microservice.
-	    if (getLifecycleStatus() != LifecycleStatus.Stopped) {
-		ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
-			new LifecycleProgressContext(1, "Stop microservice configuration."), getMicroservice());
-		long start = System.currentTimeMillis();
-		configurationStop(getInstanceConfiguration(), getMicroserviceConfiguration(), monitor);
-		if (getLifecycleStatus() == LifecycleStatus.LifecycleError) {
-		    throw getMicroservice().getLifecycleError();
-		}
-		getMicroservice().getLogger().info("Microservice configuration '" + getMicroservice().getName()
-			+ "' stopped in " + (System.currentTimeMillis() - start) + "ms.");
-	    }
-	} catch (Throwable t) {
-	    getLogger().error("Unable to stop microservice configuration '" + getMicroservice().getName() + "'.", t);
-	    throw t;
-	}
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * terminateConfiguration()
-     */
-    @Override
-    public void terminateConfiguration() throws SiteWhereException {
-	getLogger().info("Terminating configurable microservice elements.");
-	try {
-	    // Terminate microservice.
-	    if (getLifecycleStatus() != LifecycleStatus.Terminated) {
-		ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
-			new LifecycleProgressContext(1, "Terminate microservice configuration."), this);
-		long start = System.currentTimeMillis();
-		configurationTerminate(getInstanceConfiguration(), getMicroserviceConfiguration(), monitor);
-		if (getLifecycleStatus() == LifecycleStatus.LifecycleError) {
-		    throw getMicroservice().getLifecycleError();
-		}
-		getLogger().info("Microservice configuration '" + getName() + "' terminated in "
-			+ (System.currentTimeMillis() - start) + "ms.");
-	    }
-	} catch (Throwable t) {
-	    getLogger().error("Unable to terminate microservice configuration '" + getName() + "'.", t);
-	    throw t;
-	}
-    }
-
-    /**
-     * Initialize and start the microservice components.
-     * 
-     * @throws SiteWhereException
-     */
-    protected void initializeAndStartConfiguration() throws SiteWhereException {
-	initializeConfiguration();
-	startConfiguration();
-    }
-
-    /**
-     * Stop and terminate the microservice components.
-     * 
-     * @throws SiteWhereException
-     */
-    protected void stopAndTerminateConfiguration() throws SiteWhereException {
-	stopConfiguration();
-	terminateConfiguration();
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
-     * restartConfiguration()
-     */
-    @Override
-    public void restartConfiguration() throws SiteWhereException {
-	stopAndTerminateConfiguration();
-	initializeAndStartConfiguration();
     }
 
     /*

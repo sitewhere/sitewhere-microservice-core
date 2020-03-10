@@ -133,12 +133,27 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
     IScriptTemplateManager getScriptTemplateManager();
 
     /**
-     * Connects microservice to k8s API server to allow it to respond to resource
-     * events.
+     * Performs initialization operations that should be executed outside of the
+     * standard microservice lifecycle.
      * 
      * @throws SiteWhereException
      */
     void install() throws SiteWhereException;
+
+    /**
+     * Shuts down the microservice, then restarts all components.
+     * 
+     * @throws SiteWhereException
+     */
+    void restart() throws SiteWhereException;
+
+    /**
+     * Performs shutdown operations that should be executed outside of the standard
+     * microservice lifecycle.
+     * 
+     * @throws SiteWhereException
+     */
+    void uninstall() throws SiteWhereException;
 
     /**
      * Code executed after microservice has been started.

@@ -27,7 +27,6 @@ import com.sitewhere.microservice.configuration.model.instance.infrastructure.Re
 import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
-import com.sitewhere.microservice.lifecycle.SimpleLifecycleStep;
 import com.sitewhere.microservice.metrics.MetricsServer;
 import com.sitewhere.microservice.scripting.ScriptManager;
 import com.sitewhere.microservice.scripting.ScriptTemplateManager;
@@ -315,18 +314,26 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	// Terminate script template manager.
 	stop.addStopStep(this, getScriptTemplateManager());
 
-	// Add step for stopping k8s client.
-	stop.addStep(new SimpleLifecycleStep("Stop Kubernetes client") {
-
-	    @Override
-	    public void execute(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-		getKubernetesClient().informers().stopAllRegisteredInformers();
-		getKubernetesClient().close();
-	    }
-	});
-
 	// Execute shutdown steps.
 	stop.execute(monitor);
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#restart()
+     */
+    @Override
+    public void restart() throws SiteWhereException {
+	MicroserviceApplication.stopMicroservice(this);
+	MicroserviceApplication.startMicroservice(this, false);
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#uninstall()
+     */
+    @Override
+    public void uninstall() throws SiteWhereException {
+	getKubernetesClient().informers().stopAllRegisteredInformers();
+	getKubernetesClient().close();
     }
 
     /*

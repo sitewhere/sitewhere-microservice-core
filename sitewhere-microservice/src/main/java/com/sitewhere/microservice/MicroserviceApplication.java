@@ -49,12 +49,18 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
      */
     void onStart(@Observes StartupEvent ev) {
 	getMicroservice().getLogger().info("Starting microservice...");
-	Future<Void> starting = executor.submit(new StartMicroservice());
 	try {
+	    // Set up resources outside of normal lifecycle.
+	    getMicroservice().install();
+
+	    Future<Void> starting = executor.submit(new StartMicroservice());
 	    starting.get();
 	    getMicroservice().getLogger().info("Microservice startup completed.");
 	} catch (InterruptedException | ExecutionException e) {
-	    getMicroservice().getLogger().info("Exiting due to interrupted startup.");
+	    getMicroservice().getLogger().info("Exiting due to interrupted startup.", e);
+	    System.exit(1);
+	} catch (SiteWhereException e) {
+	    getMicroservice().getLogger().info("Exiting due to exception on install.", e);
 	    System.exit(1);
 	}
     }
@@ -67,11 +73,72 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
 	Future<Void> stopping = executor.submit(new StopMicroservice());
 	try {
 	    stopping.get();
+
+	    // Clean up resources outside of normal lifecycle.
+	    getMicroservice().uninstall();
+
 	    getMicroservice().getLogger().info("Microservice shutdown complete.");
 	} catch (InterruptedException | ExecutionException e) {
 	    getMicroservice().getLogger().info("Exiting due to interrupted shutdown.");
 	    System.exit(1);
+	} catch (SiteWhereException e) {
+	    getMicroservice().getLogger().info("Exiting due to exception on uninstall.", e);
+	    System.exit(1);
 	}
+    }
+
+    /**
+     * Start a microservice.
+     * 
+     * @param microservice
+     * @param showBanner
+     * @throws SiteWhereException
+     */
+    public static void startMicroservice(IMicroservice<?, ?> microservice, boolean showBanner)
+	    throws SiteWhereException {
+	long start = System.currentTimeMillis();
+
+	// Adds banner to the top of the log.
+	String banner = showBanner ? getBanner(microservice) : "";
+
+	// Display banner indicating service information.
+	List<String> messages = new ArrayList<String>();
+	messages.add(microservice.getName() + " Microservice");
+	messages.add("Version: " + microservice.getVersion().getVersionIdentifier() + "."
+		+ microservice.getVersion().getGitRevisionAbbrev());
+	messages.add("Git Revision: " + microservice.getVersion().getGitRevision());
+	messages.add("Build Date: " + microservice.getVersion().getBuildTimestamp());
+	messages.add("Hostname: " + microservice.getHostname());
+	String message = Boilerplate.boilerplate(messages, "*");
+	microservice.getLogger().info(String.format("\n%s\n%s\n", banner, message));
+
+	// Initialize microservice.
+	LifecycleProgressMonitor initMonitor = new LifecycleProgressMonitor(
+		new LifecycleProgressContext(1, "Initialize " + microservice.getName()), microservice);
+	microservice.lifecycleInitialize(initMonitor);
+	if (microservice.getLifecycleStatus() == LifecycleStatus.InitializationError) {
+	    microservice.getLogger().info("Error initializing microservice.", microservice.getLifecycleError());
+	    throw microservice.getLifecycleError();
+	}
+
+	// Start microservice.
+	LifecycleProgressMonitor startMonitor = new LifecycleProgressMonitor(
+		new LifecycleProgressContext(1, "Start " + microservice.getName()), microservice);
+	microservice.lifecycleStart(startMonitor);
+	if (microservice.getLifecycleStatus() == LifecycleStatus.LifecycleError) {
+	    microservice.getLogger().info("Error starting microservice.", microservice.getLifecycleError());
+	    throw microservice.getLifecycleError();
+	}
+
+	long total = System.currentTimeMillis() - start;
+	messages.clear();
+	messages.add(microservice.getName() + " Microservice");
+	messages.add("Startup time: " + total + "ms");
+	message = Boilerplate.boilerplate(messages, "*");
+	microservice.getLogger().info("\n" + message + "\n");
+
+	// Execute any post-startup code.
+	microservice.afterMicroserviceStarted();
     }
 
     /**
@@ -85,7 +152,7 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
 	@Override
 	public Void call() throws Exception {
 	    try {
-		startMicroservice();
+		MicroserviceApplication.startMicroservice(getMicroservice(), true);
 	    } catch (SiteWhereException e) {
 		getMicroservice().getLogger().error("Exception on microservice startup.", e);
 		StringBuilder builder = new StringBuilder();
@@ -106,86 +173,30 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
 	    return null;
 	}
 
-	/**
-	 * Start microservice.
-	 * 
-	 * @throws SiteWhereException
-	 */
-	protected void startMicroservice() throws SiteWhereException {
-	    long start = System.currentTimeMillis();
-
-	    // Adds banner to the top of the log.
-	    String banner = getBanner();
-
-	    // Display banner indicating service information.
-	    List<String> messages = new ArrayList<String>();
-	    messages.add(getMicroservice().getName() + " Microservice");
-	    messages.add("Version: " + getMicroservice().getVersion().getVersionIdentifier() + "."
-		    + getMicroservice().getVersion().getGitRevisionAbbrev());
-	    messages.add("Git Revision: " + getMicroservice().getVersion().getGitRevision());
-	    messages.add("Build Date: " + getMicroservice().getVersion().getBuildTimestamp());
-	    messages.add("Hostname: " + getMicroservice().getHostname());
-	    String message = Boilerplate.boilerplate(messages, "*");
-	    getMicroservice().getLogger().info(String.format("\n%s\n%s\n", banner, message));
-
-	    // Start listening to k8s event stream.
-	    getMicroservice().install();
-
-	    // Initialize microservice.
-	    LifecycleProgressMonitor initMonitor = new LifecycleProgressMonitor(
-		    new LifecycleProgressContext(1, "Initialize " + getMicroservice().getName()), getMicroservice());
-	    getMicroservice().lifecycleInitialize(initMonitor);
-	    if (getMicroservice().getLifecycleStatus() == LifecycleStatus.InitializationError) {
-		getMicroservice().getLogger().info("Error initializing microservice.",
-			getMicroservice().getLifecycleError());
-		throw getMicroservice().getLifecycleError();
-	    }
-
-	    // Start microservice.
-	    LifecycleProgressMonitor startMonitor = new LifecycleProgressMonitor(
-		    new LifecycleProgressContext(1, "Start " + getMicroservice().getName()), getMicroservice());
-	    getMicroservice().lifecycleStart(startMonitor);
-	    if (getMicroservice().getLifecycleStatus() == LifecycleStatus.LifecycleError) {
-		getMicroservice().getLogger().info("Error starting microservice.",
-			getMicroservice().getLifecycleError());
-		throw getMicroservice().getLifecycleError();
-	    }
-
-	    long total = System.currentTimeMillis() - start;
-	    messages.clear();
-	    messages.add(getMicroservice().getName() + " Microservice");
-	    messages.add("Startup time: " + total + "ms");
-	    message = Boilerplate.boilerplate(messages, "*");
-	    getMicroservice().getLogger().info("\n" + message + "\n");
-
-	    // Execute any post-startup code.
-	    getMicroservice().afterMicroserviceStarted();
-	}
     }
 
     /**
-     * Get banner content from file.
+     * Stop microservice.
      * 
-     * @return
+     * @param microservice
+     * @throws SiteWhereException
      */
-    protected String getBanner() {
-	InputStream banner = getClass().getResourceAsStream("/banner.txt");
-	if (banner != null) {
-	    StringBuilder builder = new StringBuilder();
-	    try (BufferedReader reader = new BufferedReader(new InputStreamReader(banner))) {
-		String line = reader.readLine();
-		while (line != null) {
-		    builder.append(line).append("\n");
-		    line = reader.readLine();
-		}
-		return builder.toString();
-	    } catch (IOException e) {
-		getMicroservice().getLogger().warn("Unable to read banner.");
-	    }
-	} else {
-	    getMicroservice().getLogger().warn("No banner file found.");
+    public static void stopMicroservice(IMicroservice<?, ?> microservice) throws SiteWhereException {
+	// Stop microservice.
+	LifecycleProgressMonitor stopMonitor = new LifecycleProgressMonitor(
+		new LifecycleProgressContext(1, "Stop " + microservice.getName()), microservice);
+	microservice.lifecycleStop(stopMonitor);
+	if (microservice.getLifecycleStatus() == LifecycleStatus.LifecycleError) {
+	    throw microservice.getLifecycleError();
 	}
-	return "";
+
+	// Terminate microservice.
+	LifecycleProgressMonitor termMonitor = new LifecycleProgressMonitor(
+		new LifecycleProgressContext(1, "Terminate " + microservice.getName()), microservice);
+	microservice.lifecycleTerminate(termMonitor);
+	if (microservice.getLifecycleStatus() == LifecycleStatus.LifecycleError) {
+	    throw microservice.getLifecycleError();
+	}
     }
 
     /**
@@ -199,7 +210,7 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
 	@Override
 	public Void call() throws Exception {
 	    try {
-		stopMicroservice();
+		MicroserviceApplication.stopMicroservice(getMicroservice());
 	    } catch (SiteWhereException e) {
 		getMicroservice().getLogger().error("Exception on microservice shutdown.", e);
 		StringBuilder builder = new StringBuilder();
@@ -219,29 +230,32 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
 	    }
 	    return null;
 	}
+    }
 
-	/**
-	 * Stop microservice.
-	 * 
-	 * @throws SiteWhereException
-	 */
-	protected void stopMicroservice() throws SiteWhereException {
-	    // Stop microservice.
-	    LifecycleProgressMonitor stopMonitor = new LifecycleProgressMonitor(
-		    new LifecycleProgressContext(1, "Stop " + getMicroservice().getName()), getMicroservice());
-	    getMicroservice().lifecycleStop(stopMonitor);
-	    if (getMicroservice().getLifecycleStatus() == LifecycleStatus.LifecycleError) {
-		throw getMicroservice().getLifecycleError();
+    /**
+     * Get banner content from file.
+     * 
+     * @param microservice
+     * @return
+     */
+    protected static String getBanner(IMicroservice<?, ?> microservice) {
+	InputStream banner = microservice.getClass().getResourceAsStream("/banner.txt");
+	if (banner != null) {
+	    StringBuilder builder = new StringBuilder();
+	    try (BufferedReader reader = new BufferedReader(new InputStreamReader(banner))) {
+		String line = reader.readLine();
+		while (line != null) {
+		    builder.append(line).append("\n");
+		    line = reader.readLine();
+		}
+		return builder.toString();
+	    } catch (IOException e) {
+		microservice.getLogger().warn("Unable to read banner.");
 	    }
-
-	    // Terminate microservice.
-	    LifecycleProgressMonitor termMonitor = new LifecycleProgressMonitor(
-		    new LifecycleProgressContext(1, "Terminate " + getMicroservice().getName()), getMicroservice());
-	    getMicroservice().lifecycleTerminate(termMonitor);
-	    if (getMicroservice().getLifecycleStatus() == LifecycleStatus.LifecycleError) {
-		throw getMicroservice().getLifecycleError();
-	    }
+	} else {
+	    microservice.getLogger().warn("No banner file found.");
 	}
+	return "";
     }
 
     /** Used for naming primary microservice thread */

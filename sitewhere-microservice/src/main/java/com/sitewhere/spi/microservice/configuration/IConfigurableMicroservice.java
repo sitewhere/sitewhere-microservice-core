@@ -8,12 +8,10 @@
 package com.sitewhere.spi.microservice.configuration;
 
 import com.google.inject.Injector;
-import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
-import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.scripting.IScriptManagement;
 
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
@@ -108,83 +106,4 @@ public interface IConfigurableMicroservice<F extends IFunctionIdentifier, C exte
      * been configured via the module.
      */
     Injector getInjector();
-
-    /**
-     * Initialize configurable components.
-     * 
-     * @param instance
-     * @param microservice
-     * @param monitor
-     * @throws SiteWhereException
-     */
-    void configurationInitialize(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
-	    throws SiteWhereException;
-
-    /**
-     * Start configurable components.
-     * 
-     * @param instance
-     * @param microservice
-     * @param monitor
-     * @throws SiteWhereException
-     */
-    void configurationStart(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
-	    throws SiteWhereException;
-
-    /**
-     * Stop configurable components.
-     * 
-     * @param instance
-     * @param microservice
-     * @param monitor
-     * @throws SiteWhereException
-     */
-    void configurationStop(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
-	    throws SiteWhereException;
-
-    /**
-     * Terminate configurable components.
-     * 
-     * @param instance
-     * @param microservice
-     * @param monitor
-     * @throws SiteWhereException
-     */
-    void configurationTerminate(InstanceConfiguration instance, C microservice, ILifecycleProgressMonitor monitor)
-	    throws SiteWhereException;
-
-    /**
-     * Initialize the current configuration.
-     * 
-     * @throws SiteWhereException
-     */
-    void initializeConfiguration() throws SiteWhereException;
-
-    /**
-     * Start the current configuration.
-     * 
-     * @throws SiteWhereException
-     */
-    void startConfiguration() throws SiteWhereException;
-
-    /**
-     * Stop the current configuration.
-     * 
-     * @throws SiteWhereException
-     */
-    void stopConfiguration() throws SiteWhereException;
-
-    /**
-     * Terminate the current configuration.
-     * 
-     * @throws SiteWhereException
-     */
-    void terminateConfiguration() throws SiteWhereException;
-
-    /**
-     * Restart the current configuration.
-     * 
-     * @throws SiteWhereException
-     */
-    void restartConfiguration() throws SiteWhereException;
 }
