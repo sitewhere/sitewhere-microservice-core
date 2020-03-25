@@ -48,6 +48,9 @@ public class TenantEngineConfigurationMonitor extends SiteWhereResourceControlle
     /** Resync period in milliseconds */
     private static final int RESYNC_PERIOD_MS = 10 * 60 * 1000;
 
+    /** Get current tenant engine resource */
+    private SiteWhereTenantEngine tenantEngineResource;
+
     /** Identifier for type of tenant engines to monitor */
     private IFunctionIdentifier functionIdentifier;
 
@@ -111,22 +114,62 @@ public class TenantEngineConfigurationMonitor extends SiteWhereResourceControlle
 	    LOGGER.debug(String.format("Ignoring tenant engine changes for unrelated microservice: '%s'", function));
 	    return;
 	}
+
+	// Skip changes that don't affect specification.
+	if (this.tenantEngineResource != null && this.tenantEngineResource.getMetadata().getGeneration() == tenantEngine
+		.getMetadata().getGeneration()) {
+	    return;
+	}
+
 	LOGGER.info(String.format("Detected %s resource change in tenant engine %s.", type.name(),
 		tenantEngine.getMetadata().getName()));
+	SiteWhereTenantEngine previous = this.tenantEngineResource;
 	switch (type) {
 	case CREATE: {
+	    this.tenantEngineResource = tenantEngine;
 	    getListeners().forEach(listener -> listener.onTenantEngineCreated(tenantEngine));
 	    break;
 	}
 	case UPDATE: {
-	    getListeners().forEach(listener -> listener.onTenantEngineUpdated(tenantEngine));
+	    this.tenantEngineResource = tenantEngine;
+	    TenantEngineSpecUpdates specUpdates = findSpecificationUpdates(previous, tenantEngine);
+	    getListeners().forEach(listener -> listener.onTenantEngineUpdated(tenantEngine, specUpdates));
 	    break;
 	}
 	case DELETE: {
+	    this.tenantEngineResource = null;
 	    getListeners().forEach(listener -> listener.onTenantEngineDeleted(tenantEngine));
 	    break;
 	}
 	}
+    }
+
+    /**
+     * Determine which updates were made to tenant engine specification.
+     * 
+     * @param previous
+     * @param updated
+     * @return
+     */
+    protected TenantEngineSpecUpdates findSpecificationUpdates(SiteWhereTenantEngine previous,
+	    SiteWhereTenantEngine updated) {
+	TenantEngineSpecUpdates updates = new TenantEngineSpecUpdates();
+	SiteWhereTenantEngineSpec oldSpec = previous.getSpec();
+	SiteWhereTenantEngineSpec newSpec = updated.getSpec();
+
+	// Check for null in new spec.
+	if (newSpec == null) {
+	    LOGGER.warn("New tenant engine spec set to NULL!");
+	    return updates;
+	}
+
+	// Check whether configuration was updated.
+	if (oldSpec == null || (oldSpec.getConfiguration() != null
+		&& !oldSpec.getConfiguration().equals(newSpec.getConfiguration()))) {
+	    updates.setConfigurationUpdated(true);
+	}
+
+	return updates;
     }
 
     /*

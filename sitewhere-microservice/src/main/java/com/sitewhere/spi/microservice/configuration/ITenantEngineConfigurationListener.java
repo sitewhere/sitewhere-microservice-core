@@ -25,8 +25,9 @@ public interface ITenantEngineConfigurationListener {
      * Called when tenant engine configuration is updated.
      * 
      * @param engine
+     * @param specUpdates
      */
-    void onTenantEngineUpdated(SiteWhereTenantEngine engine);
+    void onTenantEngineUpdated(SiteWhereTenantEngine engine, ITenantEngineSpecUpdates specUpdates);
 
     /**
      * Called when tenant engine configuration is deleted.

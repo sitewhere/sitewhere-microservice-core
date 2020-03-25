@@ -25,6 +25,7 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationListener;
+import com.sitewhere.spi.microservice.configuration.ITenantEngineSpecUpdates;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
@@ -155,11 +156,22 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
     /*
      * @see com.sitewhere.spi.microservice.configuration.
      * ITenantEngineConfigurationListener#onTenantEngineUpdated(io.sitewhere.k8s.crd
-     * .tenant.engine.SiteWhereTenantEngine)
+     * .tenant.engine.SiteWhereTenantEngine,
+     * com.sitewhere.spi.microservice.configuration.ITenantEngineSpecUpdates)
      */
     @Override
-    public void onTenantEngineUpdated(SiteWhereTenantEngine engine) {
-	getLogger().info(String.format("Tenant engine updated for %s", engine.getMetadata().getName()));
+    public void onTenantEngineUpdated(SiteWhereTenantEngine engine, ITenantEngineSpecUpdates specUpdates) {
+	if (specUpdates.isConfigurationUpdated()) {
+	    try {
+		String token = getTenantTokenForTenantEngine(engine);
+		getLogger().info(String.format("Tenant engine configuration updated for tenant '%s'.", token));
+		if (token != null) {
+		    restartTenantEngine(token);
+		}
+	    } catch (SiteWhereException e) {
+		getLogger().error("Unable to process tenant engine update.", e);
+	    }
+	}
     }
 
     /*
@@ -230,13 +242,22 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
      * restartTenantEngine(java.lang.String)
      */
     @Override
-    public void restartTenantEngine(String token) throws SiteWhereException {
-	// Shut down and remove existing tenant engine.
-	removeTenantEngine(token);
-	getLogger().info("Tenant engine shut down successfully. Queueing for restart...");
+    public void restartTenantEngine(String token) {
+	getTenantOperations().execute(new Runnable() {
 
-	// Add to queue for restart.
-	getTenantInitializationQueue().offer(null);
+	    @Override
+	    public void run() {
+		try {
+		    T engine = getTenantEngineByToken(token);
+		    if (engine != null) {
+			stopTenantEngine(token);
+			startTenantEngine(engine.getTenantEngineResource());
+		    }
+		} catch (SiteWhereException e) {
+		    getLogger().error("Error restarting tenant engine.", e);
+		}
+	    }
+	});
     }
 
     /*
@@ -249,11 +270,7 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
 	    getLogger().info(
 		    String.format("Queueing %d tenant engines for restart...", getInitializedTenantEngines().size()));
 	    getInitializedTenantEngines().forEach((tenantId, engine) -> {
-		try {
-		    restartTenantEngine(tenantId);
-		} catch (SiteWhereException e) {
-		    getLogger().error(String.format("Unable to restart tenant engine '%s'.", tenantId));
-		}
+		restartTenantEngine(tenantId);
 	    });
 	}
     }
@@ -353,6 +370,113 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
     }
 
     /**
+     * Start engine for a tenant.
+     * 
+     * @param engine
+     * @throws SiteWhereException
+     */
+    protected void startTenantEngine(SiteWhereTenantEngine engine) throws SiteWhereException {
+	T created = null;
+	String token = null;
+	try {
+	    // Mark that an engine is being initialized.
+	    token = getTenantTokenForTenantEngine(engine);
+	    getInitializingTenantEngines().put(token, engine);
+	    getLogger().info(String.format("Creating tenant engine for '%s'...", engine.getMetadata().getName()));
+
+	    created = getMultitenantMicroservice().createTenantEngine(engine);
+	    created.setTenantEngine(created); // Required for nested components.
+
+	    // Initialize new engine.
+	    getLogger().info(String.format("Intializing tenant engine for '%s'.", engine.getMetadata().getName()));
+	    ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
+		    new LifecycleProgressContext(1, "Initialize tenant engine."), getMicroservice());
+	    long start = System.currentTimeMillis();
+	    getMicroservice().initializeNestedComponent(created, monitor, true);
+
+	    // Mark tenant engine as initialized and remove failed engine if present.
+	    getInitializedTenantEngines().put(token, created);
+	    getFailedTenantEngines().remove(token);
+
+	    getLogger().info(String.format("Tenant engine for '%s' initialized in %sms.",
+		    engine.getMetadata().getName(), String.valueOf(System.currentTimeMillis() - start)));
+
+	    // Start new engine.
+	    getLogger().info("Starting tenant engine for '" + created.getName() + "'.");
+	    monitor = new LifecycleProgressMonitor(new LifecycleProgressContext(1, "Start tenant engine."),
+		    created.getMicroservice());
+	    start = System.currentTimeMillis();
+	    created.lifecycleStart(monitor);
+	    if (created.getLifecycleStatus() == LifecycleStatus.LifecycleError) {
+		throw created.getLifecycleError();
+	    }
+	    getLogger().info("Tenant engine for '" + created.getName() + "' started in "
+		    + (System.currentTimeMillis() - start) + "ms.");
+	} catch (Throwable t) {
+	    // Keep map of failed tenant engines.
+	    if (created != null && token != null) {
+		getFailedTenantEngines().put(token, created);
+	    }
+	    getLogger().error(
+		    String.format("Unable to initialize tenant engine for '%s'.", engine.getMetadata().getName()), t);
+	    throw new SiteWhereException(t);
+	} finally {
+	    // Make sure that tenant is cleared from the pending map.
+	    if (token != null) {
+		getInitializingTenantEngines().remove(token);
+	    }
+	}
+    }
+
+    /**
+     * Stop tenant engine corresponding to the given tenant token.
+     * 
+     * @param token
+     * @throws SiteWhereException
+     */
+    protected void stopTenantEngine(String token) throws SiteWhereException {
+	// Verify that multiple threads don't start duplicate engines.
+	if (getStoppingTenantEngines().get(token) != null) {
+	    getLogger().debug(String.format("Skipping shutdown for engine already stopping '%s'.", token));
+	    return;
+	}
+
+	// Remove from list of initialized engines.
+	T engine = getInitializedTenantEngines().remove(token);
+	if (engine != null) {
+	    try {
+		// Look up tenant and add it to initializing tenants map.
+		getStoppingTenantEngines().put(token, engine.getTenantEngineResource());
+
+		// Stop tenant engine.
+		getLogger().info(String.format("Stopping tenant engine for '%s'.", token));
+		ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
+			new LifecycleProgressContext(1, "Stop tenant engine."), engine.getMicroservice());
+		long start = System.currentTimeMillis();
+		engine.lifecycleStop(monitor);
+		if (engine.getLifecycleStatus() == LifecycleStatus.LifecycleError) {
+		    throw engine.getLifecycleError();
+		}
+		getLogger().info(String.format("Tenant engine '%s' stopped in %sms.", token,
+			(System.currentTimeMillis() - start)));
+
+		getLogger().info(String.format("Terminating tenant engine for '%s'.", token));
+		monitor = new LifecycleProgressMonitor(new LifecycleProgressContext(1, "Terminate tenant engine."),
+			engine.getMicroservice());
+		start = System.currentTimeMillis();
+		engine.lifecycleTerminate(monitor);
+		if (engine.getLifecycleStatus() == LifecycleStatus.LifecycleError) {
+		    throw engine.getLifecycleError();
+		}
+		getLogger().info(String.format("Tenant engine '%s' terminated in %sms.", token,
+			(System.currentTimeMillis() - start)));
+	    } finally {
+		getStoppingTenantEngines().remove(token);
+	    }
+	}
+    }
+
+    /**
      * Processes the list of tenants waiting for tenant engines to be started.
      */
     private class TenantEngineStarter extends SystemUserRunnable {
@@ -403,66 +527,6 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
 		}
 	    }
 	}
-
-	/**
-	 * Start engine for a tenant.
-	 * 
-	 * @param tenant
-	 * @throws SiteWhereException
-	 */
-	protected void startTenantEngine(SiteWhereTenantEngine engine) throws SiteWhereException {
-	    T created = null;
-	    String token = null;
-	    try {
-		// Mark that an engine is being initialized.
-		token = getTenantTokenForTenantEngine(engine);
-		getInitializingTenantEngines().put(token, engine);
-		getLogger().info(String.format("Creating tenant engine for '%s'...", engine.getMetadata().getName()));
-
-		created = getMultitenantMicroservice().createTenantEngine(engine);
-		created.setTenantEngine(created); // Required for nested components.
-
-		// Initialize new engine.
-		getLogger().info(String.format("Intializing tenant engine for '%s'.", engine.getMetadata().getName()));
-		ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
-			new LifecycleProgressContext(1, "Initialize tenant engine."), getMicroservice());
-		long start = System.currentTimeMillis();
-		getMicroservice().initializeNestedComponent(created, monitor, true);
-
-		// Mark tenant engine as initialized and remove failed engine if present.
-		getInitializedTenantEngines().put(token, created);
-		getFailedTenantEngines().remove(token);
-
-		getLogger().info(String.format("Tenant engine for '%s' initialized in %sms.",
-			engine.getMetadata().getName(), String.valueOf(System.currentTimeMillis() - start)));
-
-		// Start new engine.
-		getLogger().info("Starting tenant engine for '" + created.getName() + "'.");
-		monitor = new LifecycleProgressMonitor(new LifecycleProgressContext(1, "Start tenant engine."),
-			created.getMicroservice());
-		start = System.currentTimeMillis();
-		created.lifecycleStart(monitor);
-		if (created.getLifecycleStatus() == LifecycleStatus.LifecycleError) {
-		    throw created.getLifecycleError();
-		}
-		getLogger().info("Tenant engine for '" + created.getName() + "' started in "
-			+ (System.currentTimeMillis() - start) + "ms.");
-	    } catch (Throwable t) {
-		// Keep map of failed tenant engines.
-		if (created != null && token != null) {
-		    getFailedTenantEngines().put(token, created);
-		}
-		getLogger().error(
-			String.format("Unable to initialize tenant engine for '%s'.", engine.getMetadata().getName()),
-			t);
-		throw new SiteWhereException(t);
-	    } finally {
-		// Make sure that tenant is cleared from the pending map.
-		if (token != null) {
-		    getInitializingTenantEngines().remove(token);
-		}
-	    }
-	}
     }
 
     /**
@@ -486,44 +550,10 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
 		    SiteWhereTenantEngine engine = getTenantShutdownQueue().take();
 		    String token = getTenantTokenForTenantEngine(engine);
 
-		    // Verify that multiple threads don't start duplicate engines.
-		    if (getStoppingTenantEngines().get(token) != null) {
-			getLogger().debug(String.format("Skipping shutdown for engine already stopping '%s'.", token));
-			continue;
-		    }
-
-		    // Look up tenant and add it to initializing tenants map.
-		    getStoppingTenantEngines().put(token, engine);
-
 		    // Start tenant shutdown.
 		    T existing = getTenantEngineByToken(token);
 		    if (existing != null) {
-			// Remove from list of initialized engines.
-			getInitializedTenantEngines().remove(token);
-
-			// Stop tenant engine.
-			getLogger().info(String.format("Stopping tenant engine for '%s'.", existing.getName()));
-			ILifecycleProgressMonitor monitor = new LifecycleProgressMonitor(
-				new LifecycleProgressContext(1, "Stop tenant engine."), existing.getMicroservice());
-			long start = System.currentTimeMillis();
-			existing.lifecycleStop(monitor);
-			if (existing.getLifecycleStatus() == LifecycleStatus.LifecycleError) {
-			    throw existing.getLifecycleError();
-			}
-			getLogger().info(String.format("Tenant engine '%s' stopped in %sms.", existing.getName(),
-				(System.currentTimeMillis() - start)));
-
-			getLogger().info(String.format("Terminating tenant engine '%s'.", existing.getName()));
-			monitor = new LifecycleProgressMonitor(
-				new LifecycleProgressContext(1, "Terminate tenant engine."),
-				existing.getMicroservice());
-			start = System.currentTimeMillis();
-			existing.lifecycleTerminate(monitor);
-			if (existing.getLifecycleStatus() == LifecycleStatus.LifecycleError) {
-			    throw existing.getLifecycleError();
-			}
-			getLogger().info(String.format("Tenant engine '%s' terminated in %sms.", existing.getName(),
-				(System.currentTimeMillis() - start)));
+			stopTenantEngine(token);
 		    } else {
 			getLogger().info("Tenant engine does not exist for '" + token + "'.");
 		    }

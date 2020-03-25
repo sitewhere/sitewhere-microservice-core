@@ -36,15 +36,17 @@ public interface ITenantEngineManager<T extends IMicroserviceTenantEngine<?>>
     T assureTenantEngineAvailable(String token) throws TenantEngineNotAvailableException;
 
     /**
-     * Shuts down and restarts the given tenant engine.
+     * Shuts down and restarts the given tenant engine. Note that restart happens
+     * asynchronously based on available tenant operation threads.
      * 
      * @param token
-     * @throws SiteWhereException
      */
-    void restartTenantEngine(String token) throws SiteWhereException;
+    void restartTenantEngine(String token);
 
     /**
-     * Restart all tenant engines.
+     * Restart all tenant engines. Note that restarts happen asynchronously based on
+     * available tenant operation threads. If all threads are used, this method will
+     * block.
      * 
      * @throws SiteWhereException
      */
