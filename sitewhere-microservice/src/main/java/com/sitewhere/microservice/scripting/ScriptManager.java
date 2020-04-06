@@ -7,80 +7,157 @@
  */
 package com.sitewhere.microservice.scripting;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.graalvm.polyglot.Source;
+
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.scripting.IScriptManager;
-import com.sitewhere.spi.microservice.scripting.IScriptMetadata;
+
+import io.sitewhere.k8s.crd.ResourceLabels;
+import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScript;
+import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScriptList;
+import io.sitewhere.k8s.crd.tenant.scripting.version.SiteWhereScriptVersion;
 
 /**
- * Manages scripts for a microservice or tenant engine.
+ * Manages scripts for a tenant engine.
  */
 public class ScriptManager extends TenantEngineLifecycleComponent implements IScriptManager {
 
-    /** Map of managed scripts by identifier */
-    private Map<String, ScriptMetadataAndContent> scriptsById = new HashMap<>();
+    /** Map of active scripts by identifier */
+    private Map<String, ActiveScript> scriptsById = new HashMap<>();
 
     /*
-     * @see com.sitewhere.spi.microservice.scripting.IScriptManager#addScript(com.
-     * sitewhere.spi.microservice.scripting.IScriptMetadata, java.lang.String)
+     * @see com.sitewhere.spi.microservice.scripting.IScriptManager#addScript(io.
+     * sitewhere.k8s.crd.tenant.scripting.SiteWhereScript,
+     * io.sitewhere.k8s.crd.tenant.scripting.version.SiteWhereScriptVersion)
      */
     @Override
-    public void addScript(IScriptMetadata metadata, String content) throws SiteWhereException {
-	ScriptMetadataAndContent script = new ScriptMetadataAndContent(metadata, content);
-	getScriptsById().put(metadata.getId(), script);
+    public void addScript(SiteWhereScript script, SiteWhereScriptVersion version) throws SiteWhereException {
+	ActiveScript active = new ActiveScript();
+	active.loadFrom(script, version);
+	getScriptsById().put(script.getMetadata().getName(), active);
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.scripting.IScriptManager#removeScript(io.
+     * sitewhere.k8s.crd.tenant.scripting.SiteWhereScript)
+     */
+    @Override
+    public void removeScript(SiteWhereScript script) {
+	getScriptsById().remove(script.getMetadata().getName());
     }
 
     /*
      * @see
-     * com.sitewhere.spi.microservice.scripting.IScriptManager#resolveScript(java.
-     * lang.String)
+     * com.sitewhere.spi.microservice.scripting.IScriptManager#resolveScriptContent(
+     * java.lang.String)
      */
     @Override
-    public String resolveScript(String identifier) throws SiteWhereException {
-	ScriptMetadataAndContent script = getScriptsById().get(identifier);
+    public Source resolveScriptSource(String identifier) throws SiteWhereException {
+	ActiveScript script = getScriptsById().get(identifier);
 	if (script != null) {
-	    return script.getContent();
+	    return script.getSource();
 	}
-	return null;
+	throw new SiteWhereException(String.format("Unable to find script for identifier: '%s'", identifier));
     }
 
-    protected Map<String, ScriptMetadataAndContent> getScriptsById() {
+    /*
+     * @see com.sitewhere.microservice.lifecycle.LifecycleComponent#initialize(com.
+     * sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
+     */
+    @Override
+    public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
+	String functionalArea = getMicroservice().getIdentifier().getPath();
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	SiteWhereScriptList scripts = getMicroservice().getSiteWhereKubernetesClient().getScripts()
+		.inNamespace(namespace).withLabel(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, functionalArea)
+		.list();
+	for (SiteWhereScript script : scripts.getItems()) {
+	    String activeVersion = script.getSpec().getActiveVersion();
+	    if (activeVersion != null) {
+		SiteWhereScriptVersion version = getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions()
+			.inNamespace(namespace).withName(activeVersion).get();
+		if (version != null) {
+		    addScript(script, version);
+		    getLogger().info(String.format("Added managed script '%s' with version '%s'.",
+			    script.getSpec().getName(), version.getMetadata().getName()));
+		}
+	    }
+	}
+    }
+
+    protected Map<String, ActiveScript> getScriptsById() {
 	return scriptsById;
     }
 
     /**
      * Holds both script metadata and associated content.
      */
-    protected class ScriptMetadataAndContent {
+    protected class ActiveScript {
 
 	/** Script metadata */
-	private IScriptMetadata metadata;
+	private SiteWhereScript script;
 
-	/** Script content */
-	private String content;
+	/** Script version */
+	private SiteWhereScriptVersion version;
 
-	public ScriptMetadataAndContent(IScriptMetadata metadata, String content) {
-	    this.metadata = metadata;
-	    this.content = content;
+	/** GraalVM source */
+	private Source source;
+
+	protected Source createSource(SiteWhereScript script, SiteWhereScriptVersion version)
+		throws SiteWhereException {
+	    if ("js".equals(script.getSpec().getInterpreterType())) {
+		try {
+		    return Source.newBuilder(ScriptingConstants.LANGUAGE_JAVASCRIPT, version.getSpec().getContent(),
+			    version.getMetadata().getName()).build();
+		} catch (IOException e) {
+		    throw new SiteWhereException("Unable to cache script context.", e);
+		}
+	    }
+	    throw new SiteWhereException(
+		    String.format("Unknown interpreter type: %s", script.getSpec().getInterpreterType()));
 	}
 
-	public IScriptMetadata getMetadata() {
-	    return metadata;
+	/**
+	 * Load cached version of script content based on k8s resources.
+	 * 
+	 * @param script
+	 * @param version
+	 * @throws SiteWhereException
+	 */
+	public void loadFrom(SiteWhereScript script, SiteWhereScriptVersion version) throws SiteWhereException {
+	    this.script = script;
+	    this.version = version;
+	    this.source = createSource(script, version);
 	}
 
-	public void setMetadata(IScriptMetadata metadata) {
-	    this.metadata = metadata;
+	public SiteWhereScript getScript() {
+	    return script;
 	}
 
-	public String getContent() {
-	    return content;
+	public void setScript(SiteWhereScript script) {
+	    this.script = script;
 	}
 
-	public void setContent(String content) {
-	    this.content = content;
+	public SiteWhereScriptVersion getVersion() {
+	    return version;
+	}
+
+	public void setVersion(SiteWhereScriptVersion version) {
+	    this.version = version;
+	}
+
+	public Source getSource() {
+	    return source;
+	}
+
+	public void setSource(Source source) {
+	    this.source = source;
 	}
     }
 }

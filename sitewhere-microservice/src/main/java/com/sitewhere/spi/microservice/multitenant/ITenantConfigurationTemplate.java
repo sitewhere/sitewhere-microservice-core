@@ -11,7 +11,7 @@ package com.sitewhere.spi.microservice.multitenant;
  * Contains information about a template that can be used to configure a new
  * tenant.
  */
-public interface ITenantTemplate {
+public interface ITenantConfigurationTemplate {
 
     /**
      * Get unique template id.

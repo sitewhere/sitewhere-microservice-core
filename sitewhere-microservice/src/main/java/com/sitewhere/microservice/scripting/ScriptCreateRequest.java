@@ -23,8 +23,11 @@ public class ScriptCreateRequest implements IScriptCreateRequest {
     /** Short description */
     private String description;
 
-    /** Type (file suffix) */
-    private String type;
+    /** Category */
+    private String category;
+
+    /** Interpreter type */
+    private String interpreterType;
 
     /** Script content (base 64 encoded) */
     private String content;
@@ -68,15 +71,29 @@ public class ScriptCreateRequest implements IScriptCreateRequest {
     }
 
     /*
-     * @see com.sitewhere.spi.microservice.scripting.IScriptCreateRequest#getType()
+     * @see
+     * com.sitewhere.spi.microservice.scripting.IScriptCreateRequest#getCategory()
      */
     @Override
-    public String getType() {
-	return type;
+    public String getCategory() {
+	return category;
     }
 
-    public void setType(String type) {
-	this.type = type;
+    public void setCategory(String category) {
+	this.category = category;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.scripting.IScriptCreateRequest#
+     * getInterpreterType()
+     */
+    @Override
+    public String getInterpreterType() {
+	return interpreterType;
+    }
+
+    public void setInterpreterType(String interpreterType) {
+	this.interpreterType = interpreterType;
     }
 
     /*

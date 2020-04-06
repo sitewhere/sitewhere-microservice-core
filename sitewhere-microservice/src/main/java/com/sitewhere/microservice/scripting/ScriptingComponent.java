@@ -7,6 +7,8 @@
  */
 package com.sitewhere.microservice.scripting;
 
+import org.graalvm.polyglot.Source;
+
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
@@ -37,11 +39,8 @@ public abstract class ScriptingComponent<T> extends TenantEngineLifecycleCompone
      */
     @Override
     public T run(Binding binding) throws SiteWhereException {
-	String script = getTenantEngine().getScriptManager().resolveScript(getScriptId());
-	if (script == null) {
-	    throw new SiteWhereException(String.format("Managed script not found for id: %s", getScriptId()));
-	}
-	return ScriptingUtils.run(script, binding);
+	Source source = getTenantEngine().getScriptManager().resolveScriptSource(getScriptId());
+	return ScriptingUtils.run(source, binding);
     }
 
     /*

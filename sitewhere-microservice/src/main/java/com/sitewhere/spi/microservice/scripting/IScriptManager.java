@@ -7,8 +7,13 @@
  */
 package com.sitewhere.spi.microservice.scripting;
 
+import org.graalvm.polyglot.Source;
+
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
+
+import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScript;
+import io.sitewhere.k8s.crd.tenant.scripting.version.SiteWhereScriptVersion;
 
 /**
  * Manages runtime scripting support for a microservice or tenant engine.
@@ -18,18 +23,25 @@ public interface IScriptManager extends ITenantEngineLifecycleComponent {
     /**
      * Adds content for a managed script.
      * 
-     * @param metadata
-     * @param content
+     * @param script
+     * @param version
      * @throws SiteWhereException
      */
-    void addScript(IScriptMetadata metadata, String content) throws SiteWhereException;
+    void addScript(SiteWhereScript script, SiteWhereScriptVersion version) throws SiteWhereException;
 
     /**
-     * Resolve a managed script based on identifier.
+     * Remove cached script information for the given script.
+     * 
+     * @param script
+     */
+    void removeScript(SiteWhereScript script);
+
+    /**
+     * Resolve script source based on identifier.
      * 
      * @param identifier
      * @return
      * @throws SiteWhereException
      */
-    String resolveScript(String identifier) throws SiteWhereException;
+    Source resolveScriptSource(String identifier) throws SiteWhereException;
 }

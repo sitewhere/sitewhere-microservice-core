@@ -27,8 +27,8 @@ public class ScriptMetadata implements IScriptMetadata {
     /** Short description */
     private String description;
 
-    /** Type (file suffix) */
-    private String type;
+    /** Interpreter type */
+    private String interpreterType;
 
     /** Active version identifier */
     private String activeVersion;
@@ -74,15 +74,16 @@ public class ScriptMetadata implements IScriptMetadata {
     }
 
     /*
-     * @see com.sitewhere.spi.microservice.scripting.IScriptMetadata#getType()
+     * @see
+     * com.sitewhere.spi.microservice.scripting.IScriptMetadata#getInterpreterType()
      */
     @Override
-    public String getType() {
-	return type;
+    public String getInterpreterType() {
+	return interpreterType;
     }
 
-    public void setType(String type) {
-	this.type = type;
+    public void setInterpreterType(String interpreterType) {
+	this.interpreterType = interpreterType;
     }
 
     /*

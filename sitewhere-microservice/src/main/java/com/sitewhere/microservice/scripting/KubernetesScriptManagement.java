@@ -8,6 +8,9 @@
 package com.sitewhere.microservice.scripting;
 
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +45,7 @@ import io.sitewhere.k8s.crd.tenant.scripting.version.SiteWhereScriptVersionSpec;
 public class KubernetesScriptManagement extends LifecycleComponent implements IScriptManagement {
 
     /** Parser for ISO dates */
-    private static DateTimeFormatter FORMATTER = ISODateTimeFormat.dateTime();
+    private static DateTimeFormatter FORMATTER = ISODateTimeFormat.dateTimeParser();
 
     /*
      * @see com.sitewhere.spi.microservice.scripting.IScriptManagement#
@@ -142,15 +145,22 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
 	    throw new SiteWhereSystemException(ErrorCode.Error, ErrorLevel.ERROR);
 	}
 
-	match.getSpec().setName(request.getName());
-	match.getSpec().setDescription(request.getDescription());
+	if (request.getName() != null) {
+	    match.getSpec().setName(request.getName());
+	}
+	if (request.getDescription() != null) {
+	    match.getSpec().setDescription(request.getDescription());
+	}
 	getMicroservice().getSiteWhereKubernetesClient().getScripts().inNamespace(namespace).createOrReplace(match);
 
 	SiteWhereScriptVersion version = getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions()
 		.inNamespace(namespace).withName(versionId).get();
 	if (version != null) {
-	    version.getSpec().setContent(request.getContent());
+	    version.getSpec().setContent(new String(Base64.getDecoder().decode(request.getContent())));
+	    getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions().inNamespace(namespace)
+		    .createOrReplace(version);
 	}
+
 	return convertScriptMetadata(match, false);
     }
 
@@ -176,7 +186,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
 	}
 
 	ScriptCreateRequest request = new ScriptCreateRequest();
-	request.setContent(version.getSpec().getContent());
+	request.setContent(Base64.getEncoder().encodeToString(version.getSpec().getContent().getBytes()));
 	SiteWhereScriptVersion k8sVersion = createK8sScriptVersion(match, request, comment);
 	k8sVersion = getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions().inNamespace(namespace)
 		.create(k8sVersion);
@@ -277,6 +287,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
 	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, tenantId);
 	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, identifier.getPath());
 	labels.put(ResourceLabels.LABEL_SCRIPTING_SCRIPT_ID, request.getId());
+	labels.put(ResourceLabels.LABEL_SCRIPTING_SCRIPT_CATEGORY, request.getCategory());
 	meta.setLabels(labels);
 	script.setMetadata(meta);
 
@@ -284,7 +295,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
 	spec.setScriptId(request.getId());
 	spec.setName(request.getName());
 	spec.setDescription(request.getDescription());
-	spec.setInterpreterType(request.getType());
+	spec.setInterpreterType(request.getInterpreterType());
 	script.setSpec(spec);
 
 	return script;
@@ -319,7 +330,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
 
 	SiteWhereScriptVersionSpec spec = new SiteWhereScriptVersionSpec();
 	spec.setComment(comment);
-	spec.setContent(request.getContent());
+	spec.setContent(new String(Base64.getDecoder().decode(request.getContent())));
 	version.setSpec(spec);
 
 	return version;
@@ -337,7 +348,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
 	meta.setId(script.getSpec().getScriptId());
 	meta.setName(script.getSpec().getName());
 	meta.setDescription(script.getSpec().getDescription());
-	meta.setType(script.getSpec().getInterpreterType());
+	meta.setInterpreterType(script.getSpec().getInterpreterType());
 	meta.setActiveVersion(script.getSpec().getActiveVersion());
 
 	// TODO: This is expensive since it's a k8s API query for each script.
@@ -347,6 +358,13 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
 	    for (SiteWhereScriptVersion k8sVersion : k8sVersions.getItems()) {
 		meta.getVersions().add(convertScriptVersion(k8sVersion));
 	    }
+	    Collections.sort(meta.getVersions(), new Comparator<IScriptVersion>() {
+
+		@Override
+		public int compare(IScriptVersion s1, IScriptVersion s2) {
+		    return -1 * s1.getCreatedDate().compareTo(s2.getCreatedDate());
+		}
+	    });
 	}
 
 	return meta;
@@ -374,9 +392,12 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
      */
     protected SiteWhereScriptVersionList getVersionsForScript(SiteWhereScript script) {
 	String tenantId = script.getMetadata().getLabels().get(ResourceLabels.LABEL_SITEWHERE_TENANT);
+	String functionalArea = script.getMetadata().getLabels().get(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA);
+	String scriptId = script.getSpec().getScriptId();
 	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
 	Map<String, String> labels = new HashMap<>();
-	labels.put(ResourceLabels.LABEL_SCRIPTING_SCRIPT_ID, script.getSpec().getScriptId());
+	labels.put(ResourceLabels.LABEL_SCRIPTING_SCRIPT_ID, scriptId);
+	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, functionalArea);
 	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, tenantId);
 	return getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions().inNamespace(namespace)
 		.withLabels(labels).list();

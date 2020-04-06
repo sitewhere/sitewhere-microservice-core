@@ -36,11 +36,11 @@ public interface IScriptMetadata {
     String getDescription();
 
     /**
-     * Get script type (aka file suffix).
+     * Get script interpreter type.
      * 
      * @return
      */
-    String getType();
+    String getInterpreterType();
 
     /**
      * Get version identifier for active script.

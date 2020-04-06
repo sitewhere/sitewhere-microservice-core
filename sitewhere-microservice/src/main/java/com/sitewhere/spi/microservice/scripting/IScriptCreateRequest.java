@@ -34,11 +34,18 @@ public interface IScriptCreateRequest {
     String getDescription();
 
     /**
-     * Get script type (aka file suffix).
+     * Get script category.
      * 
      * @return
      */
-    String getType();
+    String getCategory();
+
+    /**
+     * Get script interpreter type.
+     * 
+     * @return
+     */
+    String getInterpreterType();
 
     /**
      * Get (Base64 encoded) content for script.

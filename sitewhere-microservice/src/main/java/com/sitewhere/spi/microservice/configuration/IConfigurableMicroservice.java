@@ -45,6 +45,20 @@ public interface IConfigurableMicroservice<F extends IFunctionIdentifier, C exte
     IMicroserviceConfigurationMonitor getMicroserviceConfigurationMonitor();
 
     /**
+     * Get script configuration monitor.
+     * 
+     * @return
+     */
+    IScriptConfigurationMonitor getScriptConfigurationMonitor();
+
+    /**
+     * Get script version configuration monitor.
+     * 
+     * @return
+     */
+    IScriptVersionConfigurationMonitor getScriptVersionConfigurationMonitor();
+
+    /**
      * Get scripting management interface.
      * 
      * @return
