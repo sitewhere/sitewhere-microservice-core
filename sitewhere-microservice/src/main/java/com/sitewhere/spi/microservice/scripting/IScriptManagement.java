@@ -19,7 +19,7 @@ import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 public interface IScriptManagement extends ILifecycleComponent {
 
     /**
-     * Get list of metadata entries for all scripts in the given microservice.
+     * Get list of metadata entries for all scripts in a functional area.
      * 
      * @param identifier
      * @param tenantId
@@ -28,6 +28,19 @@ public interface IScriptManagement extends ILifecycleComponent {
      */
     List<IScriptMetadata> getScriptMetadataList(IFunctionIdentifier identifier, String tenantId)
 	    throws SiteWhereException;
+
+    /**
+     * Get list of metadata entries for all scripts in a functional area which
+     * belong to the given category.
+     * 
+     * @param identifier
+     * @param tenantId
+     * @param category
+     * @return
+     * @throws SiteWhereException
+     */
+    List<IScriptMetadata> getScriptMetadataListForCategory(IFunctionIdentifier identifier, String tenantId,
+	    String category) throws SiteWhereException;
 
     /**
      * Get metadata for a given script.

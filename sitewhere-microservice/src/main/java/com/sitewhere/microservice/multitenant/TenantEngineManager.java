@@ -36,7 +36,9 @@ import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableExcept
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 
 import io.sitewhere.k8s.crd.ResourceLabels;
+import io.sitewhere.k8s.crd.exception.SiteWhereK8sException;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
+import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 
 /**
@@ -251,10 +253,20 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
 		    T engine = getTenantEngineByToken(token);
 		    if (engine != null) {
 			stopTenantEngine(token);
-			startTenantEngine(engine.getTenantEngineResource());
+
+			// Load the latest tenant engine resource.
+			SiteWhereMicroservice k8sMicroservice = ((IMultitenantMicroservice<?, ?, ?>) getMicroservice())
+				.getLastMicroserviceResource();
+			SiteWhereTenant k8sTenant = getMicroservice().getSiteWhereKubernetesClient().getTenantForToken(
+				getMicroservice().getInstanceSettings().getKubernetesNamespace(), token);
+			SiteWhereTenantEngine k8sTenantEngine = getMicroservice().getSiteWhereKubernetesClient()
+				.getTenantEngine(k8sMicroservice, k8sTenant);
+			startTenantEngine(k8sTenantEngine);
 		    }
 		} catch (SiteWhereException e) {
 		    getLogger().error("Error restarting tenant engine.", e);
+		} catch (SiteWhereK8sException e) {
+		    getLogger().error("Error loading tenant engine k8s data on restart.", e);
 		}
 	    }
 	});

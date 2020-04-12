@@ -30,6 +30,9 @@ public class ScriptMetadata implements IScriptMetadata {
     /** Interpreter type */
     private String interpreterType;
 
+    /** Script category */
+    private String category;
+
     /** Active version identifier */
     private String activeVersion;
 
@@ -84,6 +87,18 @@ public class ScriptMetadata implements IScriptMetadata {
 
     public void setInterpreterType(String interpreterType) {
 	this.interpreterType = interpreterType;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.scripting.IScriptMetadata#getCategory()
+     */
+    @Override
+    public String getCategory() {
+	return category;
+    }
+
+    public void setCategory(String category) {
+	this.category = category;
     }
 
     /*

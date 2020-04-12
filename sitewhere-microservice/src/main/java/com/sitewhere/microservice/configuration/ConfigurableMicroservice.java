@@ -33,10 +33,8 @@ import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationMo
 import com.sitewhere.spi.microservice.configuration.IMicroserviceModule;
 import com.sitewhere.spi.microservice.configuration.IScriptConfigurationListener;
 import com.sitewhere.spi.microservice.configuration.IScriptConfigurationMonitor;
-import com.sitewhere.spi.microservice.configuration.IScriptSpecUpdates;
 import com.sitewhere.spi.microservice.configuration.IScriptVersionConfigurationListener;
 import com.sitewhere.spi.microservice.configuration.IScriptVersionConfigurationMonitor;
-import com.sitewhere.spi.microservice.configuration.IScriptVersionSpecUpdates;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.scripting.IScriptManagement;
@@ -44,8 +42,6 @@ import com.sitewhere.spi.microservice.scripting.IScriptManagement;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
-import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScript;
-import io.sitewhere.k8s.crd.tenant.scripting.version.SiteWhereScriptVersion;
 
 /**
  * Base class for microservices that monitor the configuration folder for
@@ -445,70 +441,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public InstanceConfiguration getInstanceConfiguration() {
 	return this.instanceConfiguration;
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.microservice.configuration.IScriptConfigurationListener#
-     * onScriptAdded(io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScript)
-     */
-    @Override
-    public void onScriptAdded(SiteWhereScript script) {
-	getLogger().info(String.format("Script %s was added.", script.getMetadata().getName()));
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.microservice.configuration.IScriptConfigurationListener#
-     * onScriptUpdated(io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScript,
-     * com.sitewhere.spi.microservice.configuration.IScriptSpecUpdates)
-     */
-    @Override
-    public void onScriptUpdated(SiteWhereScript script, IScriptSpecUpdates updates) {
-	getLogger().info(String.format("Script %s was updated..\n%s\n\n", script.getMetadata().getName(),
-		MarshalUtils.marshalJsonAsPrettyString(updates)));
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.microservice.configuration.IScriptConfigurationListener#
-     * onScriptDeleted(io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScript)
-     */
-    @Override
-    public void onScriptDeleted(SiteWhereScript script) {
-	getLogger().info(String.format("Script %s was deleted.", script.getMetadata().getName()));
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.
-     * IScriptVersionConfigurationListener#onScriptVersionAdded(io.sitewhere.k8s.crd
-     * .tenant.scripting.version.SiteWhereScriptVersion)
-     */
-    @Override
-    public void onScriptVersionAdded(SiteWhereScriptVersion version) {
-	getLogger().info(String.format("Script version %s was added.", version.getMetadata().getName()));
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.
-     * IScriptVersionConfigurationListener#onScriptVersionUpdated(io.sitewhere.k8s.
-     * crd.tenant.scripting.version.SiteWhereScriptVersion,
-     * com.sitewhere.spi.microservice.configuration.IScriptVersionSpecUpdates)
-     */
-    @Override
-    public void onScriptVersionUpdated(SiteWhereScriptVersion version, IScriptVersionSpecUpdates updates) {
-	getLogger().info(String.format("Script version %s was updated.\n%s\n\n", version.getMetadata().getName(),
-		MarshalUtils.marshalJsonAsPrettyString(updates)));
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.
-     * IScriptVersionConfigurationListener#onScriptVersionDeleted(io.sitewhere.k8s.
-     * crd.tenant.scripting.version.SiteWhereScriptVersion)
-     */
-    @Override
-    public void onScriptVersionDeleted(SiteWhereScriptVersion version) {
-	getLogger().info(String.format("Script version %s was deleted.", version.getMetadata().getName()));
     }
 
     /*

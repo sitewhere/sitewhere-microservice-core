@@ -40,7 +40,9 @@ public class ScriptManager extends TenantEngineLifecycleComponent implements ISc
     public void addScript(SiteWhereScript script, SiteWhereScriptVersion version) throws SiteWhereException {
 	ActiveScript active = new ActiveScript();
 	active.loadFrom(script, version);
-	getScriptsById().put(script.getMetadata().getName(), active);
+	getLogger().info(String.format("Script '%s' updated with source:\n%s\n\n", version.getMetadata().getName(),
+		version.getSpec().getContent()));
+	getScriptsById().put(script.getSpec().getScriptId(), active);
     }
 
     /*
@@ -49,7 +51,7 @@ public class ScriptManager extends TenantEngineLifecycleComponent implements ISc
      */
     @Override
     public void removeScript(SiteWhereScript script) {
-	getScriptsById().remove(script.getMetadata().getName());
+	getScriptsById().remove(script.getSpec().getScriptId());
     }
 
     /*
@@ -61,7 +63,9 @@ public class ScriptManager extends TenantEngineLifecycleComponent implements ISc
     public Source resolveScriptSource(String identifier) throws SiteWhereException {
 	ActiveScript script = getScriptsById().get(identifier);
 	if (script != null) {
-	    return script.getSource();
+	    Source found = script.getSource();
+	    getLogger().info(String.format("Running '%s' from source:\n%s\n\n", identifier, found.getCharacters()));
+	    return found;
 	}
 	throw new SiteWhereException(String.format("Unable to find script for identifier: '%s'", identifier));
     }
@@ -78,15 +82,11 @@ public class ScriptManager extends TenantEngineLifecycleComponent implements ISc
 		.inNamespace(namespace).withLabel(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, functionalArea)
 		.list();
 	for (SiteWhereScript script : scripts.getItems()) {
-	    String activeVersion = script.getSpec().getActiveVersion();
-	    if (activeVersion != null) {
-		SiteWhereScriptVersion version = getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions()
-			.inNamespace(namespace).withName(activeVersion).get();
-		if (version != null) {
-		    addScript(script, version);
-		    getLogger().info(String.format("Added managed script '%s' with version '%s'.",
-			    script.getSpec().getName(), version.getMetadata().getName()));
-		}
+	    SiteWhereScriptVersion version = getMicroservice().getSiteWhereKubernetesClient().getActiveVersion(script);
+	    if (version != null) {
+		addScript(script, version);
+		getLogger().info(String.format("Added managed script '%s' with version '%s'.",
+			script.getSpec().getName(), version.getMetadata().getName()));
 	    }
 	}
     }

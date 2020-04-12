@@ -71,6 +71,30 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
     }
 
     /*
+     * @see com.sitewhere.spi.microservice.scripting.IScriptManagement#
+     * getScriptMetadataListForCategory(com.sitewhere.spi.microservice.
+     * IFunctionIdentifier, java.lang.String, java.lang.String)
+     */
+    @Override
+    public List<IScriptMetadata> getScriptMetadataListForCategory(IFunctionIdentifier identifier, String tenantId,
+	    String category) throws SiteWhereException {
+	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	Map<String, String> labels = new HashMap<>();
+	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, identifier.getPath());
+	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, tenantId);
+	labels.put(ResourceLabels.LABEL_SCRIPTING_SCRIPT_CATEGORY, category);
+	SiteWhereScriptList list = getMicroservice().getSiteWhereKubernetesClient().getScripts().inNamespace(namespace)
+		.withLabels(labels).list();
+
+	// Convert scripts to SiteWhere API format.
+	List<IScriptMetadata> results = new ArrayList<>();
+	for (SiteWhereScript script : list.getItems()) {
+	    results.add(convertScriptMetadata(script, false));
+	}
+	return results;
+    }
+
+    /*
      * @see
      * com.sitewhere.spi.microservice.scripting.IScriptManagement#getScriptMetadata(
      * com.sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
@@ -350,6 +374,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
 	meta.setDescription(script.getSpec().getDescription());
 	meta.setInterpreterType(script.getSpec().getInterpreterType());
 	meta.setActiveVersion(script.getSpec().getActiveVersion());
+	meta.setCategory(script.getMetadata().getLabels().get(ResourceLabels.LABEL_SCRIPTING_SCRIPT_CATEGORY));
 
 	// TODO: This is expensive since it's a k8s API query for each script.
 	if (includeVersions) {

@@ -43,6 +43,13 @@ public interface IScriptMetadata {
     String getInterpreterType();
 
     /**
+     * Get category.
+     * 
+     * @return
+     */
+    String getCategory();
+
+    /**
      * Get version identifier for active script.
      * 
      * @return
