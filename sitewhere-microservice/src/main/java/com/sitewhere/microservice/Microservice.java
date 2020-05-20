@@ -21,17 +21,13 @@ import org.redisson.api.RedissonClient;
 import org.redisson.codec.CborJacksonCodec;
 import org.redisson.config.Config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.microservice.configuration.model.instance.infrastructure.RedisConfiguration;
-import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.microservice.metrics.MetricsServer;
 import com.sitewhere.microservice.scripting.ScriptManager;
 import com.sitewhere.microservice.scripting.ScriptTemplateManager;
 import com.sitewhere.microservice.tenant.persistence.KubernetesTenantManagement;
-import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
@@ -53,16 +49,10 @@ import com.sitewhere.spi.system.IVersion;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
-import io.fabric8.kubernetes.client.utils.URLUtils;
-import io.sitewhere.k8s.crd.ApiConstants;
 import io.sitewhere.k8s.crd.ISiteWhereKubernetesClient;
 import io.sitewhere.k8s.crd.SiteWhereKubernetesClient;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.instance.dataset.InstanceDatasetTemplate;
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 /**
  * Common base class for all SiteWhere microservices.
@@ -419,7 +409,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	try {
 	    return getSiteWhereKubernetesClient().getInstances().withName(instanceId).createOrReplace(instance);
 	} catch (KubernetesClientException e) {
-	    throw new ConcurrentK8sUpdateException("Instance resource update failed due to concurrent update.", e);
+	    throw new SiteWhereException("Instance resource update failed due to concurrent update.", e);
 	}
     }
 
@@ -430,20 +420,8 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @Override
     public SiteWhereInstance updateInstanceStatus(SiteWhereInstance instance) throws SiteWhereException {
 	try {
-	    final String statusUri = URLUtils.join(getKubernetesClient().getMasterUrl().toString(), "apis",
-		    ApiConstants.SITEWHERE_API_GROUP, ApiConstants.SITEWHERE_API_VERSION,
-		    ApiConstants.SITEWHERE_INSTANCE_CRD_PLURAL, instance.getMetadata().getName(), "status");
-	    final RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"),
-		    MarshalUtils.marshalJson(instance));
-	    Response response = getKubernetesClient().getHttpClient()
-		    .newCall(new Request.Builder().method("PUT", requestBody).url(statusUri).build()).execute();
-	    byte[] content = response.body().bytes();
-	    response.close();
-	    JsonNode json = MarshalUtils.marshalJsonNode(content);
-	    SiteWhereInstance result = MarshalUtils.unmarshalJsonNode(json, SiteWhereInstance.class);
-	    return result;
-	} catch (JsonProcessingException e) {
-	    throw new ConcurrentK8sUpdateException("Instance status update failed due to conflict.", e);
+	    return getSiteWhereKubernetesClient().getInstances().withName(instance.getMetadata().getName())
+		    .updateStatus(instance);
 	} catch (Throwable e) {
 	    throw new SiteWhereException("Unhandled exception updating instance status.", e);
 	}

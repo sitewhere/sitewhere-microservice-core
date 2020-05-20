@@ -16,7 +16,6 @@ import com.google.common.base.CaseFormat;
 import com.google.inject.CreationException;
 import com.google.inject.Injector;
 import com.sitewhere.microservice.configuration.model.instance.persistence.PersistenceConfigurations;
-import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.microservice.scripting.Binding;
@@ -34,8 +33,6 @@ import com.sitewhere.spi.microservice.multitenant.ITenantEngineSpecUpdateOperati
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineStatusUpdateOperation;
 import com.sitewhere.spi.microservice.scripting.IScriptManager;
 
-import io.fabric8.kubernetes.client.utils.URLUtils;
-import io.sitewhere.k8s.crd.ApiConstants;
 import io.sitewhere.k8s.crd.ResourceLabels;
 import io.sitewhere.k8s.crd.common.BootstrapState;
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
@@ -45,10 +42,6 @@ import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineList;
 import io.sitewhere.k8s.crd.tenant.engine.configuration.TenantEngineConfigurationTemplate;
 import io.sitewhere.k8s.crd.tenant.engine.dataset.TenantEngineDatasetTemplate;
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 /**
  * Component within microservice which runs for a specific tenant. Each tenant
@@ -221,21 +214,8 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     @Override
     public SiteWhereTenantEngine updateTenantEngineStatus(SiteWhereTenantEngine engine) throws SiteWhereException {
 	try {
-	    final String statusUri = URLUtils.join(getMicroservice().getKubernetesClient().getMasterUrl().toString(),
-		    "apis", ApiConstants.SITEWHERE_API_GROUP, ApiConstants.SITEWHERE_API_VERSION, "namespaces",
-		    engine.getMetadata().getNamespace(), ApiConstants.SITEWHERE_TENANT_ENGINE_CRD_PLURAL,
-		    engine.getMetadata().getName(), "status");
-	    final RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"),
-		    MarshalUtils.marshalJson(engine));
-	    Response response = getMicroservice().getKubernetesClient().getHttpClient()
-		    .newCall(new Request.Builder().method("PUT", requestBody).url(statusUri).build()).execute();
-	    byte[] content = response.body().bytes();
-	    response.close();
-	    JsonNode json = MarshalUtils.marshalJsonNode(content);
-	    SiteWhereTenantEngine result = MarshalUtils.unmarshalJsonNode(json, SiteWhereTenantEngine.class);
-	    return result;
-	} catch (JsonProcessingException e) {
-	    throw new ConcurrentK8sUpdateException("Tenant engine status update failed due to conflict.", e);
+	    return getMicroservice().getSiteWhereKubernetesClient().getTenantEngines()
+		    .withName(engine.getMetadata().getName()).updateStatus(engine);
 	} catch (Throwable e) {
 	    throw new SiteWhereException("Unhandled exception updating tenant engine status.", e);
 	}

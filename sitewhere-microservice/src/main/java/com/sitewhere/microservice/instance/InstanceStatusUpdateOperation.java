@@ -10,7 +10,6 @@ package com.sitewhere.microservice.instance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.instance.IInstanceStatusUpdateOperation;
@@ -42,8 +41,8 @@ public abstract class InstanceStatusUpdateOperation implements IInstanceStatusUp
 		}
 		update(instance.getStatus());
 		return microservice.updateInstanceStatus(instance);
-	    } catch (ConcurrentK8sUpdateException e) {
-		LOGGER.info("Instance configuration updated concurrently. Will retry.");
+	    } catch (SiteWhereException e) {
+		LOGGER.info("Error updating instance status. Will retry.", e);
 	    } catch (Throwable t) {
 		throw new SiteWhereException("Instance status update failed.", t);
 	    }

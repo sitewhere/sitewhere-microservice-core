@@ -10,7 +10,6 @@ package com.sitewhere.microservice.multitenant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sitewhere.microservice.exception.ConcurrentK8sUpdateException;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineSpecUpdateOperation;
@@ -38,8 +37,8 @@ public abstract class TenantEngineSpecUpdateOperation implements ITenantEngineSp
 		SiteWhereTenantEngine current = engine.loadTenantEngineResource();
 		update(current);
 		return engine.updateTenantEngineResource(current);
-	    } catch (ConcurrentK8sUpdateException e) {
-		LOGGER.info("Tenant engine resource updated concurrently. Will retry.");
+	    } catch (SiteWhereException e) {
+		LOGGER.info("Unable to update tenant engine resource. Will retry.", e);
 	    } catch (Throwable t) {
 		throw new SiteWhereException("Tenant engine spec update failed.", t);
 	    }
