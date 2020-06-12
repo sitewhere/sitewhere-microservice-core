@@ -22,10 +22,7 @@ public class PersistenceConfigurations {
     private Map<String, RdbConfiguration> rdbConfigurations = new HashMap<>();
 
     /** InfluxDB configurations indexed by id */
-    private Map<String, InfluxDbConfiguration> influxDbConfigurations = new HashMap<>();
-
-    /** Cassandra configurations indexed by id */
-    private Map<String, CassandraConfiguration> cassandraConfigurations = new HashMap<>();
+    private Map<String, TimeSeriesConfiguration> timeSeriesConfigurations = new HashMap<>();
 
     public Map<String, RdbConfiguration> getRdbConfigurations() {
 	return rdbConfigurations;
@@ -35,19 +32,11 @@ public class PersistenceConfigurations {
 	this.rdbConfigurations = rdbConfigurations;
     }
 
-    public Map<String, InfluxDbConfiguration> getInfluxDbConfigurations() {
-	return influxDbConfigurations;
+    public Map<String, TimeSeriesConfiguration> getTimeSeriesConfigurations() {
+	return timeSeriesConfigurations;
     }
 
-    public void setInfluxDbConfigurations(Map<String, InfluxDbConfiguration> influxDbConfigurations) {
-	this.influxDbConfigurations = influxDbConfigurations;
-    }
-
-    public Map<String, CassandraConfiguration> getCassandraConfigurations() {
-	return cassandraConfigurations;
-    }
-
-    public void setCassandraConfigurations(Map<String, CassandraConfiguration> cassandraConfigurations) {
-	this.cassandraConfigurations = cassandraConfigurations;
+    public void setTimeSeriesConfigurations(Map<String, TimeSeriesConfiguration> timeSeriesConfigurations) {
+	this.timeSeriesConfigurations = timeSeriesConfigurations;
     }
 }

@@ -66,7 +66,7 @@ public abstract class RedissonCacheProvider<K, V> implements ICacheProvider<K, V
      */
     @Override
     public void setCacheEntry(String tenantId, K key, V value) throws SiteWhereException {
-	LOGGER.info("Caching value for '" + key.toString() + "'.");
+	LOGGER.debug("Caching value for '" + key.toString() + "'.");
 	if ((value != null) && (getCacheConfiguration().isEnabled())) {
 	    getCache(tenantId).put(key, value);
 	} else {
@@ -83,7 +83,7 @@ public abstract class RedissonCacheProvider<K, V> implements ICacheProvider<K, V
     public V getCacheEntry(String tenantId, K key) throws SiteWhereException {
 	V result = getCache(tenantId).get(key);
 	if (result != null) {
-	    LOGGER.info("Found cached value for '" + key.toString() + "'.");
+	    LOGGER.debug("Found cached value for '" + key.toString() + "'.");
 	}
 	return result;
     }
