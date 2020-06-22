@@ -8,7 +8,9 @@
 package com.sitewhere.microservice.configuration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -16,6 +18,7 @@ import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationListener;
 import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationMonitor;
@@ -48,8 +51,8 @@ public class TenantEngineConfigurationMonitor extends SiteWhereResourceControlle
     /** Resync period in milliseconds */
     private static final int RESYNC_PERIOD_MS = 10 * 60 * 1000;
 
-    /** Get current tenant engine resource */
-    private SiteWhereTenantEngine tenantEngineResource;
+    /** Map of most recent tenant engine resources by tenant */
+    private Map<String, SiteWhereTenantEngine> tenantEngineResourcesByTenant = new HashMap<>();
 
     /** Identifier for type of tenant engines to monitor */
     private IFunctionIdentifier functionIdentifier;
@@ -102,45 +105,54 @@ public class TenantEngineConfigurationMonitor extends SiteWhereResourceControlle
      */
     @Override
     public void reconcileResourceChange(ResourceChangeType type, SiteWhereTenantEngine tenantEngine) {
-	String function = tenantEngine.getMetadata().getLabels().get(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA);
-	if (function == null) {
-	    LOGGER.warn(String.format(
-		    "No functional area label found on tenant engine '%s'. Can not detect whether it belongs to this microservice.",
+	try {
+	    String function = tenantEngine.getMetadata().getLabels()
+		    .get(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA);
+	    if (function == null) {
+		LOGGER.warn(String.format(
+			"No functional area label found on tenant engine '%s'. Can not detect whether it belongs to this microservice.",
+			tenantEngine.getMetadata().getName()));
+		return;
+	    }
+	    // Ignore tenant engine updates not related to this microservice.
+	    if (!getFunctionIdentifier().getPath().equals(function)) {
+		LOGGER.debug(
+			String.format("Ignoring tenant engine changes for unrelated microservice: '%s'", function));
+		return;
+	    }
+
+	    // Check for existing tenant engine resource reference.
+	    SiteWhereTenantEngine existing = getExistingForSameTenant(tenantEngine);
+
+	    // Skip changes that don't affect specification.
+	    if (existing != null
+		    && existing.getMetadata().getGeneration() == tenantEngine.getMetadata().getGeneration()) {
+		return;
+	    }
+
+	    LOGGER.info(String.format("Detected %s resource change in tenant engine %s.", type.name(),
 		    tenantEngine.getMetadata().getName()));
-	    return;
-	}
-	// Ignore tenant engine updates not related to this microservice.
-	if (!getFunctionIdentifier().getPath().equals(function)) {
-	    LOGGER.debug(String.format("Ignoring tenant engine changes for unrelated microservice: '%s'", function));
-	    return;
-	}
-
-	// Skip changes that don't affect specification.
-	if (this.tenantEngineResource != null && this.tenantEngineResource.getMetadata().getGeneration() == tenantEngine
-		.getMetadata().getGeneration()) {
-	    return;
-	}
-
-	LOGGER.info(String.format("Detected %s resource change in tenant engine %s.", type.name(),
-		tenantEngine.getMetadata().getName()));
-	SiteWhereTenantEngine previous = this.tenantEngineResource;
-	switch (type) {
-	case CREATE: {
-	    this.tenantEngineResource = tenantEngine;
-	    getListeners().forEach(listener -> listener.onTenantEngineCreated(tenantEngine));
-	    break;
-	}
-	case UPDATE: {
-	    this.tenantEngineResource = tenantEngine;
-	    TenantEngineSpecUpdates specUpdates = findSpecificationUpdates(previous, tenantEngine);
-	    getListeners().forEach(listener -> listener.onTenantEngineUpdated(tenantEngine, specUpdates));
-	    break;
-	}
-	case DELETE: {
-	    this.tenantEngineResource = null;
-	    getListeners().forEach(listener -> listener.onTenantEngineDeleted(tenantEngine));
-	    break;
-	}
+	    switch (type) {
+	    case CREATE: {
+		addOrUpdateTenantEngineResource(tenantEngine);
+		getListeners().forEach(listener -> listener.onTenantEngineCreated(tenantEngine));
+		break;
+	    }
+	    case UPDATE: {
+		addOrUpdateTenantEngineResource(tenantEngine);
+		TenantEngineSpecUpdates specUpdates = findSpecificationUpdates(existing, tenantEngine);
+		getListeners().forEach(listener -> listener.onTenantEngineUpdated(tenantEngine, specUpdates));
+		break;
+	    }
+	    case DELETE: {
+		addOrUpdateTenantEngineResource(tenantEngine);
+		getListeners().forEach(listener -> listener.onTenantEngineDeleted(tenantEngine));
+		break;
+	    }
+	    }
+	} catch (SiteWhereException e) {
+	    LOGGER.warn(String.format("Unable to process resource update of type %s for tenant engine %s.", type,
+		    tenantEngine.getMetadata().getName()));
 	}
     }
 
@@ -179,6 +191,44 @@ public class TenantEngineConfigurationMonitor extends SiteWhereResourceControlle
     @Override
     public List<ITenantEngineConfigurationListener> getListeners() {
 	return listeners;
+    }
+
+    /**
+     * Adds or updates tenant engine in map by tenant id.
+     * 
+     * @param engine
+     * @throws SiteWhereException
+     */
+    protected void addOrUpdateTenantEngineResource(SiteWhereTenantEngine engine) throws SiteWhereException {
+	String tenant = engine.getMetadata().getLabels().get(ResourceLabels.LABEL_SITEWHERE_TENANT);
+	if (tenant == null) {
+	    throw new SiteWhereException(
+		    String.format("No tenant label found for tenant engine: %s", engine.getMetadata().getName()));
+	}
+	LOGGER.info(
+		String.format("Caching new instance of tenant engine resource for %s", engine.getMetadata().getName()));
+	getTenantEngineResourcesByTenant().put(tenant, engine);
+    }
+
+    /**
+     * Get existing tenant engine resource based on tenant specified in updated
+     * engine. (Null if none already registered).
+     * 
+     * @param updated
+     * @return
+     * @throws SiteWhereException
+     */
+    protected SiteWhereTenantEngine getExistingForSameTenant(SiteWhereTenantEngine updated) throws SiteWhereException {
+	String tenant = updated.getMetadata().getLabels().get(ResourceLabels.LABEL_SITEWHERE_TENANT);
+	if (tenant == null) {
+	    throw new SiteWhereException(
+		    String.format("No tenant label found for tenant engine: %s", updated.getMetadata().getName()));
+	}
+	return getTenantEngineResourcesByTenant().get(tenant);
+    }
+
+    protected Map<String, SiteWhereTenantEngine> getTenantEngineResourcesByTenant() {
+	return tenantEngineResourcesByTenant;
     }
 
     protected ExecutorService getQueueProcessor() {
