@@ -2,7 +2,7 @@ description = 'SiteWhere GRPC Client Support'
 
 dependencies {
     compile project(':sitewhere-microservice-api')
-    
+
     compile group: 'com.sitewhere', name: 'sitewhere-grpc-asset-management', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
     compile group: 'com.sitewhere', name: 'sitewhere-grpc-batch-management', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
     compile group: 'com.sitewhere', name: 'sitewhere-grpc-device-management', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
@@ -30,7 +30,7 @@ task javadocJar(type: Jar) {
     classifier = 'javadoc'
 }
 
-// Publish jar.	
+// Publish jar.
 apply plugin: 'maven-publish'
 publishing {
 	publications {
@@ -59,10 +59,11 @@ publishing {
                     connection = 'https://github.com/sitewhere/sitewhere-microservice-core.git'
                     url = 'https://github.com/sitewhere/sitewhere-microservice-core'
                 }
-			}	
+			}
 		}
 	}
     repositories {
+        mavenLocal()
         maven {
             url project.nexusUrl
             credentials {

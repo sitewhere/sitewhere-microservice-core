@@ -45,9 +45,12 @@ public class UserCreateRequest extends PersistentEntityCreateRequest implements 
     /** List of granted authorities */
     private List<String> authorities;
 
+    /** List of roles */
+    private List<String> roles;
+
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.request.IUserCreateRequest#getUsername()
      */
     public String getUsername() {
@@ -60,7 +63,7 @@ public class UserCreateRequest extends PersistentEntityCreateRequest implements 
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.request.IUserCreateRequest#getPassword()
      */
     public String getPassword() {
@@ -73,7 +76,7 @@ public class UserCreateRequest extends PersistentEntityCreateRequest implements 
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.request.IUserCreateRequest#getFirstName()
      */
     public String getFirstName() {
@@ -86,7 +89,7 @@ public class UserCreateRequest extends PersistentEntityCreateRequest implements 
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.request.IUserCreateRequest#getLastName()
      */
     public String getLastName() {
@@ -99,7 +102,7 @@ public class UserCreateRequest extends PersistentEntityCreateRequest implements 
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.request.IUserCreateRequest#getStatus()
      */
     public AccountStatus getStatus() {
@@ -112,7 +115,7 @@ public class UserCreateRequest extends PersistentEntityCreateRequest implements 
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.request.IUserCreateRequest#getAuthorities()
      */
     public List<String> getAuthorities() {
@@ -121,6 +124,15 @@ public class UserCreateRequest extends PersistentEntityCreateRequest implements 
 
     public void setAuthorities(List<String> authorities) {
 	this.authorities = authorities;
+    }
+
+    @Override
+    public List<String> getRoles() {
+	return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+	this.roles = roles;
     }
 
     public static class Builder {

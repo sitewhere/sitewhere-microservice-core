@@ -12,10 +12,7 @@ import java.util.List;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 import com.sitewhere.spi.search.ISearchResults;
-import com.sitewhere.spi.user.IGrantedAuthority;
-import com.sitewhere.spi.user.IGrantedAuthoritySearchCriteria;
-import com.sitewhere.spi.user.IUser;
-import com.sitewhere.spi.user.IUserSearchCriteria;
+import com.sitewhere.spi.user.*;
 import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
 
@@ -26,7 +23,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Create a new user based on the given input.
-     * 
+     *
      * @param request
      * @param encodePassword
      * @return
@@ -36,7 +33,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Imports a user (including encrypted password) from an external system.
-     * 
+     *
      * @param user
      * @param overwrite
      * @return
@@ -46,7 +43,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Authenticate the given username and password.
-     * 
+     *
      * @param username
      * @param password
      * @param updateLastLogin
@@ -57,7 +54,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Update details for a user.
-     * 
+     *
      * @param username
      * @param request
      * @param encodePassword
@@ -68,7 +65,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Get a user given unique username.
-     * 
+     *
      * @param username
      * @return
      * @throws SiteWhereException
@@ -78,7 +75,7 @@ public interface IUserManagement extends ILifecycleComponent {
     /**
      * Get the granted authorities for a specific user. Does not include any
      * authorities inherited from groups.
-     * 
+     *
      * @param username
      * @return
      * @throws SiteWhereException
@@ -87,7 +84,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Add user authorities. Duplicates are ignored.
-     * 
+     *
      * @param username
      * @param authorities
      * @return
@@ -97,7 +94,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Remove user authorities. Ignore if not previously granted.
-     * 
+     *
      * @param username
      * @param authorities
      * @return
@@ -108,7 +105,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Find users that match the given search criteria.
-     * 
+     *
      * @param criteria
      * @return
      * @throws SiteWhereException
@@ -117,7 +114,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Delete the user with the given username.
-     * 
+     *
      * @param username
      * @return
      * @throws SiteWhereException
@@ -126,7 +123,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Create a new granted authority.
-     * 
+     *
      * @param request
      * @throws SiteWhereException
      */
@@ -134,7 +131,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Get a granted authority by name.
-     * 
+     *
      * @param name
      * @return
      * @throws SiteWhereException
@@ -143,7 +140,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Update a granted authority.
-     * 
+     *
      * @param name
      * @param request
      * @return
@@ -154,7 +151,7 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * List granted authorities that match the given criteria.
-     * 
+     *
      * @param criteria
      * @return
      * @throws SiteWhereException
@@ -164,9 +161,105 @@ public interface IUserManagement extends ILifecycleComponent {
 
     /**
      * Delete a granted authority.
-     * 
+     *
      * @param authority
      * @throws SiteWhereException
      */
     void deleteGrantedAuthority(String authority) throws SiteWhereException;
+
+
+
+
+
+    //********************************** inicio ************************************
+
+
+    /**
+     * Get the Roles for a specific user.
+     *
+     * @param username
+     * @return
+     * @throws SiteWhereException
+     */
+    List<IRol> getRoles(String username) throws SiteWhereException;
+
+    /**
+     * Add user Roles. Duplicates are ignored.
+     *
+     * @param username
+     * @param roles
+     * @return
+     * @throws SiteWhereException
+     */
+    List<IGrantedAuthority> addRoles(String username, List<String> roles) throws SiteWhereException;
+
+    /**
+     * Remove user roles.
+     *
+     * @param username
+     * @param roles
+     * @return
+     * @throws SiteWhereException
+     */
+    List<IGrantedAuthority> removeRoles(String username, List<String> roles)
+                    throws SiteWhereException;
+
+    //TODO: falta asociar rol con autorizaciónes...
+
+
+
+
+    /**
+     * Create a new granted authority.
+     *
+     * @param request
+     * @throws SiteWhereException
+     */
+    IGrantedAuthority createRole(IGrantedAuthorityCreateRequest request) throws SiteWhereException;
+
+    /**
+     * Get a granted authority by name.
+     *
+     * @param name
+     * @return
+     * @throws SiteWhereException
+     */
+    IGrantedAuthority getRoleByName(String name) throws SiteWhereException;
+
+    /**
+     * Update a role.
+     *
+     * @param name
+     * @param request
+     * @return
+     * @throws SiteWhereException
+     */
+    IGrantedAuthority updateRole(String name, IGrantedAuthorityCreateRequest request)
+                    throws SiteWhereException;
+
+    /**
+     * List roles that match the given criteria.
+     *
+     * @param criteria
+     * @return
+     * @throws SiteWhereException
+     */
+    ISearchResults<IGrantedAuthority> listRoles(IGrantedAuthoritySearchCriteria criteria)
+                    throws SiteWhereException;
+
+    /**
+     * Delete a role.
+     *
+     * @param role
+     * @throws SiteWhereException
+     */
+    void deleteRole(String role) throws SiteWhereException;
+
+
+
+
+
+
+    //*********************************** fin ***************************************
+
 }

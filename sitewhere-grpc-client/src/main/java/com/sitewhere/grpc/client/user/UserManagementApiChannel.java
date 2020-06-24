@@ -12,36 +12,7 @@ import java.util.List;
 import com.sitewhere.grpc.client.ApiChannel;
 import com.sitewhere.grpc.client.GrpcUtils;
 import com.sitewhere.grpc.client.spi.client.IUserManagementApiChannel;
-import com.sitewhere.grpc.service.GAddGrantedAuthoritiesRequest;
-import com.sitewhere.grpc.service.GAddGrantedAuthoritiesResponse;
-import com.sitewhere.grpc.service.GAuthenticateRequest;
-import com.sitewhere.grpc.service.GAuthenticateResponse;
-import com.sitewhere.grpc.service.GCreateGrantedAuthorityRequest;
-import com.sitewhere.grpc.service.GCreateGrantedAuthorityResponse;
-import com.sitewhere.grpc.service.GCreateUserRequest;
-import com.sitewhere.grpc.service.GCreateUserResponse;
-import com.sitewhere.grpc.service.GDeleteGrantedAuthorityRequest;
-import com.sitewhere.grpc.service.GDeleteUserRequest;
-import com.sitewhere.grpc.service.GDeleteUserResponse;
-import com.sitewhere.grpc.service.GGetGrantedAuthoritiesRequest;
-import com.sitewhere.grpc.service.GGetGrantedAuthoritiesResponse;
-import com.sitewhere.grpc.service.GGetGrantedAuthorityByNameRequest;
-import com.sitewhere.grpc.service.GGetGrantedAuthorityByNameResponse;
-import com.sitewhere.grpc.service.GGetUserByUsernameRequest;
-import com.sitewhere.grpc.service.GGetUserByUsernameResponse;
-import com.sitewhere.grpc.service.GImportUserRequest;
-import com.sitewhere.grpc.service.GImportUserResponse;
-import com.sitewhere.grpc.service.GListGrantedAuthoritiesRequest;
-import com.sitewhere.grpc.service.GListGrantedAuthoritiesResponse;
-import com.sitewhere.grpc.service.GListUsersRequest;
-import com.sitewhere.grpc.service.GListUsersResponse;
-import com.sitewhere.grpc.service.GRemoveGrantedAuthoritiesRequest;
-import com.sitewhere.grpc.service.GRemoveGrantedAuthoritiesResponse;
-import com.sitewhere.grpc.service.GUpdateGrantedAuthorityRequest;
-import com.sitewhere.grpc.service.GUpdateGrantedAuthorityResponse;
-import com.sitewhere.grpc.service.GUpdateUserRequest;
-import com.sitewhere.grpc.service.GUpdateUserResponse;
-import com.sitewhere.grpc.service.UserManagementGrpc;
+import com.sitewhere.grpc.service.*;
 import com.sitewhere.grpc.user.UserModelConverter;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
@@ -51,10 +22,7 @@ import com.sitewhere.spi.microservice.grpc.IGrpcServiceIdentifier;
 import com.sitewhere.spi.microservice.grpc.IGrpcSettings;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.search.ISearchResults;
-import com.sitewhere.spi.user.IGrantedAuthority;
-import com.sitewhere.spi.user.IGrantedAuthoritySearchCriteria;
-import com.sitewhere.spi.user.IUser;
-import com.sitewhere.spi.user.IUserSearchCriteria;
+import com.sitewhere.spi.user.*;
 import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
 
@@ -85,7 +53,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.sitewhere.spi.user.IUserManagement#createUser(com.sitewhere.spi.user.
      * request.IUserCreateRequest, java.lang.Boolean)
@@ -108,7 +76,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.sitewhere.spi.user.IUserManagement#importUser(com.sitewhere.spi.user.
      * IUser, boolean)
@@ -131,7 +99,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#authenticate(java.lang.String,
      * java.lang.String, boolean)
      */
@@ -154,7 +122,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#updateUser(java.lang.String,
      * com.sitewhere.spi.user.request.IUserCreateRequest, boolean)
      */
@@ -178,7 +146,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#getUserByUsername(java.lang.
      * String)
      */
@@ -200,7 +168,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#getGrantedAuthorities(java.lang.
      * String)
      */
@@ -223,7 +191,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#addGrantedAuthorities(java.lang.
      * String, java.util.List)
      */
@@ -248,7 +216,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.sitewhere.spi.user.IUserManagement#removeGrantedAuthorities(java.lang
      * .String, java.util.List)
@@ -312,7 +280,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#createGrantedAuthority(com.
      * sitewhere.spi.user.request.IGrantedAuthorityCreateRequest)
      */
@@ -334,7 +302,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#getGrantedAuthorityByName(java.
      * lang.String)
      */
@@ -359,7 +327,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#updateGrantedAuthority(java.lang.
      * String, com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest)
      */
@@ -405,7 +373,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#deleteGrantedAuthority(java.lang.
      * String)
      */
@@ -420,4 +388,81 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getDeleteGrantedAuthorityMethod(), t);
 	}
     }
+
+
+    //******************************inicio***************************
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.sitewhere.spi.user.IUserManagement#getRoles(java.lang.
+     * String)
+     */
+    @Override
+    public List<IRol> getRoles(String username) throws SiteWhereException {
+	try {
+	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getGetRolesForUserMethod());
+	    //GGetGrantedAuthoritiesRequest.Builder grequest = GGetGrantedAuthoritiesRequest.newBuilder();
+	    GGetRolesRequest.Builder grequest = GGetRolesRequest.newBuilder();
+	    grequest.setUsername(username);
+	    GGetRolesResponse gresponse = getGrpcChannel().getBlockingStub()
+			    .getRolesForUser(grequest.build());
+
+	  /*  List<IRol> response = UserModelConverter
+			    .asApiGrantedAuthorities(null);*/
+	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getGetRolesForUserMethod(), null);
+	    return null;
+	} catch (Throwable t) {
+	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getGetGrantedAuthoritiesForUserMethod(), t);
+	}
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.sitewhere.spi.user.IUserManagement#addRoles(java.lang.
+     * String, java.util.List)
+     */
+    @Override
+    public List<IGrantedAuthority> addRoles(String username, List<String> authorities)
+		    throws SiteWhereException {
+	throw new RuntimeException("Not implemented.");
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.sitewhere.spi.user.IUserManagement#removeRoles(java.lang
+     * .String, java.util.List)
+     */
+    @Override
+    public List<IGrantedAuthority> removeRoles(String username, List<String> authorities)
+		    throws SiteWhereException {
+	throw new RuntimeException("Not implemented.");
+    }
+
+    @Override public IGrantedAuthority createRole(IGrantedAuthorityCreateRequest request) throws SiteWhereException {
+	return null;
+    }
+
+    @Override public IGrantedAuthority getRoleByName(String name) throws SiteWhereException {
+	return null;
+    }
+
+    @Override public IGrantedAuthority updateRole(String name, IGrantedAuthorityCreateRequest request)
+		    throws SiteWhereException {
+	return null;
+    }
+
+    @Override public ISearchResults<IGrantedAuthority> listRoles(IGrantedAuthoritySearchCriteria criteria)
+		    throws SiteWhereException {
+	return null;
+    }
+
+    @Override public void deleteRole(String role) throws SiteWhereException {
+
+    }
+
+
+    //******************************fin***************************
 }

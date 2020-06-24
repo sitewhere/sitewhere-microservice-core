@@ -18,10 +18,7 @@ import com.sitewhere.spi.microservice.cache.ICacheConfiguration;
 import com.sitewhere.spi.microservice.cache.ICacheProvider;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.search.ISearchResults;
-import com.sitewhere.spi.user.IGrantedAuthority;
-import com.sitewhere.spi.user.IGrantedAuthoritySearchCriteria;
-import com.sitewhere.spi.user.IUser;
-import com.sitewhere.spi.user.IUserSearchCriteria;
+import com.sitewhere.spi.user.*;
 import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
 
@@ -238,6 +235,60 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
     public void deleteGrantedAuthority(String authority) throws SiteWhereException {
 	getWrapped().deleteGrantedAuthority(authority);
     }
+
+
+
+
+
+    //**************************************inicio*****************************************************
+    /*
+     * @see com.sitewhere.spi.user.IUserManagement#getRoles(java.lang.String)
+     */
+    @Override
+    public List<IRol> getRoles(String username) throws SiteWhereException {
+	return getWrapped().getRoles(username);
+    }
+
+    /*
+     * @see com.sitewhere.spi.user.IUserManagement#addRoles(java.lang.String, java.util.List)
+     */
+    @Override
+    public List<IGrantedAuthority> addRoles(String username, List<String> roles) throws SiteWhereException {
+	return getWrapped().addRoles(username, roles);
+    }
+
+    /*
+     * @see com.sitewhere.spi.user.IUserManagement#removeRoles(java.lang.String, java.util.List)
+     */
+    @Override
+    public List<IGrantedAuthority> removeRoles(String username, List<String> roles)
+		    throws SiteWhereException {
+	return getWrapped().removeRoles(username, roles);
+    }
+
+    @Override public IGrantedAuthority createRole(IGrantedAuthorityCreateRequest request) throws SiteWhereException {
+	return null;
+    }
+
+    @Override public IGrantedAuthority getRoleByName(String name) throws SiteWhereException {
+	return null;
+    }
+
+    @Override public IGrantedAuthority updateRole(String name, IGrantedAuthorityCreateRequest request)
+		    throws SiteWhereException {
+	return null;
+    }
+
+    @Override public ISearchResults<IGrantedAuthority> listRoles(IGrantedAuthoritySearchCriteria criteria)
+		    throws SiteWhereException {
+	return null;
+    }
+
+    @Override public void deleteRole(String role) throws SiteWhereException {
+
+    }
+
+    //****************************************fin*******************************************************
 
     /**
      * Contains default cache settings for user management entities.
