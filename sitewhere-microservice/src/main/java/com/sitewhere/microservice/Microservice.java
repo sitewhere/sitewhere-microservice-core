@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Inject;
 
 import org.redisson.Redisson;
-import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.redisson.codec.CborJacksonCodec;
 import org.redisson.config.Config;
@@ -257,8 +256,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	    }
 	}
 	getLogger().info("Redis connectivity initialized.");
-	RMap<String, String> map = getRedissonClient().getMap("bubba");
-	map.put("sitewhere", "rocks");
     }
 
     /**
