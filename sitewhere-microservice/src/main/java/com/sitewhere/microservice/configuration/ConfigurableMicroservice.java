@@ -8,6 +8,9 @@
 package com.sitewhere.microservice.configuration;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+
+import org.jboss.logmanager.LogManager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.CreationException;
@@ -41,6 +44,7 @@ import com.sitewhere.spi.microservice.scripting.IScriptManagement;
 
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
+import io.sitewhere.k8s.crd.microservice.MicroserviceLoggingEntry;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 
 /**
@@ -342,6 +346,34 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     }
 
     /**
+     * Perform delta against previous logging configuration. Process updates if
+     * there were changes.
+     * 
+     * @param updated
+     */
+    protected void handleLoggingConfigurationUpdates(SiteWhereMicroservice updated) {
+	// Flag for whether logging was updated.
+	boolean loggingConfigured = updated.getSpec().getLogging() != null;
+
+	if (loggingConfigured) {
+	    getLogger().info("Processing logger overrides...");
+	    for (MicroserviceLoggingEntry entry : updated.getSpec().getLogging().getOverrides()) {
+		try {
+		    Level level = Level.parse(entry.getLevel().toUpperCase());
+		    LogManager.getLogManager().getLogger(entry.getLogger()).setLevel(level);
+		    getLogger().info(String.format("Set log level for '%s' to %s", entry.getLogger(), level.getName()));
+		} catch (IllegalArgumentException e) {
+		    getLogger().warn(String.format("Invalid log level specifed for '%s': %s", entry.getLogger(),
+			    entry.getLevel()));
+		}
+	    }
+	    getLogger().info("Logger overrides applied.");
+	} else {
+	    getLogger().info("No logger overrides specified.");
+	}
+    }
+
+    /**
      * Handle an add/update for the microservice k8s resource.
      * 
      * @param microservice
@@ -354,6 +386,10 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	    return;
 	}
 
+	// Check for logging updates and process them.
+	handleLoggingConfigurationUpdates(microservice);
+
+	// Flag for whether configuration was updated.
 	boolean wasConfigured = getLastMicroserviceResource() != null
 		&& getLastMicroserviceResource().getSpec().getConfiguration() != null;
 	boolean configUpdated = wasConfigured && !getLastMicroserviceResource().getSpec().getConfiguration()
