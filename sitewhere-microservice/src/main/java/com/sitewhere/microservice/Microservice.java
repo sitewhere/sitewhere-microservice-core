@@ -95,7 +95,10 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     private ITenantManagement tenantManagement;
 
     /** Version information */
-    private IVersion version = new Version();
+    private IVersion version = new MicroserviceVersion();
+
+    /** Version information */
+    private IVersion microserviceLibraryVersion = new MicroserviceLibraryVersion();
 
     /** Script manager */
     private IScriptManager scriptManager = new ScriptManager();
@@ -516,6 +519,15 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @Override
     public IVersion getVersion() {
 	return version;
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.IMicroservice#getMicroserviceLibraryVersion()
+     */
+    @Override
+    public IVersion getMicroserviceLibraryVersion() {
+	return microserviceLibraryVersion;
     }
 
     /*

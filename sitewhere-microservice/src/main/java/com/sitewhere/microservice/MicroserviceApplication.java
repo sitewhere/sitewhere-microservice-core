@@ -100,12 +100,19 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
 
 	// Adds banner to the top of the log.
 	String banner = showBanner ? getBanner(microservice) : "";
+	String microserviceVersion = String.format("%s.%s (%s)", microservice.getVersion().getVersionIdentifier(),
+		microservice.getVersion().getGitRevisionAbbrev(), microservice.getVersion().getBuildTimestamp());
+	String corelibVersion = String.format("%s.%s (%s)",
+		microservice.getMicroserviceLibraryVersion().getVersionIdentifier(),
+		microservice.getMicroserviceLibraryVersion().getGitRevisionAbbrev(),
+		microservice.getMicroserviceLibraryVersion().getBuildTimestamp());
 
 	// Display banner indicating service information.
 	List<String> messages = new ArrayList<String>();
 	messages.add(microservice.getName() + " Microservice");
-	messages.add("Version: " + microservice.getVersion().getVersionIdentifier() + "."
-		+ microservice.getVersion().getGitRevisionAbbrev());
+	messages.add("Microservice Version: " + microserviceVersion);
+	messages.add("Core Library Version: " + corelibVersion);
+	messages.add("");
 	messages.add("Git Revision: " + microservice.getVersion().getGitRevision());
 	messages.add("Build Date: " + microservice.getVersion().getBuildTimestamp());
 	messages.add("Hostname: " + microservice.getHostname());

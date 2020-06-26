@@ -14,10 +14,9 @@ import java.util.Properties;
 import com.sitewhere.spi.system.IVersion;
 
 /**
- * Gets information about system version from properties generated into the
- * classpath.
+ * Provides information about the underlying microservice library version.
  */
-public class Version implements IVersion {
+public class MicroserviceVersion implements IVersion {
 
     /** Serial version UID */
     private static final long serialVersionUID = 6248127738815445097L;
@@ -26,9 +25,11 @@ public class Version implements IVersion {
     private static Properties properties = new Properties();
 
     static {
-	try (final InputStream stream = Version.class.getClassLoader()
-		.getResourceAsStream("META-INF/application-build.properties")) {
-	    properties.load(stream);
+	try (final InputStream stream = MicroserviceVersion.class.getClassLoader()
+		.getResourceAsStream("META-INF/microservice.properties")) {
+	    if (stream != null) {
+		properties.load(stream);
+	    }
 	} catch (IOException ex) {
 	    ex.printStackTrace();
 	}
@@ -58,7 +59,7 @@ public class Version implements IVersion {
      * @see com.sitewhere.spi.system.IVersion#getVersionIdentifier()
      */
     public String getVersionIdentifier() {
-	return properties.getProperty("sitewhere.version");
+	return properties.getProperty("library.version");
     }
 
     /*

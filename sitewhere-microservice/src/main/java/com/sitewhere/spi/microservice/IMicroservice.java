@@ -54,11 +54,18 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
     String getName();
 
     /**
-     * Get version information.
+     * Get microservice version information.
      * 
      * @return
      */
     IVersion getVersion();
+
+    /**
+     * Get microservice library version information.
+     * 
+     * @return
+     */
+    IVersion getMicroserviceLibraryVersion();
 
     /**
      * Get unique microservice identifier.
