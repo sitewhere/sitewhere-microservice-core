@@ -14,6 +14,7 @@ import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 import com.sitewhere.spi.search.ISearchResults;
 import com.sitewhere.spi.user.*;
 import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
+import com.sitewhere.spi.user.request.IRoleCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
 
 /**
@@ -181,7 +182,7 @@ public interface IUserManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    List<IRol> getRoles(String username) throws SiteWhereException;
+    List<IRole> getRoles(String username) throws SiteWhereException;
 
     /**
      * Add user Roles. Duplicates are ignored.
@@ -191,7 +192,7 @@ public interface IUserManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    List<IGrantedAuthority> addRoles(String username, List<String> roles) throws SiteWhereException;
+    List<IRole> addRoles(String username, List<String> roles) throws SiteWhereException;
 
     /**
      * Remove user roles.
@@ -201,7 +202,7 @@ public interface IUserManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    List<IGrantedAuthority> removeRoles(String username, List<String> roles)
+    List<IRole> removeRoles(String username, List<String> roles)
                     throws SiteWhereException;
 
     //TODO: falta asociar rol con autorizaciónes...
@@ -215,7 +216,7 @@ public interface IUserManagement extends ILifecycleComponent {
      * @param request
      * @throws SiteWhereException
      */
-    IGrantedAuthority createRole(IGrantedAuthorityCreateRequest request) throws SiteWhereException;
+    IRole createRole(IRoleCreateRequest request) throws SiteWhereException;
 
     /**
      * Get a granted authority by name.
@@ -224,7 +225,7 @@ public interface IUserManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    IGrantedAuthority getRoleByName(String name) throws SiteWhereException;
+    IRole getRoleByName(String name) throws SiteWhereException;
 
     /**
      * Update a role.
@@ -234,7 +235,7 @@ public interface IUserManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    IGrantedAuthority updateRole(String name, IGrantedAuthorityCreateRequest request)
+    IRole updateRole(String name, IRoleCreateRequest request)
                     throws SiteWhereException;
 
     /**
@@ -244,7 +245,7 @@ public interface IUserManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IGrantedAuthority> listRoles(IGrantedAuthoritySearchCriteria criteria)
+    ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria)
                     throws SiteWhereException;
 
     /**

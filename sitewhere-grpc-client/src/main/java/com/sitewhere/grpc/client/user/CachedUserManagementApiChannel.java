@@ -20,6 +20,7 @@ import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.search.ISearchResults;
 import com.sitewhere.spi.user.*;
 import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
+import com.sitewhere.spi.user.request.IRoleCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
 
 /**
@@ -245,7 +246,7 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
      * @see com.sitewhere.spi.user.IUserManagement#getRoles(java.lang.String)
      */
     @Override
-    public List<IRol> getRoles(String username) throws SiteWhereException {
+    public List<IRole> getRoles(String username) throws SiteWhereException {
 	return getWrapped().getRoles(username);
     }
 
@@ -253,7 +254,7 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
      * @see com.sitewhere.spi.user.IUserManagement#addRoles(java.lang.String, java.util.List)
      */
     @Override
-    public List<IGrantedAuthority> addRoles(String username, List<String> roles) throws SiteWhereException {
+    public List<IRole> addRoles(String username, List<String> roles) throws SiteWhereException {
 	return getWrapped().addRoles(username, roles);
     }
 
@@ -261,31 +262,48 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
      * @see com.sitewhere.spi.user.IUserManagement#removeRoles(java.lang.String, java.util.List)
      */
     @Override
-    public List<IGrantedAuthority> removeRoles(String username, List<String> roles)
+    public List<IRole> removeRoles(String username, List<String> roles)
 		    throws SiteWhereException {
 	return getWrapped().removeRoles(username, roles);
     }
 
-    @Override public IGrantedAuthority createRole(IGrantedAuthorityCreateRequest request) throws SiteWhereException {
-	return null;
+    /*
+     * @see com.sitewhere.spi.user.IUserManagement#createRole(com.sitewhere.spi.user.request.IRoleCreateRequest)
+     */
+    @Override
+    public IRole createRole(IRoleCreateRequest request) throws SiteWhereException {
+	return getWrapped().createRole(request);
     }
 
-    @Override public IGrantedAuthority getRoleByName(String name) throws SiteWhereException {
-	return null;
+    /*
+     * @see com.sitewhere.spi.user.IUserManagement#getRoleByName(java.lang.String, java.util.List)
+     */
+    @Override
+    public IRole getRoleByName(String name) throws SiteWhereException {
+	return getWrapped().getRoleByName(name);
     }
 
-    @Override public IGrantedAuthority updateRole(String name, IGrantedAuthorityCreateRequest request)
+    /*
+     * @see com.sitewhere.spi.user.IUserManagement#updateRole(com.sitewhere.spi.user.request.IRoleCreateRequest)
+     */
+    @Override
+    public IRole updateRole(String name, IRoleCreateRequest request)
 		    throws SiteWhereException {
-	return null;
+	return getWrapped().updateRole(name, request);
     }
 
-    @Override public ISearchResults<IGrantedAuthority> listRoles(IGrantedAuthoritySearchCriteria criteria)
+    /*
+     * @see com.sitewhere.spi.user.IUserManagement#updateRole(com.sitewhere.spi.user.IRoleSearchCriteria)
+     */
+    @Override
+    public ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria)
 		    throws SiteWhereException {
-	return null;
+	return getWrapped().listRoles(criteria);
     }
 
-    @Override public void deleteRole(String role) throws SiteWhereException {
-
+    @Override
+    public void deleteRole(String role) throws SiteWhereException {
+	getWrapped().deleteRole(role);
     }
 
     //****************************************fin*******************************************************

@@ -24,6 +24,7 @@ import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.search.ISearchResults;
 import com.sitewhere.spi.user.*;
 import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
+import com.sitewhere.spi.user.request.IRoleCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
 
 /**
@@ -398,19 +399,18 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
      * String)
      */
     @Override
-    public List<IRol> getRoles(String username) throws SiteWhereException {
+    public List<IRole> getRoles(String username) throws SiteWhereException {
 	try {
 	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getGetRolesForUserMethod());
-	    //GGetGrantedAuthoritiesRequest.Builder grequest = GGetGrantedAuthoritiesRequest.newBuilder();
 	    GGetRolesRequest.Builder grequest = GGetRolesRequest.newBuilder();
 	    grequest.setUsername(username);
 	    GGetRolesResponse gresponse = getGrpcChannel().getBlockingStub()
 			    .getRolesForUser(grequest.build());
 
-	  /*  List<IRol> response = UserModelConverter
-			    .asApiGrantedAuthorities(null);*/
-	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getGetRolesForUserMethod(), null);
-	    return null;
+	    List<IRole> response = UserModelConverter
+			    .asApiRole(gresponse.getRolesList());
+	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getGetRolesForUserMethod(), response);
+	    return response;
 	} catch (Throwable t) {
 	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getGetGrantedAuthoritiesForUserMethod(), t);
 	}
@@ -423,9 +423,23 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
      * String, java.util.List)
      */
     @Override
-    public List<IGrantedAuthority> addRoles(String username, List<String> authorities)
+    public List<IRole> addRoles(String username, List<String> roles)
 		    throws SiteWhereException {
-	throw new RuntimeException("Not implemented.");
+	try {
+	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getAddRolesForUserMethod());
+	    GAddRolesRequest.Builder grequest = GAddRolesRequest.newBuilder();
+	    grequest.setUsername(username);
+	    grequest.getRolesList().addAll(roles);
+
+	    GAddRolesResponse gresponse = getGrpcChannel().getBlockingStub()
+			    .addRolesForUser(grequest.build());
+	    List<IRole> response = UserModelConverter
+			    .asApiRole(gresponse.getRolesList());
+	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getAddGrantedAuthoritiesForUserMethod(), response);
+	    return response;
+	} catch (Throwable t) {
+	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getAddGrantedAuthoritiesForUserMethod(), t);
+	}
     }
 
     /*
@@ -436,31 +450,109 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
      * .String, java.util.List)
      */
     @Override
-    public List<IGrantedAuthority> removeRoles(String username, List<String> authorities)
+    public List<IRole> removeRoles(String username, List<String> roles)
 		    throws SiteWhereException {
-	throw new RuntimeException("Not implemented.");
+	try {
+	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getRemoveRolesForUserMethod());
+	    GRemoveRolesRequest.Builder grequest = GRemoveRolesRequest.newBuilder();
+	    grequest.setUsername(username);
+	    grequest.getRolesList().addAll(roles);
+	    GRemoveRolesResponse gresponse = getGrpcChannel().getBlockingStub()
+			    .removeRolesForUser(grequest.build());
+	    List<IRole> response = UserModelConverter
+			    .asApiRole(gresponse.getRolesList());
+	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getRemoveGrantedAuthoritiesForUserMethod(), response);
+	    return response;
+	} catch (Throwable t) {
+	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getRemoveGrantedAuthoritiesForUserMethod(), t);
+	}
     }
 
-    @Override public IGrantedAuthority createRole(IGrantedAuthorityCreateRequest request) throws SiteWhereException {
-	return null;
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.sitewhere.spi.user.IUserManagement#createRole(java.lang
+     * .String, java.util.List)
+     */
+    @Override
+    public IRole createRole(IRoleCreateRequest request) throws SiteWhereException {
+	try {
+	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getCreateRoleMethod());
+	    GCreateRoleRequest.Builder grequest = GCreateRoleRequest.newBuilder();
+	    grequest.setRequest(UserModelConverter.asGrpcRoleCreateRequest(request));
+	    GCreateRoleResponse gresponse = getGrpcChannel().getBlockingStub()
+			    .createRole(grequest.build());
+	    IRole response = UserModelConverter.asApiRole(gresponse.getRole());
+	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getCreateGrantedAuthorityMethod(), response);
+	    return response;
+	} catch (Throwable t) {
+	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getCreateGrantedAuthorityMethod(), t);
+	}
     }
 
-    @Override public IGrantedAuthority getRoleByName(String name) throws SiteWhereException {
-	return null;
+    @Override
+    public IRole getRoleByName(String name) throws SiteWhereException {
+	try {
+	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getGetRoleByNameMethod());
+	    GGetRoleByNameRequest.Builder grequest = GGetRoleByNameRequest.newBuilder();
+	    grequest.setName(name);
+	    GGetRoleByNameResponse gresponse = getGrpcChannel().getBlockingStub()
+			    .getRoleByName(grequest.build());
+	    if (gresponse.hasRole()) {
+		IRole response = UserModelConverter.asApiRole(gresponse.getRole());
+		GrpcUtils.logClientMethodResponse(UserManagementGrpc.getGetGrantedAuthorityByNameMethod(), response);
+		return response;
+	    }
+	    return null;
+	} catch (Throwable t) {
+	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getGetGrantedAuthorityByNameMethod(), t);
+	}
     }
 
-    @Override public IGrantedAuthority updateRole(String name, IGrantedAuthorityCreateRequest request)
+    @Override
+    public IRole updateRole(String name, IRoleCreateRequest request)
 		    throws SiteWhereException {
-	return null;
+	try {
+	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getUpdateRoleMethod());
+	    GUpdateRoleRequest.Builder grequest = GUpdateRoleRequest.newBuilder();
+	    grequest.setName(name);
+	    grequest.setRequest(UserModelConverter.asGrpcRoleCreateRequest(request));
+	    GUpdateRoleResponse gresponse = getGrpcChannel().getBlockingStub()
+			    .updateRole(grequest.build());
+	    IRole response = UserModelConverter.asApiRole(gresponse.getAuthority());
+	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getUpdateGrantedAuthorityMethod(), response);
+	    return response;
+	} catch (Throwable t) {
+	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getUpdateGrantedAuthorityMethod(), t);
+	}
     }
 
-    @Override public ISearchResults<IGrantedAuthority> listRoles(IGrantedAuthoritySearchCriteria criteria)
-		    throws SiteWhereException {
-	return null;
+    @Override
+    public ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria) throws SiteWhereException {
+	try {
+	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getListRolesMethod());
+	    GListRolesRequest.Builder grequest = GListRolesRequest.newBuilder();
+	    GListRolesResponse gresponse = getGrpcChannel().getBlockingStub()
+			    .listRoles(grequest.build());
+	    ISearchResults<IRole> results = UserModelConverter
+			    .asApiRoleSearchResults(gresponse.getResults());
+	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getListRolesMethod(), results);
+	    return results;
+	} catch (Throwable t) {
+	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getListGrantedAuthoritiesMethod(), t);
+	}
     }
 
     @Override public void deleteRole(String role) throws SiteWhereException {
-
+	try {
+	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getDeleteRoleMethod());
+	    GDeleteRoleRequest.Builder grequest = GDeleteRoleRequest.newBuilder();
+	    grequest.setName(role);
+	    getGrpcChannel().getBlockingStub().deleteRole(grequest.build());
+	} catch (Throwable t) {
+	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getDeleteGrantedAuthorityMethod(), t);
+	}
     }
 
 

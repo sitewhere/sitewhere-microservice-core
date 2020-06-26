@@ -14,6 +14,7 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.search.ISearchResults;
 import com.sitewhere.spi.user.*;
 import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
+import com.sitewhere.spi.user.request.IRoleCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
 
 /**
@@ -193,38 +194,46 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 	getDelegate().deleteGrantedAuthority(authority);
     }
 
-    @Override public List<IRol> getRoles(String username) throws SiteWhereException {
+    @Override
+    public List<IRole> getRoles(String username) throws SiteWhereException {
 	return getDelegate().getRoles(username);
     }
 
-    @Override public List<IGrantedAuthority> addRoles(String username, List<String> roles) throws SiteWhereException {
+    @Override
+    public List<IRole> addRoles(String username, List<String> roles) throws SiteWhereException {
 	return getDelegate().addRoles(username, roles);
     }
 
-    @Override public List<IGrantedAuthority> removeRoles(String username, List<String> roles)
+    @Override
+    public List<IRole> removeRoles(String username, List<String> roles)
 		    throws SiteWhereException {
 	return getDelegate().removeRoles(username, roles);
     }
 
-    @Override public IGrantedAuthority createRole(IGrantedAuthorityCreateRequest request) throws SiteWhereException {
-	return null;
+    @Override
+    public IRole createRole(IRoleCreateRequest request) throws SiteWhereException {
+	return getDelegate().createRole(request);
     }
 
-    @Override public IGrantedAuthority getRoleByName(String name) throws SiteWhereException {
-	return null;
+    @Override
+    public IRole getRoleByName(String name) throws SiteWhereException {
+	return getDelegate().getRoleByName(name);
     }
 
-    @Override public IGrantedAuthority updateRole(String name, IGrantedAuthorityCreateRequest request)
+    @Override
+    public IRole updateRole(String name, IRoleCreateRequest request)
 		    throws SiteWhereException {
-	return null;
+	return getDelegate().updateRole(name, request);
     }
 
-    @Override public ISearchResults<IGrantedAuthority> listRoles(IGrantedAuthoritySearchCriteria criteria)
+    @Override
+    public ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria)
 		    throws SiteWhereException {
-	return null;
+	return getDelegate().listRoles(criteria);
     }
 
-    @Override public void deleteRole(String role) throws SiteWhereException {
-
+    @Override
+    public void deleteRole(String role) throws SiteWhereException {
+	getDelegate().deleteRole(role);
     }
 }
