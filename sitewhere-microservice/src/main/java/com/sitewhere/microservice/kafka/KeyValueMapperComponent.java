@@ -7,18 +7,18 @@
  */
 package com.sitewhere.microservice.kafka;
 
-import org.apache.kafka.streams.processor.ProcessorSupplier;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
-import com.sitewhere.spi.microservice.kafka.IProcessorSupplierComponent;
 
 /**
- * Base class for {@link ProcessorSupplier} components that also participate in
- * the SiteWhere lifecycle.
+ * Base class for {@link KeyValueMapper} components that also participate in the
+ * SiteWhere lifecycle.
  * 
  * @param <K>
  * @param <V>
+ * @param <VR>
  */
-public abstract class ProcessorSupplierComponent<K, V> extends TenantEngineLifecycleComponent
-	implements IProcessorSupplierComponent<K, V> {
+public abstract class KeyValueMapperComponent<K, V, VR> extends TenantEngineLifecycleComponent
+	implements KeyValueMapper<K, V, VR> {
 }
