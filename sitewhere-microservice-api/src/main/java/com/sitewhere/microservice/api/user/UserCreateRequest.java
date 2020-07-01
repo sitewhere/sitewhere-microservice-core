@@ -10,6 +10,7 @@ package com.sitewhere.microservice.api.user;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -41,9 +42,6 @@ public class UserCreateRequest extends PersistentEntityCreateRequest implements 
 
     /** Account status */
     private AccountStatus status;
-
-    /** List of granted authorities */
-    private List<String> authorities;
 
     /** List of roles */
     private List<String> roles;
@@ -113,19 +111,6 @@ public class UserCreateRequest extends PersistentEntityCreateRequest implements 
 	this.status = status;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sitewhere.spi.user.request.IUserCreateRequest#getAuthorities()
-     */
-    public List<String> getAuthorities() {
-	return authorities;
-    }
-
-    public void setAuthorities(List<String> authorities) {
-	this.authorities = authorities;
-    }
-
     @Override
     public List<String> getRoles() {
 	return roles;
@@ -153,7 +138,7 @@ public class UserCreateRequest extends PersistentEntityCreateRequest implements 
 	    request.setFirstName(existing.getFirstName());
 	    request.setLastName(existing.getLastName());
 	    request.setStatus(existing.getStatus());
-	    request.setAuthorities(existing.getAuthorities());
+	    request.setRoles(existing.getRoles().stream().map(result -> result.getRole()).collect(Collectors.toList()));
 	    request.setMetadata(existing.getMetadata());
 	}
 
@@ -162,19 +147,19 @@ public class UserCreateRequest extends PersistentEntityCreateRequest implements 
 	    return this;
 	}
 
-	public Builder withAuthority(String authority) {
-	    if (request.getAuthorities() == null) {
-		request.setAuthorities(new ArrayList<String>());
+	public Builder withRole(String role) {
+	    if (request.getRoles() == null) {
+		request.setRoles(new ArrayList<String>());
 	    }
-	    request.getAuthorities().add(authority);
+	    request.getRoles().add(role);
 	    return this;
 	}
 
-	public Builder withAuthorities(List<String> auths) {
-	    if (request.getAuthorities() == null) {
-		request.setAuthorities(new ArrayList<String>());
+	public Builder withRoles(List<String> roles) {
+	    if (request.getRoles() == null) {
+		request.setRoles(new ArrayList<String>());
 	    }
-	    request.getAuthorities().addAll(auths);
+	    request.getRoles().addAll(roles);
 	    return this;
 	}
 

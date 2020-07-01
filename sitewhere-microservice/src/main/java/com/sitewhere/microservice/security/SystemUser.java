@@ -14,12 +14,12 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.sitewhere.rest.model.user.Role;
 import com.sitewhere.rest.model.user.User;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
-import com.sitewhere.spi.user.IUser;
-import com.sitewhere.spi.user.SiteWhereAuthority;
+import com.sitewhere.spi.user.*;
 
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
@@ -78,7 +78,7 @@ public class SystemUser implements ISystemUser {
 
     /**
      * Create default (fully authenticated) system user.
-     * 
+     *
      * @return
      */
     protected static IUser createUser() {
@@ -87,10 +87,7 @@ public class SystemUser implements ISystemUser {
 	user.setFirstName("System");
 	user.setLastName("User");
 	user.setCreatedDate(new Date());
-
-	List<String> auths = getNonGroupAuthorities();
-
-	user.setAuthorities(auths);
+	user.setRoles(getRoles());
 	return user;
     }
 
@@ -103,6 +100,17 @@ public class SystemUser implements ISystemUser {
 	}
 	return matches;
     }
+
+    protected static List<IRole> getRoles() {
+        List roles = new ArrayList();
+	for (SiteWhereRole siteWhereRole: SiteWhereRole.values()) {
+	    Role role = new Role();
+	    role.setRole(siteWhereRole.getRoleName());
+	    roles.add(role);
+	}
+	return roles;
+    }
+
 
     protected ITokenManagement getTokenManagement() {
 	return tokenManagement;

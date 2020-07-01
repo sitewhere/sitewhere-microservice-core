@@ -408,7 +408,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 			    .getRolesForUser(grequest.build());
 
 	    List<IRole> response = UserModelConverter
-			    .asApiRole(gresponse.getRolesList());
+			    .asApiRoles(gresponse.getRolesList());
 	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getGetRolesForUserMethod(), response);
 	    return response;
 	} catch (Throwable t) {
@@ -434,7 +434,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 	    GAddRolesResponse gresponse = getGrpcChannel().getBlockingStub()
 			    .addRolesForUser(grequest.build());
 	    List<IRole> response = UserModelConverter
-			    .asApiRole(gresponse.getRolesList());
+			    .asApiRoles(gresponse.getRolesList());
 	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getAddGrantedAuthoritiesForUserMethod(), response);
 	    return response;
 	} catch (Throwable t) {
@@ -460,7 +460,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 	    GRemoveRolesResponse gresponse = getGrpcChannel().getBlockingStub()
 			    .removeRolesForUser(grequest.build());
 	    List<IRole> response = UserModelConverter
-			    .asApiRole(gresponse.getRolesList());
+			    .asApiRoles(gresponse.getRolesList());
 	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getRemoveGrantedAuthoritiesForUserMethod(), response);
 	    return response;
 	} catch (Throwable t) {
