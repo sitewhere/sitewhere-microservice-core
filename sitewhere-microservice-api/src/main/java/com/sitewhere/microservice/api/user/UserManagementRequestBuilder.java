@@ -11,6 +11,7 @@ import com.sitewhere.rest.model.search.user.UserSearchCriteria;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.search.ISearchResults;
 import com.sitewhere.spi.user.IGrantedAuthority;
+import com.sitewhere.spi.user.IRole;
 import com.sitewhere.spi.user.IUser;
 
 /**
@@ -27,7 +28,7 @@ public class UserManagementRequestBuilder {
 
     /**
      * Create builder for new user request.
-     * 
+     *
      * @param username
      * @param password
      * @param firstName
@@ -40,7 +41,7 @@ public class UserManagementRequestBuilder {
 
     /**
      * Persist user contructed via builder.
-     * 
+     *
      * @param builder
      * @return
      * @throws SiteWhereException
@@ -51,7 +52,7 @@ public class UserManagementRequestBuilder {
 
     /**
      * Create builder for new granted authority request.
-     * 
+     *
      * @param authority
      * @return
      */
@@ -61,7 +62,7 @@ public class UserManagementRequestBuilder {
 
     /**
      * Persist granted authority constructed via builder.
-     * 
+     *
      * @param builder
      * @return
      * @throws SiteWhereException
@@ -72,7 +73,7 @@ public class UserManagementRequestBuilder {
 
     /**
      * Get an existing authority by name.
-     * 
+     *
      * @param authority
      * @return
      * @throws SiteWhereException
@@ -83,7 +84,7 @@ public class UserManagementRequestBuilder {
 
     /**
      * Indicates if the system already contains the given authority.
-     * 
+     *
      * @param authority
      * @return
      * @throws SiteWhereException
@@ -94,7 +95,7 @@ public class UserManagementRequestBuilder {
 
     /**
      * List all users.
-     * 
+     *
      * @return
      * @throws SiteWhereException
      */
@@ -104,7 +105,7 @@ public class UserManagementRequestBuilder {
 
     /**
      * Indicates if the system has users defined.
-     * 
+     *
      * @return
      * @throws SiteWhereException
      */
@@ -118,5 +119,49 @@ public class UserManagementRequestBuilder {
 
     public void setUserManagement(IUserManagement userManagement) {
 	this.userManagement = userManagement;
+    }
+
+    /****************************** inicio *********************
+    /**
+     * Create builder for new granted authority request.
+     *
+     * @param role
+     * @return
+     */
+    public RoleCreateRequest.Builder newRole(String role) {
+	return new RoleCreateRequest.Builder(role);
+    }
+
+    /**
+     * Indicates if the system already contains the given authority.
+     *
+     * @param role
+     * @return
+     * @throws SiteWhereException
+     */
+    public boolean hasRole(String role) throws SiteWhereException {
+	return getRole(role) != null;
+    }
+
+    /**
+     * Get an existing role by name.
+     *
+     * @param role
+     * @return
+     * @throws SiteWhereException
+     */
+    public IRole getRole(String role) throws SiteWhereException {
+	return getUserManagement().getRoleByName(role);
+    }
+
+    /**
+     * Persist role constructed via builder.
+     *
+     * @param builder
+     * @return
+     * @throws SiteWhereException
+     */
+    public IRole persist(RoleCreateRequest.Builder builder) throws SiteWhereException {
+	return getUserManagement().createRole(builder.build());
     }
 }
