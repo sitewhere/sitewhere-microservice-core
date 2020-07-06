@@ -34,16 +34,19 @@ public class RoleCreateRequest implements IRoleCreateRequest {
     /** Role authorities */
     private List authorities;
 
-    @Override public String getRole() {
-	return null;
+    @Override public
+    String getRole() {
+	return role;
     }
 
-    @Override public String getDescription() {
-	return null;
+    @Override
+    public String getDescription() {
+	return description;
     }
 
-    @Override public List<String> getAuthorities() {
-	return null;
+    @Override
+    public List<String> getAuthorities() {
+	return authorities;
     }
 
     public void setRole(String role) {
@@ -77,8 +80,13 @@ public class RoleCreateRequest implements IRoleCreateRequest {
 	    return this;
 	}
 
-	public Builder withAuthorities(String description) {
+	public Builder withAuthority(String description) {
 	    request.setDescription(description);
+	    return this;
+	}
+
+	public Builder withAuthorities(List<String> authorities) {
+	    request.setAuthorities(authorities);
 	    return this;
 	}
 
