@@ -237,11 +237,6 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
 	getWrapped().deleteGrantedAuthority(authority);
     }
 
-
-
-
-
-    //**************************************inicio*****************************************************
     /*
      * @see com.sitewhere.spi.user.IUserManagement#getRoles(java.lang.String)
      */
@@ -276,7 +271,7 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
     }
 
     /*
-     * @see com.sitewhere.spi.user.IUserManagement#getRoleByName(java.lang.String, java.util.List)
+     * @see com.sitewhere.spi.user.IUserManagement#getRoleByName(java.lang.String)
      */
     @Override
     public IRole getRoleByName(String name) throws SiteWhereException {
@@ -284,7 +279,7 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
     }
 
     /*
-     * @see com.sitewhere.spi.user.IUserManagement#updateRole(com.sitewhere.spi.user.request.IRoleCreateRequest)
+     * @see com.sitewhere.spi.user.IUserManagement#updateRole(java.lang.String, com.sitewhere.spi.user.request.IRoleCreateRequest)
      */
     @Override
     public IRole updateRole(String name, IRoleCreateRequest request)
@@ -293,7 +288,7 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
     }
 
     /*
-     * @see com.sitewhere.spi.user.IUserManagement#updateRole(com.sitewhere.spi.user.IRoleSearchCriteria)
+     * @see com.sitewhere.spi.user.IUserManagement#listRoles(com.sitewhere.spi.user.IRoleSearchCriteria)
      */
     @Override
     public ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria)
@@ -305,8 +300,6 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
     public void deleteRole(String role) throws SiteWhereException {
 	getWrapped().deleteRole(role);
     }
-
-    //****************************************fin*******************************************************
 
     /**
      * Contains default cache settings for user management entities.

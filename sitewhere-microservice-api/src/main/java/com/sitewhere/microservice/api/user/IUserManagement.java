@@ -168,13 +168,6 @@ public interface IUserManagement extends ILifecycleComponent {
      */
     void deleteGrantedAuthority(String authority) throws SiteWhereException;
 
-
-
-
-
-    //********************************** inicio ************************************
-
-
     /**
      * Get the Roles for a specific user.
      *
@@ -204,11 +197,6 @@ public interface IUserManagement extends ILifecycleComponent {
      */
     List<IRole> removeRoles(String username, List<String> roles)
                     throws SiteWhereException;
-
-    //TODO: falta asociar rol con autorizaciónes...
-
-
-
 
     /**
      * Create a new granted authority.
@@ -255,12 +243,5 @@ public interface IUserManagement extends ILifecycleComponent {
      * @throws SiteWhereException
      */
     void deleteRole(String role) throws SiteWhereException;
-
-
-
-
-
-
-    //*********************************** fin ***************************************
 
 }

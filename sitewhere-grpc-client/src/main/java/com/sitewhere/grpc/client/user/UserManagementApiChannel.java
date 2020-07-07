@@ -390,13 +390,10 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 	}
     }
 
-
-    //******************************inicio***************************
     /*
      * (non-Javadoc)
      *
-     * @see com.sitewhere.spi.user.IUserManagement#getRoles(java.lang.
-     * String)
+     * @see com.sitewhere.spi.user.IUserManagement#getRoles(java.lang.String)
      */
     @Override
     public List<IRole> getRoles(String username) throws SiteWhereException {
@@ -419,8 +416,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
     /*
      * (non-Javadoc)
      *
-     * @see com.sitewhere.spi.user.IUserManagement#addRoles(java.lang.
-     * String, java.util.List)
+     * @see com.sitewhere.spi.user.IUserManagement#addRoles(java.lang.String, java.util.List)
      */
     @Override
     public List<IRole> addRoles(String username, List<String> roles)
@@ -446,8 +442,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
      * (non-Javadoc)
      *
      * @see
-     * com.sitewhere.spi.user.IUserManagement#removeRoles(java.lang
-     * .String, java.util.List)
+     * com.sitewhere.spi.user.IUserManagement#removeRoles(java.lang.String, java.util.List)
      */
     @Override
     public List<IRole> removeRoles(String username, List<String> roles)
@@ -472,8 +467,7 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
      * (non-Javadoc)
      *
      * @see
-     * com.sitewhere.spi.user.IUserManagement#createRole(java.lang
-     * .String, java.util.List)
+     * com.sitewhere.spi.user.IUserManagement#createRole(com.sitewhere.spi.user.request.IRoleCreateRequest)
      */
     @Override
     public IRole createRole(IRoleCreateRequest request) throws SiteWhereException {
@@ -491,6 +485,12 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 	}
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.sitewhere.spi.user.IUserManagement#getRoleByName(java.lang.String)
+     */
     @Override
     public IRole getRoleByName(String name) throws SiteWhereException {
 	try {
@@ -510,6 +510,12 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 	}
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.sitewhere.spi.user.IUserManagement#updateRole(java.lang.String, com.sitewhere.spi.user.request.IRoleCreateRequest)
+     */
     @Override
     public IRole updateRole(String name, IRoleCreateRequest request)
 		    throws SiteWhereException {
@@ -528,6 +534,12 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 	}
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.sitewhere.spi.user.IUserManagement#listRoles(com.sitewhere.spi.user.IRoleSearchCriteria)
+     */
     @Override
     public ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria) throws SiteWhereException {
 	try {
@@ -544,6 +556,12 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 	}
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * com.sitewhere.spi.user.IUserManagement#deleteRole(java.lang.String)
+     */
     @Override public void deleteRole(String role) throws SiteWhereException {
 	try {
 	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getDeleteRoleMethod());
@@ -555,6 +573,4 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
 	}
     }
 
-
-    //******************************fin***************************
 }

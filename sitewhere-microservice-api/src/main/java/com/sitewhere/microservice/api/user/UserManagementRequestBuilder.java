@@ -121,9 +121,8 @@ public class UserManagementRequestBuilder {
 	this.userManagement = userManagement;
     }
 
-    /****************************** inicio *********************
     /**
-     * Create builder for new granted authority request.
+     * Create builder for new role request.
      *
      * @param role
      * @return
@@ -133,7 +132,7 @@ public class UserManagementRequestBuilder {
     }
 
     /**
-     * Indicates if the system already contains the given authority.
+     * Indicates if the system already contains the given role.
      *
      * @param role
      * @return

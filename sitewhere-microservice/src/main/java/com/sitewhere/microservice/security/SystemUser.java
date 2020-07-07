@@ -111,7 +111,6 @@ public class SystemUser implements ISystemUser {
 	return roles;
     }
 
-
     protected ITokenManagement getTokenManagement() {
 	return tokenManagement;
     }
