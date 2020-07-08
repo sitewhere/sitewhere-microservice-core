@@ -36,6 +36,24 @@ public abstract class KafkaStreamPipeline extends TenantEngineLifecycleComponent
      */
     public abstract String getPipelineName();
 
+    /**
+     * Get default key serde class.
+     * 
+     * @return
+     */
+    public Class<?> getDefaultKeySerdeClass() {
+	return Serdes.String().getClass();
+    }
+
+    /**
+     * Get default value serde class.
+     * 
+     * @return
+     */
+    public Class<?> getDefaultValueSerdeClass() {
+	return Serdes.String().getClass();
+    }
+
     /*
      * @see com.sitewhere.microservice.lifecycle.LifecycleComponent#initialize(com.
      * sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
@@ -53,8 +71,8 @@ public abstract class KafkaStreamPipeline extends TenantEngineLifecycleComponent
 		getMicroservice().getIdentifier().getPath(), getPipelineName());
 	props.put(StreamsConfig.APPLICATION_ID_CONFIG, appId);
 	props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaUtils.getBootstrapServers(getMicroservice()));
-	props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-	props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+	props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, getDefaultKeySerdeClass());
+	props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, getDefaultValueSerdeClass());
 
 	final StreamsBuilder builder = new StreamsBuilder();
 	buildStreams(builder);

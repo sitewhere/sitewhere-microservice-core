@@ -31,7 +31,6 @@ import io.sitewhere.k8s.crd.exception.SiteWhereK8sException;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
-import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineList;
 import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScript;
 import io.sitewhere.k8s.crd.tenant.scripting.version.SiteWhereScriptVersion;
 
@@ -151,18 +150,10 @@ public abstract class MultitenantMicroservice<F extends IFunctionIdentifier, C e
     @Override
     public SiteWhereTenantEngine getTenantEngineConfiguration(SiteWhereTenant tenant,
 	    SiteWhereMicroservice microservice) throws SiteWhereException {
-	SiteWhereTenantEngineList list = getSiteWhereKubernetesClient().getTenantEngines()
-		.inNamespace(tenant.getMetadata().getNamespace())
-		.withLabel(ResourceLabels.LABEL_SITEWHERE_TENANT, tenant.getMetadata().getName())
-		.withLabel(ResourceLabels.LABEL_SITEWHERE_MICROSERVICE, microservice.getMetadata().getName()).list();
-	if (list.getItems().size() == 0) {
-	    return null;
-	} else if (list.getItems().size() == 1) {
-	    return list.getItems().get(0);
-	} else {
-	    getLogger().warn(String.format("Found multiple tenant engines for tenant/microservice combination. %s %s",
-		    tenant.getMetadata().getName(), microservice.getMetadata().getName()));
-	    return list.getItems().get(0);
+	try {
+	    return getSiteWhereKubernetesClient().getTenantEngine(microservice, tenant);
+	} catch (SiteWhereK8sException e) {
+	    throw new SiteWhereException(e);
 	}
     }
 

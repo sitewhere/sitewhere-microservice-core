@@ -31,24 +31,20 @@ import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
  * Base class for components that produce messages that are forwarded to a Kafka
  * topic.
  */
-public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleComponent
-	implements IMicroserviceKafkaProducer {
+public abstract class MicroserviceKafkaProducer<K, P> extends TenantEngineLifecycleComponent
+	implements IMicroserviceKafkaProducer<K, P> {
 
     /** Producer */
-    private KafkaProducer<String, byte[]> producer;
+    private KafkaProducer<K, P> producer;
 
     /** Kafka acknowledgement policy */
-    private AckPolicy ackPolicy;
+    private AckPolicy ackPolicy = AckPolicy.Leader;
 
     /** Indicator for whether Kafka is available */
     private CountDownLatch kafkaAvailable;
 
     /** Executor service for waiter thread */
     ExecutorService waiterService;
-
-    public MicroserviceKafkaProducer(AckPolicy ackPolicy) {
-	this.ackPolicy = ackPolicy;
-    }
 
     /*
      * (non-Javadoc)
@@ -61,6 +57,7 @@ public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleCom
     public void start(ILifecycleProgressMonitor monitor) throws SiteWhereException {
 	getLogger().info("Producer connecting to Kafka: " + KafkaUtils.getBootstrapServers(getMicroservice()));
 	getLogger().info("Will be producing messages for: " + getTargetTopicName());
+	getLogger().info("Keys will be encoded with: " + getKeySerializer().getName());
 	this.kafkaAvailable = new CountDownLatch(1);
 	this.waiterService = Executors.newSingleThreadExecutor();
 	getWaiterService().execute(new KafkaWaiter(this, getTargetTopicName()));
@@ -84,22 +81,39 @@ public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleCom
     }
 
     /*
-     * @see
-     * com.sitewhere.spi.microservice.kafka.IMicroserviceKafkaProducer#send(java.
-     * lang.String, byte[])
+     * @see com.sitewhere.spi.microservice.kafka.IMicroserviceKafkaProducer#
+     * getKeySerializer()
      */
     @Override
-    public Future<RecordMetadata> send(String key, byte[] message) throws SiteWhereException {
+    public Class<?> getKeySerializer() {
+	return StringSerializer.class;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.kafka.IMicroserviceKafkaProducer#
+     * getValueSerializer()
+     */
+    @Override
+    public Class<?> getValueSerializer() {
+	return ByteArraySerializer.class;
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.kafka.IMicroserviceKafkaProducer#send(java.
+     * lang.Object, java.lang.Object)
+     */
+    @Override
+    public Future<RecordMetadata> send(K key, P message) throws SiteWhereException {
 	while (true) {
-	    ProducerRecord<String, byte[]> record = new ProducerRecord<String, byte[]>(getTargetTopicName(), key,
-		    message);
+	    ProducerRecord<K, P> record = new ProducerRecord<K, P>(getTargetTopicName(), key, message);
 	    try {
 		if (getKafkaAvailable().getCount() != 0) {
 		    getLogger().info("Producer waiting on Kafka to become available...");
 		    getKafkaAvailable().await();
 		}
 		if (getProducer() == null) {
-		    this.producer = new KafkaProducer<String, byte[]>(buildConfiguration());
+		    this.producer = new KafkaProducer<K, P>(buildConfiguration());
 		}
 		return getProducer().send(record);
 	    } catch (RetriableException e) {
@@ -132,8 +146,8 @@ public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleCom
 	Properties config = new Properties();
 	config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaUtils.getBootstrapServers(getMicroservice()));
 	config.put(ProducerConfig.ACKS_CONFIG, getAckPolicy().getConfig());
-	config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-	config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
+	config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, getKeySerializer().getName());
+	config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, getValueSerializer().getName());
 	return config;
     }
 
@@ -155,35 +169,23 @@ public abstract class MicroserviceKafkaProducer extends TenantEngineLifecycleCom
 	}
     }
 
-    protected KafkaProducer<String, byte[]> getProducer() {
-	return producer;
-    }
-
-    protected void setProducer(KafkaProducer<String, byte[]> producer) {
-	this.producer = producer;
-    }
-
-    protected AckPolicy getAckPolicy() {
+    public AckPolicy getAckPolicy() {
 	return ackPolicy;
     }
 
-    protected void setAckPolicy(AckPolicy ackPolicy) {
+    public void setAckPolicy(AckPolicy ackPolicy) {
 	this.ackPolicy = ackPolicy;
+    }
+
+    protected KafkaProducer<K, P> getProducer() {
+	return producer;
     }
 
     protected CountDownLatch getKafkaAvailable() {
 	return kafkaAvailable;
     }
 
-    protected void setKafkaAvailable(CountDownLatch kafkaAvailable) {
-	this.kafkaAvailable = kafkaAvailable;
-    }
-
     protected ExecutorService getWaiterService() {
 	return waiterService;
-    }
-
-    protected void setWaiterService(ExecutorService waiterService) {
-	this.waiterService = waiterService;
     }
 }

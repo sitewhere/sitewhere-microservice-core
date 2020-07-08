@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Inject;
 
 import org.redisson.Redisson;
-import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.redisson.codec.CborJacksonCodec;
 import org.redisson.config.Config;
@@ -96,7 +95,10 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     private ITenantManagement tenantManagement;
 
     /** Version information */
-    private IVersion version = new Version();
+    private IVersion version = new MicroserviceVersion();
+
+    /** Version information */
+    private IVersion microserviceLibraryVersion = new MicroserviceLibraryVersion();
 
     /** Script manager */
     private IScriptManager scriptManager = new ScriptManager();
@@ -257,8 +259,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	    }
 	}
 	getLogger().info("Redis connectivity initialized.");
-	RMap<String, String> map = getRedissonClient().getMap("bubba");
-	map.put("sitewhere", "rocks");
     }
 
     /**
@@ -519,6 +519,15 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @Override
     public IVersion getVersion() {
 	return version;
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.IMicroservice#getMicroserviceLibraryVersion()
+     */
+    @Override
+    public IVersion getMicroserviceLibraryVersion() {
+	return microserviceLibraryVersion;
     }
 
     /*

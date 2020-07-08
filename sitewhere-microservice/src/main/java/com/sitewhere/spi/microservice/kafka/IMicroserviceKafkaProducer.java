@@ -17,7 +17,21 @@ import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 /**
  * Component that produces messages that are sent to a Kafka topic.
  */
-public interface IMicroserviceKafkaProducer extends ILifecycleComponent {
+public interface IMicroserviceKafkaProducer<K, P> extends ILifecycleComponent {
+
+    /**
+     * Get key serializer class.
+     * 
+     * @return
+     */
+    public Class<?> getKeySerializer();
+
+    /**
+     * Get value serializer class.
+     * 
+     * @return
+     */
+    public Class<?> getValueSerializer();
 
     /**
      * Get name of Kafka topic which will receive the messages.
@@ -35,5 +49,5 @@ public interface IMicroserviceKafkaProducer extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    Future<RecordMetadata> send(String key, byte[] message) throws SiteWhereException;
+    Future<RecordMetadata> send(K key, P message) throws SiteWhereException;
 }
