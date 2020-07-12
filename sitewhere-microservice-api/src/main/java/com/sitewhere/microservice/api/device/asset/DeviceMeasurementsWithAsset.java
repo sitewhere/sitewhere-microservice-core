@@ -7,6 +7,8 @@
  */
 package com.sitewhere.microservice.api.device.asset;
 
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -43,7 +45,7 @@ public class DeviceMeasurementsWithAsset extends DeviceEventWithAsset implements
      * @see com.sitewhere.spi.device.event.IDeviceMeasurement#getValue()
      */
     @Override
-    public Double getValue() {
+    public BigDecimal getValue() {
 	return ((IDeviceMeasurement) getWrapped()).getValue();
     }
 }

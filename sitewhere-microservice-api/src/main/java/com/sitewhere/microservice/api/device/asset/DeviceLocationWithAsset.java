@@ -7,6 +7,8 @@
  */
 package com.sitewhere.microservice.api.device.asset;
 
+import java.math.BigDecimal;
+
 import com.sitewhere.microservice.api.asset.IAssetManagement;
 import com.sitewhere.rest.model.device.event.DeviceLocation;
 import com.sitewhere.spi.SiteWhereException;
@@ -32,7 +34,7 @@ public class DeviceLocationWithAsset extends DeviceEventWithAsset implements IDe
      * @see com.sitewhere.spi.device.IDeviceLocation#getLatitude()
      */
     @Override
-    public Double getLatitude() {
+    public BigDecimal getLatitude() {
 	return ((IDeviceLocation) getWrapped()).getLatitude();
     }
 
@@ -42,7 +44,7 @@ public class DeviceLocationWithAsset extends DeviceEventWithAsset implements IDe
      * @see com.sitewhere.spi.device.IDeviceLocation#getLongitude()
      */
     @Override
-    public Double getLongitude() {
+    public BigDecimal getLongitude() {
 	return ((IDeviceLocation) getWrapped()).getLongitude();
     }
 
@@ -52,7 +54,7 @@ public class DeviceLocationWithAsset extends DeviceEventWithAsset implements IDe
      * @see com.sitewhere.spi.device.IDeviceLocation#getElevation()
      */
     @Override
-    public Double getElevation() {
+    public BigDecimal getElevation() {
 	return ((IDeviceLocation) getWrapped()).getElevation();
     }
 }

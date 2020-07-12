@@ -8,6 +8,7 @@
 package com.sitewhere.microservice.security;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -88,9 +89,9 @@ public class SystemUser implements ISystemUser {
 	user.setLastName("User");
 	user.setCreatedDate(new Date());
 
-	List<String> auths = getNonGroupAuthorities();
+	// List<String> auths = getNonGroupAuthorities();
 
-	user.setAuthorities(auths);
+	user.setRoles(Collections.emptyList());
 	return user;
     }
 

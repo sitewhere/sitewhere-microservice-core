@@ -31,7 +31,8 @@ public class GeoUtils {
      */
     public static Point createPointForLocation(IDeviceLocation location) {
 	GeometryFactory fact = new GeometryFactory();
-	return fact.createPoint(new Coordinate(location.getLongitude(), location.getLatitude()));
+	return fact.createPoint(
+		new Coordinate(location.getLongitude().doubleValue(), location.getLatitude().doubleValue()));
     }
 
     /**

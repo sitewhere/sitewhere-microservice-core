@@ -52,7 +52,8 @@ public class TokenManagement implements ITokenManagement {
 	try {
 	    JwtBuilder builder = Jwts.builder().setIssuer(ISSUER).setSubject(user.getUsername()).setIssuedAt(new Date())
 		    .setExpiration(getExpirationDate(expirationInMinutes)).signWith(SIGNATURE_ALGORITHM, getSecret());
-	    builder.claim(CLAIM_GRANTED_AUTHORITIES, user.getAuthorities());
+	    // TODO: Temporary. Should be a list of granted authorities from roles.
+	    builder.claim(CLAIM_GRANTED_AUTHORITIES, user.getRoles());
 	    return builder.compact();
 	} catch (Throwable t) {
 	    throw new SiteWhereException("Unable to generate JWT.", t);
