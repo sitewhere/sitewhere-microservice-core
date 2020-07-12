@@ -7,6 +7,7 @@
  */
 package com.sitewhere.microservice.api.event;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +43,10 @@ public class DeviceEventRequestBuilder {
     public DeviceEventRequestBuilder(IDeviceManagement deviceManagement, IDeviceEventManagement eventManagement) {
 	this.deviceManagement = deviceManagement;
 	this.eventManagement = eventManagement;
+    }
+
+    public DeviceLocationCreateRequest.Builder newLocation(BigDecimal latitude, BigDecimal longitude) {
+	return new DeviceLocationCreateRequest.Builder(latitude, longitude);
     }
 
     public DeviceLocationCreateRequest.Builder newLocation(double latitude, double longitude) {

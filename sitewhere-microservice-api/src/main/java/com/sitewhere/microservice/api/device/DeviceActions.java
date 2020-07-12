@@ -7,6 +7,7 @@
  */
 package com.sitewhere.microservice.api.device;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Map;
 
@@ -41,15 +42,14 @@ public class DeviceActions implements IDeviceActions {
     }
 
     /*
-     * (non-Javadoc)
-     * 
      * @see
      * com.sitewhere.spi.device.IDeviceActions#createLocation(com.sitewhere.spi.
-     * device.IDeviceAssignment, double, double, double, boolean)
+     * device.IDeviceAssignment, java.math.BigDecimal, java.math.BigDecimal,
+     * java.math.BigDecimal, boolean)
      */
     @Override
-    public void createLocation(IDeviceAssignment assignment, double latitude, double longitude, double elevation,
-	    boolean updateState) throws SiteWhereException {
+    public void createLocation(IDeviceAssignment assignment, BigDecimal latitude, BigDecimal longitude,
+	    BigDecimal elevation, boolean updateState) throws SiteWhereException {
 	DeviceLocationCreateRequest location = new DeviceLocationCreateRequest();
 	location.setLatitude(latitude);
 	location.setLongitude(longitude);
