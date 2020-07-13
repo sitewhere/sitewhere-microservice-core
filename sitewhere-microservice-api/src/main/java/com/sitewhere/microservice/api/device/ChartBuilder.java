@@ -43,7 +43,7 @@ public class ChartBuilder {
 
 	// Add all measurements.
 	for (IDeviceMeasurement mx : matches) {
-	    addSeriesEntry(mx.getName(), mx.getValue(), mx.getEventDate());
+	    addSeriesEntry(mx.getName(), mx.getValue().doubleValue(), mx.getEventDate());
 	}
 	// Sort entries by date.
 	List<IChartSeries<Double>> results = new ArrayList<IChartSeries<Double>>();

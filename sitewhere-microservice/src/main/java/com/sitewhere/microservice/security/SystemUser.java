@@ -19,7 +19,10 @@ import com.sitewhere.rest.model.user.User;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
-import com.sitewhere.spi.user.*;
+import com.sitewhere.spi.user.IUser;
+import com.sitewhere.spi.user.IRole;
+import com.sitewhere.spi.user.SiteWhereRole;
+import com.sitewhere.spi.user.SiteWhereAuthority;
 
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 

@@ -8,6 +8,7 @@
 package com.sitewhere.microservice.multitenant;
 
 import com.google.inject.AbstractModule;
+import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineConfiguration;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineModule;
 
@@ -20,11 +21,24 @@ import com.sitewhere.spi.microservice.multitenant.ITenantEngineModule;
 public class TenantEngineModule<T extends ITenantEngineConfiguration> extends AbstractModule
 	implements ITenantEngineModule<T> {
 
+    /** Tenant engine */
+    private IMicroserviceTenantEngine<T> tenantEngine;
+
     /** Tenant engine configuration */
     private T configuration;
 
-    public TenantEngineModule(T configuration) {
+    public TenantEngineModule(IMicroserviceTenantEngine<T> tenantEngine, T configuration) {
+	this.tenantEngine = tenantEngine;
 	this.configuration = configuration;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.ITenantEngineModule#
+     * getTenantEngine()
+     */
+    @Override
+    public IMicroserviceTenantEngine<T> getTenantEngine() {
+	return tenantEngine;
     }
 
     /*

@@ -18,6 +18,13 @@ import com.google.inject.Module;
 public interface ITenantEngineModule<T extends ITenantEngineConfiguration> extends Module {
 
     /**
+     * Get tenant engine handle.
+     * 
+     * @return
+     */
+    IMicroserviceTenantEngine<T> getTenantEngine();
+
+    /**
      * Get configuration used for module.
      * 
      * @return
