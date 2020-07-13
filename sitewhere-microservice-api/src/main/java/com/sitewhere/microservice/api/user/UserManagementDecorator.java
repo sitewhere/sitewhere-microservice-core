@@ -12,11 +12,9 @@ import java.util.List;
 import com.sitewhere.microservice.lifecycle.LifecycleComponentDecorator;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.search.ISearchResults;
-import com.sitewhere.spi.user.IGrantedAuthority;
-import com.sitewhere.spi.user.IGrantedAuthoritySearchCriteria;
-import com.sitewhere.spi.user.IUser;
-import com.sitewhere.spi.user.IUserSearchCriteria;
+import com.sitewhere.spi.user.*;
 import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
+import com.sitewhere.spi.user.request.IRoleCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
 
 /**
@@ -31,7 +29,7 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.sitewhere.spi.user.IUserManagement#createUser(com.sitewhere.spi.user.
      * request.IUserCreateRequest, java.lang.Boolean)
@@ -43,7 +41,7 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.sitewhere.spi.user.IUserManagement#importUser(com.sitewhere.spi.user.
      * IUser, boolean)
@@ -55,7 +53,7 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#authenticate(java.lang.String,
      * java.lang.String, boolean)
      */
@@ -66,7 +64,7 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#updateUser(java.lang.String,
      * com.sitewhere.spi.user.request.IUserCreateRequest, boolean)
      */
@@ -78,7 +76,7 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#getUserByUsername(java.lang.
      * String)
      */
@@ -89,7 +87,7 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#getGrantedAuthorities(java.lang.
      * String)
      */
@@ -100,7 +98,7 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#addGrantedAuthorities(java.lang.
      * String, java.util.List)
      */
@@ -112,7 +110,7 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * com.sitewhere.spi.user.IUserManagement#removeGrantedAuthorities(java.lang
      * .String, java.util.List)
@@ -142,7 +140,7 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#createGrantedAuthority(com.
      * sitewhere.spi. user.request.IGrantedAuthorityCreateRequest)
      */
@@ -153,7 +151,7 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#getGrantedAuthorityByName(java.
      * lang.String)
      */
@@ -164,7 +162,7 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#updateGrantedAuthority(java.lang.
      * String, com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest)
      */
@@ -187,12 +185,55 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.spi.user.IUserManagement#deleteGrantedAuthority(java.lang.
      * String)
      */
     @Override
     public void deleteGrantedAuthority(String authority) throws SiteWhereException {
 	getDelegate().deleteGrantedAuthority(authority);
+    }
+
+    @Override
+    public List<IRole> getRoles(String username) throws SiteWhereException {
+	return getDelegate().getRoles(username);
+    }
+
+    @Override
+    public List<IRole> addRoles(String username, List<String> roles) throws SiteWhereException {
+	return getDelegate().addRoles(username, roles);
+    }
+
+    @Override
+    public List<IRole> removeRoles(String username, List<String> roles)
+		    throws SiteWhereException {
+	return getDelegate().removeRoles(username, roles);
+    }
+
+    @Override
+    public IRole createRole(IRoleCreateRequest request) throws SiteWhereException {
+	return getDelegate().createRole(request);
+    }
+
+    @Override
+    public IRole getRoleByName(String name) throws SiteWhereException {
+	return getDelegate().getRoleByName(name);
+    }
+
+    @Override
+    public IRole updateRole(String name, IRoleCreateRequest request)
+		    throws SiteWhereException {
+	return getDelegate().updateRole(name, request);
+    }
+
+    @Override
+    public ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria)
+		    throws SiteWhereException {
+	return getDelegate().listRoles(criteria);
+    }
+
+    @Override
+    public void deleteRole(String role) throws SiteWhereException {
+	getDelegate().deleteRole(role);
     }
 }

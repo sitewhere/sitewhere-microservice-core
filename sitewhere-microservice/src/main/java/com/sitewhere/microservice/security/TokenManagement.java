@@ -7,13 +7,16 @@
  */
 package com.sitewhere.microservice.security;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
+import com.sitewhere.spi.user.IRole;
 import com.sitewhere.spi.user.IUser;
 
 import io.jsonwebtoken.Claims;
@@ -44,7 +47,7 @@ public class TokenManagement implements ITokenManagement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.microservice.spi.security.ITokenManagement#generateToken(
      * com.sitewhere.spi.user.IUser)
      */
@@ -52,17 +55,25 @@ public class TokenManagement implements ITokenManagement {
 	try {
 	    JwtBuilder builder = Jwts.builder().setIssuer(ISSUER).setSubject(user.getUsername()).setIssuedAt(new Date())
 		    .setExpiration(getExpirationDate(expirationInMinutes)).signWith(SIGNATURE_ALGORITHM, getSecret());
-	    // TODO: Temporary. Should be a list of granted authorities from roles.
-	    builder.claim(CLAIM_GRANTED_AUTHORITIES, user.getRoles());
+	    builder.claim(CLAIM_GRANTED_AUTHORITIES, getAuthorities(user));
 	    return builder.compact();
 	} catch (Throwable t) {
 	    throw new SiteWhereException("Unable to generate JWT.", t);
 	}
     }
 
+    private List<String> getAuthorities (IUser user) {
+	List authorities = new ArrayList();
+        for (IRole role: user.getRoles()) {
+	    List<String> authoritiesToAdd = role.getAuthorities().stream().map(result -> result.getAuthority()).collect(Collectors.toList());
+	    authorities.addAll(authoritiesToAdd);
+	}
+        return authorities;
+    }
+
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.microservice.spi.security.ITokenManagement#
      * getClaimsForToken(java.lang.String)
      */
@@ -82,7 +93,7 @@ public class TokenManagement implements ITokenManagement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.microservice.spi.security.ITokenManagement#
      * getUsernameFromToken(java.lang.String)
      */
@@ -92,7 +103,7 @@ public class TokenManagement implements ITokenManagement {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.sitewhere.microservice.spi.security.ITokenManagement#
      * getUsernameFromClaims(io.jsonwebtoken.Claims)
      */
