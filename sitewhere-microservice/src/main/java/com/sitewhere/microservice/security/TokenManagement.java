@@ -62,13 +62,14 @@ public class TokenManagement implements ITokenManagement {
 	}
     }
 
-    private List<String> getAuthorities (IUser user) {
-	List authorities = new ArrayList();
-        for (IRole role: user.getRoles()) {
-	    List<String> authoritiesToAdd = role.getAuthorities().stream().map(result -> result.getAuthority()).collect(Collectors.toList());
+    private List<String> getAuthorities(IUser user) {
+	List<String> authorities = new ArrayList<>();
+	for (IRole role : user.getRoles()) {
+	    List<String> authoritiesToAdd = role.getAuthorities().stream().map(result -> result.getAuthority())
+		    .collect(Collectors.toList());
 	    authorities.addAll(authoritiesToAdd);
 	}
-        return authorities;
+	return authorities;
     }
 
     /*

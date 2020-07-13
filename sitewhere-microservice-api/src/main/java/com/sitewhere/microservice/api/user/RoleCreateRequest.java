@@ -7,14 +7,14 @@
  */
 package com.sitewhere.microservice.api.user;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.sitewhere.spi.user.IGrantedAuthority;
 import com.sitewhere.spi.user.IRole;
-import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
 import com.sitewhere.spi.user.request.IRoleCreateRequest;
-
-import java.util.List;
 
 /**
  * Holds fields needed to create a new granted authority.
@@ -32,10 +32,10 @@ public class RoleCreateRequest implements IRoleCreateRequest {
     private String description;
 
     /** Role authorities */
-    private List authorities;
+    private List<String> authorities;
 
-    @Override public
-    String getRole() {
+    @Override
+    public String getRole() {
 	return role;
     }
 
@@ -57,7 +57,7 @@ public class RoleCreateRequest implements IRoleCreateRequest {
 	this.description = description;
     }
 
-    public void setAuthorities(List authorities) {
+    public void setAuthorities(List<String> authorities) {
 	this.authorities = authorities;
     }
 
@@ -72,7 +72,8 @@ public class RoleCreateRequest implements IRoleCreateRequest {
 	public Builder(IRole existing) {
 	    request.setRole(existing.getRole());
 	    request.setDescription(existing.getDescription());
-	    request.setAuthorities(existing.getAuthorities());
+	    request.setAuthorities(existing.getAuthorities().stream().map(IGrantedAuthority::getAuthority)
+		    .collect(Collectors.toList()));
 	}
 
 	public Builder withDescription(String description) {

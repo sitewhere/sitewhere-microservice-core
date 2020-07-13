@@ -105,8 +105,8 @@ public class SystemUser implements ISystemUser {
     }
 
     protected static List<IRole> getRoles() {
-        List roles = new ArrayList();
-	for (SiteWhereRole siteWhereRole: SiteWhereRole.values()) {
+	List<IRole> roles = new ArrayList<>();
+	for (SiteWhereRole siteWhereRole : SiteWhereRole.values()) {
 	    Role role = new Role();
 	    role.setRole(siteWhereRole.getRoleName());
 	    roles.add(role);
