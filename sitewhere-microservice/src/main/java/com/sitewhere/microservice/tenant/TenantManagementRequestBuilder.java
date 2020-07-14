@@ -82,7 +82,7 @@ public class TenantManagementRequestBuilder {
      * @throws SiteWhereException
      */
     public ITenant getTenantByToken(String token) throws SiteWhereException {
-	return getTenantManagement().getTenantByToken(token);
+	return getTenantManagement().getTenant(token);
     }
 
     /**
