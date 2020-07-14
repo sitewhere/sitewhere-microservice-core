@@ -7,8 +7,6 @@
  */
 package com.sitewhere.spi.microservice.tenant;
 
-import java.util.UUID;
-
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 import com.sitewhere.spi.search.ISearchResults;
@@ -33,30 +31,21 @@ public interface ITenantManagement extends ILifecycleComponent {
     /**
      * Update an existing tenant.
      * 
-     * @param id
+     * @param token
      * @param request
      * @return
      * @throws SiteWhereException
      */
-    ITenant updateTenant(UUID id, ITenantCreateRequest request) throws SiteWhereException;
+    ITenant updateTenant(String token, ITenantCreateRequest request) throws SiteWhereException;
 
     /**
      * Get a tenant by tenant id.
-     * 
-     * @param id
-     * @return
-     * @throws SiteWhereException
-     */
-    ITenant getTenant(UUID id) throws SiteWhereException;
-
-    /**
-     * Get tenant by reference token.
      * 
      * @param token
      * @return
      * @throws SiteWhereException
      */
-    ITenant getTenantByToken(String token) throws SiteWhereException;
+    ITenant getTenant(String token) throws SiteWhereException;
 
     /**
      * Find all tenants that match the given criteria.
@@ -70,9 +59,9 @@ public interface ITenantManagement extends ILifecycleComponent {
     /**
      * Delete an existing tenant.
      * 
-     * @param tenantId
+     * @param token
      * @return
      * @throws SiteWhereException
      */
-    ITenant deleteTenant(UUID tenantId) throws SiteWhereException;
+    ITenant deleteTenant(String token) throws SiteWhereException;
 }

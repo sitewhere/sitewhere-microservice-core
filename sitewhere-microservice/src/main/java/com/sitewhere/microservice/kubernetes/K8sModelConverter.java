@@ -7,10 +7,9 @@
  */
 package com.sitewhere.microservice.kubernetes;
 
-import java.util.Arrays;
-
+import com.sitewhere.microservice.tenant.TenantWrapper;
 import com.sitewhere.rest.model.microservice.MicroserviceSummary;
-import com.sitewhere.rest.model.tenant.Tenant;
+import com.sitewhere.spi.tenant.ITenant;
 
 import io.sitewhere.k8s.crd.ResourceLabels;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
@@ -49,20 +48,7 @@ public class K8sModelConverter {
      * @param tenant
      * @return
      */
-    public static Tenant convert(SiteWhereTenant tenant) {
-	Tenant api = new Tenant();
-	api.setToken(tenant.getMetadata().getName());
-	api.setName(tenant.getSpec().getName());
-	api.setAuthenticationToken(tenant.getSpec().getAuthenticationToken());
-	api.setAuthorizedUserIds(Arrays.asList(tenant.getSpec().getAuthorizedUserIds()));
-	api.setBackgroundColor(tenant.getSpec().getBranding().getBackgroundColor());
-	api.setForegroundColor(tenant.getSpec().getBranding().getForegroundColor());
-	api.setBorderColor(tenant.getSpec().getBranding().getBorderColor());
-	api.setIcon(tenant.getSpec().getBranding().getIcon());
-	api.setImageUrl(tenant.getSpec().getBranding().getImageUrl());
-	api.setConfigurationTemplateId(tenant.getSpec().getConfigurationTemplate());
-	api.setDatasetTemplateId(tenant.getSpec().getDatasetTemplate());
-	api.setMetadata(tenant.getSpec().getMetadata());
-	return api;
+    public static ITenant convert(SiteWhereTenant tenant) {
+	return new TenantWrapper(tenant);
     }
 }

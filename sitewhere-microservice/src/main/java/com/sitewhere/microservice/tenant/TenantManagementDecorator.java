@@ -7,8 +7,6 @@
  */
 package com.sitewhere.microservice.tenant;
 
-import java.util.UUID;
-
 import com.sitewhere.microservice.lifecycle.LifecycleComponentDecorator;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
@@ -28,33 +26,52 @@ public class TenantManagementDecorator extends LifecycleComponentDecorator<ITena
 	super(delegate);
     }
 
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.tenant.ITenantManagement#createTenant(com.
+     * sitewhere.spi.tenant.request.ITenantCreateRequest)
+     */
     @Override
     public ITenant createTenant(ITenantCreateRequest request) throws SiteWhereException {
 	return getDelegate().createTenant(request);
     }
 
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.tenant.ITenantManagement#updateTenant(java.
+     * lang.String, com.sitewhere.spi.tenant.request.ITenantCreateRequest)
+     */
     @Override
-    public ITenant updateTenant(UUID id, ITenantCreateRequest request) throws SiteWhereException {
-	return getDelegate().updateTenant(id, request);
+    public ITenant updateTenant(String token, ITenantCreateRequest request) throws SiteWhereException {
+	return getDelegate().updateTenant(token, request);
     }
 
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.tenant.ITenantManagement#getTenant(java.lang.
+     * String)
+     */
     @Override
-    public ITenant getTenant(UUID id) throws SiteWhereException {
-	return getDelegate().getTenant(id);
+    public ITenant getTenant(String token) throws SiteWhereException {
+	return getDelegate().getTenant(token);
     }
 
-    @Override
-    public ITenant getTenantByToken(String token) throws SiteWhereException {
-	return getDelegate().getTenantByToken(token);
-    }
-
+    /*
+     * @see com.sitewhere.spi.microservice.tenant.ITenantManagement#listTenants(com.
+     * sitewhere.spi.search.tenant.ITenantSearchCriteria)
+     */
     @Override
     public ISearchResults<ITenant> listTenants(ITenantSearchCriteria criteria) throws SiteWhereException {
 	return getDelegate().listTenants(criteria);
     }
 
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.tenant.ITenantManagement#deleteTenant(java.
+     * lang.String)
+     */
     @Override
-    public ITenant deleteTenant(UUID tenantId) throws SiteWhereException {
-	return getDelegate().deleteTenant(tenantId);
+    public ITenant deleteTenant(String token) throws SiteWhereException {
+	return getDelegate().deleteTenant(token);
     }
 }
