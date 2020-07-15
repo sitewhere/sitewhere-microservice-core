@@ -9,6 +9,7 @@ package com.sitewhere.microservice.tenant.persistence;
 
 import com.sitewhere.microservice.kubernetes.K8sModelConverter;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
+import com.sitewhere.microservice.tenant.TenantWrapper;
 import com.sitewhere.rest.model.search.Pager;
 import com.sitewhere.rest.model.search.SearchResults;
 import com.sitewhere.spi.SiteWhereException;
@@ -105,7 +106,15 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
      */
     @Override
     public ITenant deleteTenant(String token) throws SiteWhereException {
-	throw new RuntimeException("Not implemented yet.");
+	SiteWhereTenant tenant = getTenantResource(token);
+	if (tenant != null) {
+	    if (!getMicroservice().getSiteWhereKubernetesClient().getTenants()
+		    .inNamespace(getMicroservice().getInstanceSettings().getKubernetesNamespace())
+		    .withName(tenant.getMetadata().getName()).delete()) {
+		throw new SiteWhereException(String.format("Unable to delete tenant '%s'.", token));
+	    }
+	}
+	return new TenantWrapper(tenant);
     }
 
     /**
