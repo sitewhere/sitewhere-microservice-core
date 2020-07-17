@@ -32,6 +32,7 @@ import com.sitewhere.spi.device.IDeviceAlarm;
 import com.sitewhere.spi.device.IDeviceAssignment;
 import com.sitewhere.spi.device.IDeviceElementMapping;
 import com.sitewhere.spi.device.IDeviceStatus;
+import com.sitewhere.spi.device.IDeviceSummary;
 import com.sitewhere.spi.device.IDeviceType;
 import com.sitewhere.spi.device.command.IDeviceCommand;
 import com.sitewhere.spi.device.group.IDeviceGroup;
@@ -1294,6 +1295,29 @@ public class DeviceManagementApiChannel extends MultitenantApiChannel<DeviceMana
 	    return results;
 	} catch (Throwable t) {
 	    throw GrpcUtils.handleClientMethodException(DeviceManagementGrpc.getListDevicesMethod(), t);
+	}
+    }
+
+    /*
+     * @see
+     * com.sitewhere.microservice.api.device.IDeviceManagement#listDeviceSummaries(
+     * com.sitewhere.spi.search.device.IDeviceSearchCriteria)
+     */
+    @Override
+    public ISearchResults<? extends IDeviceSummary> listDeviceSummaries(IDeviceSearchCriteria criteria)
+	    throws SiteWhereException {
+	try {
+	    GrpcUtils.handleClientMethodEntry(this, DeviceManagementGrpc.getListDeviceSummariesMethod());
+	    GListDeviceSummariesRequest.Builder grequest = GListDeviceSummariesRequest.newBuilder();
+	    grequest.setCriteria(DeviceModelConverter.asGrpcDeviceSearchCriteria(criteria));
+	    GListDeviceSummariesResponse gresponse = getGrpcChannel().getBlockingStub()
+		    .listDeviceSummaries(grequest.build());
+	    ISearchResults<IDeviceSummary> results = DeviceModelConverter
+		    .asApiDeviceSummarySearchResults(gresponse.getResults());
+	    GrpcUtils.logClientMethodResponse(DeviceManagementGrpc.getListDeviceSummariesMethod(), results);
+	    return results;
+	} catch (Throwable t) {
+	    throw GrpcUtils.handleClientMethodException(DeviceManagementGrpc.getListDeviceSummariesMethod(), t);
 	}
     }
 

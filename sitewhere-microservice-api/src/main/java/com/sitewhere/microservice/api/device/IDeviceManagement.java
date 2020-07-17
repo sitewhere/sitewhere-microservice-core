@@ -26,6 +26,7 @@ import com.sitewhere.spi.device.IDeviceAlarm;
 import com.sitewhere.spi.device.IDeviceAssignment;
 import com.sitewhere.spi.device.IDeviceElementMapping;
 import com.sitewhere.spi.device.IDeviceStatus;
+import com.sitewhere.spi.device.IDeviceSummary;
 import com.sitewhere.spi.device.IDeviceType;
 import com.sitewhere.spi.device.command.IDeviceCommand;
 import com.sitewhere.spi.device.group.IDeviceGroup;
@@ -273,6 +274,16 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      * @throws SiteWhereException
      */
     ISearchResults<? extends IDevice> listDevices(IDeviceSearchCriteria criteria) throws SiteWhereException;
+
+    /**
+     * Get summary information for devices that meet the given criteria.
+     * 
+     * @param criteria
+     * @return
+     * @throws SiteWhereException
+     */
+    ISearchResults<? extends IDeviceSummary> listDeviceSummaries(IDeviceSearchCriteria criteria)
+	    throws SiteWhereException;
 
     /**
      * Create an {@link IDeviceElementMapping} for a nested device.

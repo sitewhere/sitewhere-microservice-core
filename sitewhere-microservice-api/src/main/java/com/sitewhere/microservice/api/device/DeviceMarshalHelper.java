@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
 import com.sitewhere.microservice.api.asset.IAssetManagement;
 import com.sitewhere.rest.model.common.PersistentEntity;
 import com.sitewhere.rest.model.device.Device;
-import com.sitewhere.rest.model.device.DeviceAssignment;
 import com.sitewhere.rest.model.device.DeviceElementMapping;
 import com.sitewhere.rest.model.device.marshaling.MarshaledDevice;
+import com.sitewhere.rest.model.device.marshaling.MarshaledDeviceAssignment;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.device.IDevice;
 import com.sitewhere.spi.device.IDeviceAssignment;
@@ -41,7 +41,7 @@ public class DeviceMarshalHelper {
     private boolean includeDeviceType = true;
 
     /** Indicates whether device assignment information is to be copied */
-    private boolean includeAssignment = false;
+    private boolean includeAssignments = false;
 
     /**
      * Indicates whether device element mappings should include device details
@@ -97,11 +97,11 @@ public class DeviceMarshalHelper {
 		result.setDeviceType(getDeviceTypeHelper().convert(deviceType));
 	    }
 	}
-	if (isIncludeAssignment()) {
+	if (isIncludeAssignments()) {
 	    try {
 		List<? extends IDeviceAssignment> assignments = getDeviceManagement()
 			.getActiveDeviceAssignments(source.getId());
-		List<DeviceAssignment> converted = new ArrayList<>();
+		List<MarshaledDeviceAssignment> converted = new ArrayList<>();
 		for (IDeviceAssignment assignment : assignments) {
 		    converted.add(getAssignmentHelper().convert(assignment, assetManagement));
 		}
@@ -162,12 +162,12 @@ public class DeviceMarshalHelper {
 	return this;
     }
 
-    public boolean isIncludeAssignment() {
-	return includeAssignment;
+    public boolean isIncludeAssignments() {
+	return includeAssignments;
     }
 
-    public DeviceMarshalHelper setIncludeAssignment(boolean includeAssignment) {
-	this.includeAssignment = includeAssignment;
+    public DeviceMarshalHelper setIncludeAssignments(boolean includeAssignments) {
+	this.includeAssignments = includeAssignments;
 	return this;
     }
 
