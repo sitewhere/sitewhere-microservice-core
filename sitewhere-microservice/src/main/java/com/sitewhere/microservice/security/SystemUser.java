@@ -19,10 +19,10 @@ import com.sitewhere.rest.model.user.User;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
-import com.sitewhere.spi.user.IUser;
 import com.sitewhere.spi.user.IRole;
-import com.sitewhere.spi.user.SiteWhereRole;
+import com.sitewhere.spi.user.IUser;
 import com.sitewhere.spi.user.SiteWhereAuthority;
+import com.sitewhere.spi.user.SiteWhereRole;
 
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
@@ -75,7 +75,7 @@ public class SystemUser implements ISystemUser {
     @Override
     public SiteWhereAuthentication getAuthenticationForTenant(SiteWhereTenant tenant) throws SiteWhereException {
 	SiteWhereAuthentication auth = getAuthentication();
-	auth.setTenant(tenant);
+	auth.setTenantToken(tenant.getMetadata().getName());
 	return auth;
     }
 

@@ -9,8 +9,6 @@ package com.sitewhere.microservice.security;
 
 import java.util.List;
 
-import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
-
 /**
  * Context information for an authenticated user.
  */
@@ -26,16 +24,12 @@ public class SiteWhereAuthentication {
     private String jwt;
 
     /** Tenant */
-    private SiteWhereTenant tenant;
+    private String tenantToken;
 
     public SiteWhereAuthentication(String username, List<String> grantedAuthorities, String jwt) {
 	this.username = username;
 	this.grantedAuthorities = grantedAuthorities;
 	this.jwt = jwt;
-    }
-
-    public void setTenant(SiteWhereTenant tenant) {
-	this.tenant = tenant;
     }
 
     public String getUsername() {
@@ -50,7 +44,11 @@ public class SiteWhereAuthentication {
 	return jwt;
     }
 
-    public SiteWhereTenant getTenant() {
-	return tenant;
+    public String getTenantToken() {
+	return tenantToken;
+    }
+
+    public void setTenantToken(String tenantToken) {
+	this.tenantToken = tenantToken;
     }
 }
