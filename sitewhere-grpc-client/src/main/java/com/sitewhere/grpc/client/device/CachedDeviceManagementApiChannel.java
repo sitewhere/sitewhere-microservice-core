@@ -31,6 +31,7 @@ import com.sitewhere.spi.device.IDeviceAlarm;
 import com.sitewhere.spi.device.IDeviceAssignment;
 import com.sitewhere.spi.device.IDeviceElementMapping;
 import com.sitewhere.spi.device.IDeviceStatus;
+import com.sitewhere.spi.device.IDeviceSummary;
 import com.sitewhere.spi.device.IDeviceType;
 import com.sitewhere.spi.device.command.IDeviceCommand;
 import com.sitewhere.spi.device.group.IDeviceGroup;
@@ -515,6 +516,17 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
     @Override
     public ISearchResults<? extends IDevice> listDevices(IDeviceSearchCriteria criteria) throws SiteWhereException {
 	return getWrapped().listDevices(criteria);
+    }
+
+    /*
+     * @see
+     * com.sitewhere.microservice.api.device.IDeviceManagement#listDeviceSummaries(
+     * com.sitewhere.spi.search.device.IDeviceSearchCriteria)
+     */
+    @Override
+    public ISearchResults<? extends IDeviceSummary> listDeviceSummaries(IDeviceSearchCriteria criteria)
+	    throws SiteWhereException {
+	return getWrapped().listDeviceSummaries(criteria);
     }
 
     /*

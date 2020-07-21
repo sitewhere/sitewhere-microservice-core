@@ -187,7 +187,7 @@ public class DeviceStateMarshalHelper {
     protected DeviceMarshalHelper getDeviceHelper() {
 	if (deviceHelper == null) {
 	    deviceHelper = new DeviceMarshalHelper(getDeviceManagement());
-	    deviceHelper.setIncludeAssignment(false);
+	    deviceHelper.setIncludeAssignments(false);
 	    deviceHelper.setIncludeDeviceType(false);
 	}
 	return deviceHelper;

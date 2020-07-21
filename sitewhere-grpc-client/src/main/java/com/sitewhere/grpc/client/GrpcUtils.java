@@ -7,10 +7,6 @@
  */
 package com.sitewhere.grpc.client;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,8 +15,6 @@ import com.sitewhere.grpc.client.common.security.UnauthenticatedException;
 import com.sitewhere.grpc.client.common.tracing.DebugParameter;
 import com.sitewhere.grpc.client.spi.IApiChannel;
 import com.sitewhere.grpc.client.spi.server.IGrpcApiImplementation;
-import com.sitewhere.microservice.grpc.GrpcKeys;
-import com.sitewhere.microservice.security.SiteWhereAuthentication;
 import com.sitewhere.microservice.security.UserContext;
 import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
@@ -36,15 +30,11 @@ import io.grpc.Status.Code;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
-import io.jsonwebtoken.Claims;
 
 public class GrpcUtils {
 
     /** Static logger instance */
     private static Logger LOGGER = LoggerFactory.getLogger(GrpcUtils.class);
-
-    /** Hashmap of JWT to decoded claims */
-    private static Map<String, Claims> jwtToClaims = new HashMap<String, Claims>();
 
     public static void handleClientMethodEntry(IApiChannel<?> channel, MethodDescriptor<?, ?> method,
 	    DebugParameter... parameters) {
@@ -84,36 +74,6 @@ public class GrpcUtils {
      */
     public static void handleServerMethodEntry(IGrpcApiImplementation api, MethodDescriptor<?, ?> method) {
 	LOGGER.debug("Server received call to  " + method.getFullMethodName() + ".");
-	String jwt = GrpcKeys.JWT_CONTEXT_KEY.get();
-	if (jwt == null) {
-	    throw new RuntimeException("JWT not found in server request.");
-	}
-	try {
-	    Claims claims = getClaimsForJwt(api, jwt);
-	    String username = api.getMicroservice().getTokenManagement().getUsernameFromClaims(claims);
-	    List<String> auths = api.getMicroservice().getTokenManagement().getGrantedAuthoritiesFromClaims(claims);
-	    UserContext.setContext(new SiteWhereAuthentication(username, auths, jwt));
-	} catch (SiteWhereException e) {
-	    LOGGER.error(String.format("Unable to resolve user context from JWT in call to '%s'",
-		    method.getFullMethodName()));
-	}
-    }
-
-    /**
-     * Get cached claims for JWT.
-     * 
-     * @param jwt
-     * @return
-     * @throws SiteWhereException
-     */
-    protected static Claims getClaimsForJwt(IGrpcApiImplementation api, String jwt) throws SiteWhereException {
-	// TODO: Swap to expiring cache and put limits on number of cached JWTs.
-	Claims claims = jwtToClaims.get(jwt);
-	if (claims == null) {
-	    claims = api.getMicroservice().getTokenManagement().getClaimsForToken(jwt);
-	    jwtToClaims.put(jwt, claims);
-	}
-	return claims;
     }
 
     public static void logServerApiResult(MethodDescriptor<?, ?> method, Object result) throws SiteWhereException {

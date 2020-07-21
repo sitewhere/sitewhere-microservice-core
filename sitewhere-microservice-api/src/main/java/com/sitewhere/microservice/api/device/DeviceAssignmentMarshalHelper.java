@@ -71,34 +71,12 @@ public class DeviceAssignmentMarshalHelper {
 	result.setStatus(source.getStatus());
 	PersistentEntity.copy(source, result);
 
-	// If asset is assigned, look it up.
-	result.setAssetId(source.getAssetId());
-	if (source.getAssetId() != null) {
-	    IAsset asset = assetManagement.getAsset(source.getAssetId());
-	    if (asset == null) {
-		LOGGER.warn("Device assignment has reference to non-existent asset.");
-		asset = new InvalidAsset();
-	    }
-	    result.setAssetName(asset.getName());
-	    result.setAssetImageUrl(asset.getImageUrl());
-	    if (isIncludeAsset()) {
-		result.setAsset(new AssetMarshalHelper(assetManagement).convert(asset));
-	    }
-	}
-
-	// If customer is assigned, look it up.
-	result.setCustomerId(source.getCustomerId());
-	if ((isIncludeCustomer()) && (source.getCustomerId() != null)) {
-	    ICustomer customer = getDeviceManagement().getCustomer(source.getCustomerId());
-	    result.setCustomer(new CustomerMarshalHelper(deviceManagement, assetManagement).convert(customer));
-	}
+	// Add linked objects.
+	addCustomerInformation(source, assetManagement, result);
+	addAreaInformation(source, assetManagement, result);
+	addAssetInformation(source, assetManagement, result);
 
 	// If area is assigned, look it up.
-	result.setAreaId(source.getAreaId());
-	if ((isIncludeArea()) && (source.getAreaId() != null)) {
-	    IArea area = getDeviceManagement().getArea(source.getAreaId());
-	    result.setArea(new AreaMarshalHelper(deviceManagement, assetManagement).convert(area));
-	}
 
 	// Add device information.
 	result.setDeviceId(source.getDeviceId());
@@ -114,6 +92,69 @@ public class DeviceAssignmentMarshalHelper {
     }
 
     /**
+     * Add customer information.
+     * 
+     * @param source
+     * @param assetManagement
+     * @param result
+     * @throws SiteWhereException
+     */
+    protected void addCustomerInformation(IDeviceAssignment source, IAssetManagement assetManagement,
+	    MarshaledDeviceAssignment result) throws SiteWhereException {
+	result.setCustomerId(source.getCustomerId());
+	if ((source.getCustomerId() != null) && (isIncludeCustomer())) {
+	    ICustomer customer = getDeviceManagement().getCustomer(source.getCustomerId());
+	    if (customer == null) {
+		LOGGER.warn("Device assignment has reference to non-existent customer.");
+		customer = new InvalidCustomer();
+	    }
+	    result.setCustomer(new CustomerMarshalHelper(deviceManagement, assetManagement).convert(customer));
+	}
+    }
+
+    /**
+     * Add area information.
+     * 
+     * @param source
+     * @param assetManagement
+     * @param result
+     * @throws SiteWhereException
+     */
+    protected void addAreaInformation(IDeviceAssignment source, IAssetManagement assetManagement,
+	    MarshaledDeviceAssignment result) throws SiteWhereException {
+	result.setAreaId(source.getAreaId());
+	if ((source.getAreaId() != null) && (isIncludeArea())) {
+	    IArea area = getDeviceManagement().getArea(source.getAreaId());
+	    if (area == null) {
+		LOGGER.warn("Device assignment has reference to non-existent area.");
+		area = new InvalidArea();
+	    }
+	    result.setArea(new AreaMarshalHelper(deviceManagement, assetManagement).convert(area));
+	}
+    }
+
+    /**
+     * Add asset information.
+     * 
+     * @param source
+     * @param assetManagement
+     * @param result
+     * @throws SiteWhereException
+     */
+    protected void addAssetInformation(IDeviceAssignment source, IAssetManagement assetManagement,
+	    MarshaledDeviceAssignment result) throws SiteWhereException {
+	result.setAssetId(source.getAssetId());
+	if ((source.getAssetId() != null) && (isIncludeAsset())) {
+	    IAsset asset = assetManagement.getAsset(source.getAssetId());
+	    if (asset == null) {
+		LOGGER.warn("Device assignment has reference to non-existent asset.");
+		asset = new InvalidAsset();
+	    }
+	    result.setAsset(new AssetMarshalHelper(assetManagement).convert(asset));
+	}
+    }
+
+    /**
      * Get the helper for marshaling device information.
      * 
      * @return
@@ -121,7 +162,7 @@ public class DeviceAssignmentMarshalHelper {
     protected DeviceMarshalHelper getDeviceHelper() {
 	if (deviceHelper == null) {
 	    deviceHelper = new DeviceMarshalHelper(getDeviceManagement());
-	    deviceHelper.setIncludeAssignment(false);
+	    deviceHelper.setIncludeAssignments(false);
 	    deviceHelper.setIncludeDeviceType(isIncludeDeviceType());
 	}
 	return deviceHelper;
