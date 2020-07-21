@@ -18,7 +18,6 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ForwardingClientCall.SimpleForwardingClientCall;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
-import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
 /**
  * GRPC interceptor that pushes tenant token into GRPC call metadata.
@@ -46,9 +45,9 @@ public class TenantTokenClientInterceptor implements ClientInterceptor {
 	    public void start(Listener<RespT> responseListener, Metadata headers) {
 		SiteWhereAuthentication authentication = UserContext.getCurrentUser();
 		if (authentication != null) {
-		    SiteWhereTenant tenant = authentication.getTenant();
-		    if (tenant != null) {
-			headers.put(GrpcKeys.TENANT_KEY, tenant.getMetadata().getName());
+		    String tenantToken = authentication.getTenantToken();
+		    if (tenantToken != null) {
+			headers.put(GrpcKeys.TENANT_KEY, tenantToken);
 		    }
 		}
 		super.start(responseListener, headers);

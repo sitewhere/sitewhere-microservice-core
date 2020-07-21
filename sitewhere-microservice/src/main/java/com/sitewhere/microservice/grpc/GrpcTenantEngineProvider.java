@@ -59,8 +59,9 @@ public class GrpcTenantEngineProvider<T extends IMicroserviceTenantEngine<?>> {
 
 	    // Set user context.
 	    SiteWhereAuthentication auth = new SiteWhereAuthentication(username, auths, jwt);
+	    auth.setTenantToken(tenantToken);
 	    UserContext.setContext(auth);
-	    LOGGER.info(String.format("Executing gRPC call in context of user '%s'.", username));
+	    LOGGER.debug(String.format("Executing gRPC call in context of user '%s'.", username));
 
 	    // Execute callback on tenant engine within user context.
 	    T engine = getMicroservice().assureTenantEngineAvailable(tenantToken);

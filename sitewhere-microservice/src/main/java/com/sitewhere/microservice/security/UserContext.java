@@ -7,6 +7,8 @@
  */
 package com.sitewhere.microservice.security;
 
+import com.sitewhere.spi.microservice.IMicroservice;
+
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
 /**
@@ -25,14 +27,18 @@ public class UserContext {
 	return CONTEXT.get();
     }
 
-    public static SiteWhereTenant getCurrentTenant() {
+    public static SiteWhereTenant getCurrentTenant(IMicroservice<?, ?> microservice) {
 	SiteWhereAuthentication auth = getCurrentUser();
-	return auth != null ? auth.getTenant() : null;
+	if (auth == null) {
+	    return null;
+	}
+	return microservice.getSiteWhereKubernetesClient()
+		.getTenantForToken(microservice.getInstanceSettings().getKubernetesNamespace(), auth.getTenantToken());
     }
 
     public static String getCurrentTenantId() {
-	SiteWhereTenant tenant = getCurrentTenant();
-	return tenant != null ? tenant.getMetadata().getName() : null;
+	SiteWhereAuthentication auth = getCurrentUser();
+	return auth != null ? auth.getTenantToken() : null;
     }
 
     public static void setContext(SiteWhereAuthentication context) {
