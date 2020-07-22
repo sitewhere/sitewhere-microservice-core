@@ -12,6 +12,7 @@ import java.util.Map;
 
 import org.redisson.api.LocalCachedMapOptions;
 import org.redisson.api.RLocalCachedMap;
+import org.redisson.client.RedisException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,10 +68,15 @@ public abstract class RedissonCacheProvider<K, V> implements ICacheProvider<K, V
     @Override
     public void setCacheEntry(String tenantId, K key, V value) throws SiteWhereException {
 	LOGGER.debug("Caching value for '" + key.toString() + "'.");
-	if ((value != null) && (getCacheConfiguration().isEnabled())) {
-	    getCache(tenantId).put(key, value);
-	} else {
-	    getCache(tenantId).remove(key);
+	try {
+	    if ((value != null) && (getCacheConfiguration().isEnabled())) {
+		getCache(tenantId).put(key, value);
+	    } else {
+		getCache(tenantId).remove(key);
+	    }
+	} catch (RedisException e) {
+	    LOGGER.error("Redis cache set failed with exception.", e);
+	    throw new SiteWhereException("Redis cache set failed with exception.", e);
 	}
     }
 
@@ -81,11 +87,15 @@ public abstract class RedissonCacheProvider<K, V> implements ICacheProvider<K, V
      */
     @Override
     public V getCacheEntry(String tenantId, K key) throws SiteWhereException {
-	V result = getCache(tenantId).get(key);
-	if (result != null) {
-	    LOGGER.debug("Found cached value for '" + key.toString() + "'.");
+	try {
+	    V result = getCache(tenantId).get(key);
+	    if (result != null) {
+		LOGGER.debug("Found cached value for '" + key.toString() + "'.");
+	    }
+	    return result;
+	} catch (RedisException e) {
+	    throw new SiteWhereException("Redis cache get failed with exception.", e);
 	}
-	return result;
     }
 
     /*

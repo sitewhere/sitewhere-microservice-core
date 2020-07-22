@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Map;
 
+import com.sitewhere.microservice.api.event.DeviceEventRequestBuilder;
 import com.sitewhere.microservice.api.event.IDeviceEventManagement;
 import com.sitewhere.rest.model.device.event.request.DeviceCommandInvocationCreateRequest;
 import com.sitewhere.rest.model.device.event.request.DeviceLocationCreateRequest;
@@ -56,7 +57,8 @@ public class DeviceActions implements IDeviceActions {
 	location.setElevation(elevation);
 	location.setEventDate(new Date());
 	location.setUpdateState(updateState);
-	getDeviceEventManagement().addDeviceLocations(assignment.getId(), location);
+	getDeviceEventManagement().addDeviceLocations(
+		DeviceEventRequestBuilder.getContextForAssignment(getDeviceManagement(), assignment), location);
     }
 
     /*
@@ -88,7 +90,8 @@ public class DeviceActions implements IDeviceActions {
 	create.setTarget(CommandTarget.Assignment);
 	create.setTargetId(assignment.getToken());
 	create.setEventDate(new Date());
-	getDeviceEventManagement().addDeviceCommandInvocations(assignment.getId(), create);
+	getDeviceEventManagement().addDeviceCommandInvocations(
+		DeviceEventRequestBuilder.getContextForAssignment(getDeviceManagement(), assignment), create);
     }
 
     public IDeviceManagement getDeviceManagement() {

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.sitewhere.microservice.api.device.IDeviceManagement;
+import com.sitewhere.rest.model.device.event.DeviceEventContext;
 import com.sitewhere.rest.model.device.event.request.DeviceAlertCreateRequest;
 import com.sitewhere.rest.model.device.event.request.DeviceCommandInvocationCreateRequest;
 import com.sitewhere.rest.model.device.event.request.DeviceLocationCreateRequest;
@@ -19,14 +20,19 @@ import com.sitewhere.rest.model.device.event.request.DeviceMeasurementCreateRequ
 import com.sitewhere.rest.model.device.event.scripting.DeviceEventSupport;
 import com.sitewhere.rest.model.search.device.DeviceCommandSearchCriteria;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.SiteWhereSystemException;
+import com.sitewhere.spi.device.IDevice;
 import com.sitewhere.spi.device.IDeviceAssignment;
 import com.sitewhere.spi.device.IDeviceType;
 import com.sitewhere.spi.device.command.IDeviceCommand;
 import com.sitewhere.spi.device.event.IDeviceAlert;
 import com.sitewhere.spi.device.event.IDeviceCommandInvocation;
 import com.sitewhere.spi.device.event.IDeviceEvent;
+import com.sitewhere.spi.device.event.IDeviceEventContext;
 import com.sitewhere.spi.device.event.IDeviceLocation;
 import com.sitewhere.spi.device.event.IDeviceMeasurement;
+import com.sitewhere.spi.error.ErrorCode;
+import com.sitewhere.spi.error.ErrorLevel;
 import com.sitewhere.spi.search.ISearchResults;
 
 /**
@@ -86,18 +92,19 @@ public class DeviceEventRequestBuilder {
 	}
     }
 
-    public AssignmentScope forSameAssignmentAs(DeviceEventSupport support) {
-	return new AssignmentScope(getEventManagement(), support.getDeviceAssignment());
+    public AssignmentScope forSameAssignmentAs(DeviceEventSupport support) throws SiteWhereException {
+	return new AssignmentScope(getEventManagement(),
+		getContextForAssignment(getDeviceManagement(), support.getDeviceAssignment()));
     }
 
     public AssignmentScope forSameAssignmentAs(IDeviceEvent event) throws SiteWhereException {
-	return new AssignmentScope(getEventManagement(),
-		getDeviceManagement().getDeviceAssignment(event.getDeviceAssignmentId()));
+	return new AssignmentScope(getEventManagement(), getContextForAssignment(getDeviceManagement(),
+		getDeviceManagement().getDeviceAssignment(event.getDeviceAssignmentId())));
     }
 
     public AssignmentScope forAssignment(String assignmentToken) throws SiteWhereException {
-	return new AssignmentScope(getEventManagement(),
-		getDeviceManagement().getDeviceAssignmentByToken(assignmentToken));
+	return new AssignmentScope(getEventManagement(), getContextForAssignment(getDeviceManagement(),
+		getDeviceManagement().getDeviceAssignmentByToken(assignmentToken)));
     }
 
     public IDeviceManagement getDeviceManagement() {
@@ -108,17 +115,48 @@ public class DeviceEventRequestBuilder {
 	return eventManagement;
     }
 
+    /**
+     * Get context information based on a device assignment.
+     * 
+     * @param deviceManagement
+     * @param assignment
+     * @return
+     * @throws SiteWhereException
+     */
+    public static IDeviceEventContext getContextForAssignment(IDeviceManagement deviceManagement,
+	    IDeviceAssignment assignment) throws SiteWhereException {
+	IDevice device = deviceManagement.getDevice(assignment.getDeviceId());
+	if (device == null) {
+	    throw new SiteWhereSystemException(ErrorCode.InvalidDeviceId, ErrorLevel.ERROR);
+	}
+
+	DeviceEventContext context = new DeviceEventContext();
+	context.setDeviceToken(device.getToken());
+	context.setDeviceId(device.getId());
+	context.setDeviceTypeId(device.getDeviceTypeId());
+	context.setParentDeviceId(device.getParentDeviceId());
+	context.setDeviceStatus(device.getStatus());
+	context.setDeviceMetadata(device.getMetadata());
+	context.setDeviceAssignmentId(assignment.getId());
+	context.setCustomerId(assignment.getCustomerId());
+	context.setAreaId(assignment.getAreaId());
+	context.setAssetId(assignment.getAssetId());
+	context.setDeviceAssignmentStatus(assignment.getStatus());
+	context.setDeviceAssignmentMetadata(assignment.getMetadata());
+	return context;
+    }
+
     public static class AssignmentScope {
 
 	/** Event management interface */
 	private IDeviceEventManagement events;
 
 	/** Device assignment */
-	private IDeviceAssignment deviceAssignment;
+	private IDeviceEventContext context;
 
-	public AssignmentScope(IDeviceEventManagement events, IDeviceAssignment deviceAssignment) {
+	public AssignmentScope(IDeviceEventManagement events, IDeviceEventContext context) {
 	    this.events = events;
-	    this.deviceAssignment = deviceAssignment;
+	    this.context = context;
 	}
 
 	/**
@@ -130,7 +168,7 @@ public class DeviceEventRequestBuilder {
 	 */
 	public IDeviceLocation persist(DeviceLocationCreateRequest.Builder builder) throws SiteWhereException {
 	    DeviceLocationCreateRequest request = builder.build();
-	    return events.addDeviceLocations(getDeviceAssignment().getId(), request).get(0);
+	    return events.addDeviceLocations(getContext(), request).get(0);
 	}
 
 	/**
@@ -140,15 +178,14 @@ public class DeviceEventRequestBuilder {
 	 * @return
 	 * @throws SiteWhereException
 	 */
-	public List<IDeviceLocation> persistLocations(List<DeviceLocationCreateRequest.Builder> builders)
+	public List<? extends IDeviceLocation> persistLocations(List<DeviceLocationCreateRequest.Builder> builders)
 		throws SiteWhereException {
 	    List<DeviceLocationCreateRequest> requests = new ArrayList<>();
 	    for (DeviceLocationCreateRequest.Builder builder : builders) {
 		DeviceLocationCreateRequest request = builder.build();
 		requests.add(request);
 	    }
-	    return events.addDeviceLocations(getDeviceAssignment().getId(),
-		    requests.toArray(new DeviceLocationCreateRequest[0]));
+	    return events.addDeviceLocations(getContext(), requests.toArray(new DeviceLocationCreateRequest[0]));
 	}
 
 	/**
@@ -160,7 +197,7 @@ public class DeviceEventRequestBuilder {
 	 */
 	public IDeviceMeasurement persist(DeviceMeasurementCreateRequest.Builder builder) throws SiteWhereException {
 	    DeviceMeasurementCreateRequest request = builder.build();
-	    return events.addDeviceMeasurements(getDeviceAssignment().getId(), request).get(0);
+	    return events.addDeviceMeasurements(getContext(), request).get(0);
 	}
 
 	/**
@@ -170,15 +207,14 @@ public class DeviceEventRequestBuilder {
 	 * @return
 	 * @throws SiteWhereException
 	 */
-	public List<IDeviceMeasurement> persistMeasurements(List<DeviceMeasurementCreateRequest.Builder> builders)
-		throws SiteWhereException {
+	public List<? extends IDeviceMeasurement> persistMeasurements(
+		List<DeviceMeasurementCreateRequest.Builder> builders) throws SiteWhereException {
 	    List<DeviceMeasurementCreateRequest> requests = new ArrayList<>();
 	    for (DeviceMeasurementCreateRequest.Builder builder : builders) {
 		DeviceMeasurementCreateRequest request = builder.build();
 		requests.add(request);
 	    }
-	    return events.addDeviceMeasurements(getDeviceAssignment().getId(),
-		    requests.toArray(new DeviceMeasurementCreateRequest[0]));
+	    return events.addDeviceMeasurements(getContext(), requests.toArray(new DeviceMeasurementCreateRequest[0]));
 	}
 
 	/**
@@ -190,7 +226,7 @@ public class DeviceEventRequestBuilder {
 	 */
 	public IDeviceAlert persist(DeviceAlertCreateRequest.Builder builder) throws SiteWhereException {
 	    DeviceAlertCreateRequest request = builder.build();
-	    return events.addDeviceAlerts(getDeviceAssignment().getId(), request).get(0);
+	    return events.addDeviceAlerts(getContext(), request).get(0);
 	}
 
 	/**
@@ -200,25 +236,24 @@ public class DeviceEventRequestBuilder {
 	 * @return
 	 * @throws SiteWhereException
 	 */
-	public List<IDeviceAlert> persistAlerts(List<DeviceAlertCreateRequest.Builder> builders)
+	public List<? extends IDeviceAlert> persistAlerts(List<DeviceAlertCreateRequest.Builder> builders)
 		throws SiteWhereException {
 	    List<DeviceAlertCreateRequest> requests = new ArrayList<>();
 	    for (DeviceAlertCreateRequest.Builder builder : builders) {
 		DeviceAlertCreateRequest request = builder.build();
 		requests.add(request);
 	    }
-	    return events.addDeviceAlerts(getDeviceAssignment().getId(),
-		    requests.toArray(new DeviceAlertCreateRequest[0]));
+	    return events.addDeviceAlerts(getContext(), requests.toArray(new DeviceAlertCreateRequest[0]));
 	}
 
 	public IDeviceCommandInvocation persist(DeviceCommandInvocationCreateRequest.Builder builder)
 		throws SiteWhereException {
 	    DeviceCommandInvocationCreateRequest request = builder.build();
-	    return events.addDeviceCommandInvocations(getDeviceAssignment().getId(), request).get(0);
+	    return events.addDeviceCommandInvocations(getContext(), request).get(0);
 	}
 
-	public IDeviceAssignment getDeviceAssignment() {
-	    return deviceAssignment;
+	public IDeviceEventContext getContext() {
+	    return context;
 	}
     }
 }
