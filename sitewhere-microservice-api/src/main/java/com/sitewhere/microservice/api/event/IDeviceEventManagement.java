@@ -18,6 +18,7 @@ import com.sitewhere.spi.device.event.IDeviceCommandResponse;
 import com.sitewhere.spi.device.event.IDeviceEvent;
 import com.sitewhere.spi.device.event.IDeviceEventBatch;
 import com.sitewhere.spi.device.event.IDeviceEventBatchResponse;
+import com.sitewhere.spi.device.event.IDeviceEventContext;
 import com.sitewhere.spi.device.event.IDeviceLocation;
 import com.sitewhere.spi.device.event.IDeviceMeasurement;
 import com.sitewhere.spi.device.event.IDeviceStateChange;
@@ -37,14 +38,14 @@ import com.sitewhere.spi.search.ISearchResults;
 public interface IDeviceEventManagement extends ITenantEngineLifecycleComponent {
 
     /**
-     * Add a batch of events for the given assignment.
+     * Add a batch of events for the given context.
      * 
-     * @param deviceAssignmentId
+     * @param context
      * @param batch
      * @return
      * @throws SiteWhereException
      */
-    IDeviceEventBatchResponse addDeviceEventBatch(UUID deviceAssignmentId, IDeviceEventBatch batch)
+    IDeviceEventBatchResponse addDeviceEventBatch(IDeviceEventContext context, IDeviceEventBatch batch)
 	    throws SiteWhereException;
 
     /**
@@ -66,14 +67,14 @@ public interface IDeviceEventManagement extends ITenantEngineLifecycleComponent 
     IDeviceEvent getDeviceEventByAlternateId(String alternateId) throws SiteWhereException;
 
     /**
-     * Add one or more measurements for a given device assignment.
+     * Add one or more measurements for a given context.
      * 
-     * @param deviceAssignmentId
+     * @param context
      * @param measurement
      * @return
      * @throws SiteWhereException
      */
-    List<IDeviceMeasurement> addDeviceMeasurements(UUID deviceAssignmentId,
+    List<? extends IDeviceMeasurement> addDeviceMeasurements(IDeviceEventContext context,
 	    IDeviceMeasurementCreateRequest... measurement) throws SiteWhereException;
 
     /**
@@ -89,15 +90,15 @@ public interface IDeviceEventManagement extends ITenantEngineLifecycleComponent 
 	    IDateRangeSearchCriteria criteria) throws SiteWhereException;
 
     /**
-     * Add one or more device locations for a given device assignment.
+     * Add one or more device locations for a given context.
      * 
-     * @param deviceAssignmentId
+     * @param context
      * @param request
      * @return
      * @throws SiteWhereException
      */
-    List<IDeviceLocation> addDeviceLocations(UUID deviceAssignmentId, IDeviceLocationCreateRequest... request)
-	    throws SiteWhereException;
+    List<? extends IDeviceLocation> addDeviceLocations(IDeviceEventContext context,
+	    IDeviceLocationCreateRequest... request) throws SiteWhereException;
 
     /**
      * List device location entries for an index based on criteria.
@@ -112,14 +113,14 @@ public interface IDeviceEventManagement extends ITenantEngineLifecycleComponent 
 	    IDateRangeSearchCriteria criteria) throws SiteWhereException;
 
     /**
-     * Add one or more device alerts for a given device assignment.
+     * Add one or more device alerts for a given context.
      * 
-     * @param deviceAssignmentId
+     * @param context
      * @param request
      * @return
      * @throws SiteWhereException
      */
-    List<IDeviceAlert> addDeviceAlerts(UUID deviceAssignmentId, IDeviceAlertCreateRequest... request)
+    List<? extends IDeviceAlert> addDeviceAlerts(IDeviceEventContext context, IDeviceAlertCreateRequest... request)
 	    throws SiteWhereException;
 
     /**
@@ -135,14 +136,14 @@ public interface IDeviceEventManagement extends ITenantEngineLifecycleComponent 
 	    IDateRangeSearchCriteria criteria) throws SiteWhereException;
 
     /**
-     * Add one or more device command invocations for the given assignment.
+     * Add one or more device command invocations for the given context.
      * 
-     * @param deviceAssignmentId
+     * @param context
      * @param request
      * @return
      * @throws SiteWhereException
      */
-    List<IDeviceCommandInvocation> addDeviceCommandInvocations(UUID deviceAssignmentId,
+    List<? extends IDeviceCommandInvocation> addDeviceCommandInvocations(IDeviceEventContext context,
 	    IDeviceCommandInvocationCreateRequest... request) throws SiteWhereException;
 
     /**
@@ -168,14 +169,14 @@ public interface IDeviceEventManagement extends ITenantEngineLifecycleComponent 
 	    throws SiteWhereException;
 
     /**
-     * Adds one or more device command responses for the given device assignment.
+     * Adds one or more device command responses for the given context.
      * 
-     * @param deviceAssignmentId
+     * @param context
      * @param request
      * @return
      * @throws SiteWhereException
      */
-    List<IDeviceCommandResponse> addDeviceCommandResponses(UUID deviceAssignmentId,
+    List<? extends IDeviceCommandResponse> addDeviceCommandResponses(IDeviceEventContext context,
 	    IDeviceCommandResponseCreateRequest... request) throws SiteWhereException;
 
     /**
@@ -191,15 +192,15 @@ public interface IDeviceEventManagement extends ITenantEngineLifecycleComponent 
 	    List<UUID> entityIds, IDateRangeSearchCriteria criteria) throws SiteWhereException;
 
     /**
-     * Adds one or more device state change events for the given assignment.
+     * Adds one or more device state change events for the given context.
      * 
-     * @param deviceAssignmentId
+     * @param context
      * @param request
      * @return
      * @throws SiteWhereException
      */
-    List<IDeviceStateChange> addDeviceStateChanges(UUID deviceAssignmentId, IDeviceStateChangeCreateRequest... request)
-	    throws SiteWhereException;
+    List<? extends IDeviceStateChange> addDeviceStateChanges(IDeviceEventContext context,
+	    IDeviceStateChangeCreateRequest... request) throws SiteWhereException;
 
     /**
      * List device state change events for an index based on criteria.
