@@ -23,7 +23,7 @@ import com.sitewhere.spi.device.IDeviceAssignment;
 
 /**
  * Configurable helper class that allows DeviceAssignment model objects to be
- * created from IDeviceAssignment SPI objects.
+ * created from {@link IDeviceAssignment} SPI objects.
  */
 public class DeviceAssignmentMarshalHelper {
 

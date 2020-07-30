@@ -24,6 +24,7 @@ import com.sitewhere.spi.customer.request.ICustomerTypeCreateRequest;
 import com.sitewhere.spi.device.IDevice;
 import com.sitewhere.spi.device.IDeviceAlarm;
 import com.sitewhere.spi.device.IDeviceAssignment;
+import com.sitewhere.spi.device.IDeviceAssignmentSummary;
 import com.sitewhere.spi.device.IDeviceElementMapping;
 import com.sitewhere.spi.device.IDeviceStatus;
 import com.sitewhere.spi.device.IDeviceSummary;
@@ -369,6 +370,16 @@ public interface IDeviceManagement extends ITenantEngineLifecycleComponent {
      */
     ISearchResults<? extends IDeviceAssignment> listDeviceAssignments(IDeviceAssignmentSearchCriteria criteria)
 	    throws SiteWhereException;
+
+    /**
+     * List summaries for device assignments that match the given criteria.
+     * 
+     * @param criteria
+     * @return
+     * @throws SiteWhereException
+     */
+    ISearchResults<? extends IDeviceAssignmentSummary> listDeviceAssignmentSummaries(
+	    IDeviceAssignmentSearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Ends a device assignment.

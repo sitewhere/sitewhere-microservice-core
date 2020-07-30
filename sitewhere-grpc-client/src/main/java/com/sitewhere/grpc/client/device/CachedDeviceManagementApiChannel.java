@@ -29,6 +29,7 @@ import com.sitewhere.spi.customer.request.ICustomerTypeCreateRequest;
 import com.sitewhere.spi.device.IDevice;
 import com.sitewhere.spi.device.IDeviceAlarm;
 import com.sitewhere.spi.device.IDeviceAssignment;
+import com.sitewhere.spi.device.IDeviceAssignmentSummary;
 import com.sitewhere.spi.device.IDeviceElementMapping;
 import com.sitewhere.spi.device.IDeviceStatus;
 import com.sitewhere.spi.device.IDeviceSummary;
@@ -577,6 +578,17 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
     public ISearchResults<? extends IDeviceAssignment> listDeviceAssignments(IDeviceAssignmentSearchCriteria criteria)
 	    throws SiteWhereException {
 	return getWrapped().listDeviceAssignments(criteria);
+    }
+
+    /*
+     * @see com.sitewhere.microservice.api.device.IDeviceManagement#
+     * listDeviceAssignmentSummaries(com.sitewhere.spi.search.device.
+     * IDeviceAssignmentSearchCriteria)
+     */
+    @Override
+    public ISearchResults<? extends IDeviceAssignmentSummary> listDeviceAssignmentSummaries(
+	    IDeviceAssignmentSearchCriteria criteria) throws SiteWhereException {
+	return getWrapped().listDeviceAssignmentSummaries(criteria);
     }
 
     /*
