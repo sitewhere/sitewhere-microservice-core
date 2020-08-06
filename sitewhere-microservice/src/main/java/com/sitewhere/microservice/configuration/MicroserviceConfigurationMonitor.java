@@ -101,7 +101,7 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
 	if (previous != null && previous.getMetadata().getGeneration() == microservice.getMetadata().getGeneration()) {
 	    return;
 	}
-	LOGGER.info(String.format("Detected %s resource change in microservice %s.", type.name(),
+	LOGGER.debug(String.format("Detected %s resource change in microservice %s.", type.name(),
 		microservice.getMetadata().getName()));
 	switch (type) {
 	case CREATE: {

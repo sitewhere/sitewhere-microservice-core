@@ -93,7 +93,7 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
 		&& this.instanceResource.getMetadata().getGeneration() == instance.getMetadata().getGeneration()) {
 	    return;
 	}
-	LOGGER.info(String.format("Detected %s resource change in instance %s.", type.name(),
+	LOGGER.debug(String.format("Detected %s resource change in instance %s.", type.name(),
 		instance.getMetadata().getName()));
 	SiteWhereInstance previous = this.instanceResource;
 	switch (type) {

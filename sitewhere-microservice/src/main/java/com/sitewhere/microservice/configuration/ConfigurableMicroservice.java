@@ -239,6 +239,8 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void onInstanceAdded(SiteWhereInstance instance) {
+	getLogger().info(String.format("Instance create event detected for '%s'.", instance.getMetadata().getName()));
+
 	// Reflect configuration updated if not null.
 	InstanceSpecUpdates specUpdates = new InstanceSpecUpdates();
 	specUpdates.setConfigurationUpdated(instance.getSpec().getConfiguration() != null);
@@ -257,6 +259,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public void onInstanceUpdated(SiteWhereInstance instance, IInstanceSpecUpdates specUpdates,
 	    IInstanceStatusUpdates statusUpdates) {
+	getLogger().info(String.format("Instance update event detected for '%s'.", instance.getMetadata().getName()));
 	handleInstanceUpdated(instance, specUpdates, statusUpdates, false);
     }
 
@@ -317,6 +320,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void onInstanceDeleted(SiteWhereInstance instance) {
+	getLogger().info(String.format("Instance delete event detected for '%s'.", instance.getMetadata().getName()));
 	this.lastInstanceResource = null;
 	try {
 	    MicroserviceApplication.stopMicroservice(this);
@@ -332,6 +336,8 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void onMicroserviceAdded(SiteWhereMicroservice microservice) {
+	getLogger().info(
+		String.format("Microservice create event detected for '%s'.", microservice.getMetadata().getName()));
 	handleMicroserviceUpdated(microservice, true);
     }
 
@@ -342,6 +348,8 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void onMicroserviceUpdated(SiteWhereMicroservice microservice) {
+	getLogger().info(
+		String.format("Microservice update event detected for '%s'.", microservice.getMetadata().getName()));
 	handleMicroserviceUpdated(microservice, false);
     }
 
@@ -383,6 +391,8 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	// Only process updates for the functional area of this microservice.
 	if (!getIdentifier().getPath()
 		.equals(getMicroservice().getSiteWhereKubernetesClient().getFunctionalArea(microservice))) {
+	    getLogger().info(String.format("Skipping update for non-matching functional area '%s'.",
+		    microservice.getMetadata().getName()));
 	    return;
 	}
 
@@ -405,6 +415,8 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 		    getConfigurationClass());
 	    this.microserviceConfiguration = configuration;
 	    this.microserviceConfigurationModule = createConfigurationModule();
+	    getLogger().debug(String.format("Successfully handled configuraion update for '%s'.",
+		    microservice.getMetadata().getName()));
 	} catch (JsonProcessingException e) {
 	    getLogger().error(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
 		    e.getMessage(), microservice.getSpec().getConfiguration()));
@@ -463,6 +475,8 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public void onMicroserviceDeleted(SiteWhereMicroservice microservice) {
+	getLogger().info(
+		String.format("Microservice delete event detected for '%s'.", microservice.getMetadata().getName()));
 	this.lastMicroserviceResource = null;
 	try {
 	    MicroserviceApplication.stopMicroservice(this);
