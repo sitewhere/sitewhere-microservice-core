@@ -208,8 +208,19 @@ public class DeviceManagementApiChannel extends MultitenantApiChannel<DeviceMana
      */
     @Override
     public List<? extends ICustomerType> getContainedCustomerTypes(UUID customerTypeId) throws SiteWhereException {
-	// TODO Auto-generated method stub
-	return null;
+	try {
+	    GrpcUtils.handleClientMethodEntry(this, DeviceManagementGrpc.getGetContainedCustomerTypesMethod());
+	    GGetContainedCustomerTypesRequest.Builder grequest = GGetContainedCustomerTypesRequest.newBuilder();
+	    grequest.setId(CommonModelConverter.asGrpcUuid(customerTypeId));
+	    GGetContainedCustomerTypesResponse gresponse = getGrpcChannel().getBlockingStub()
+		    .getContainedCustomerTypes(grequest.build());
+	    List<? extends ICustomerType> results = DeviceModelConverter
+		    .asApiCustomerTypes(gresponse.getCustomerTypesList());
+	    GrpcUtils.logClientMethodResponse(DeviceManagementGrpc.getGetContainedCustomerTypesMethod(), results);
+	    return results;
+	} catch (Throwable t) {
+	    throw GrpcUtils.handleClientMethodException(DeviceManagementGrpc.getGetContainedCustomerTypesMethod(), t);
+	}
     }
 
     /*
@@ -505,8 +516,18 @@ public class DeviceManagementApiChannel extends MultitenantApiChannel<DeviceMana
      */
     @Override
     public List<? extends IAreaType> getContainedAreaTypes(UUID areaTypeId) throws SiteWhereException {
-	// TODO Auto-generated method stub
-	return null;
+	try {
+	    GrpcUtils.handleClientMethodEntry(this, DeviceManagementGrpc.getGetContainedAreaTypesMethod());
+	    GGetContainedAreaTypesRequest.Builder grequest = GGetContainedAreaTypesRequest.newBuilder();
+	    grequest.setId(CommonModelConverter.asGrpcUuid(areaTypeId));
+	    GGetContainedAreaTypesResponse gresponse = getGrpcChannel().getBlockingStub()
+		    .getContainedAreaTypes(grequest.build());
+	    List<? extends IAreaType> results = DeviceModelConverter.asApiAreaTypes(gresponse.getAreaTypesList());
+	    GrpcUtils.logClientMethodResponse(DeviceManagementGrpc.getGetContainedAreaTypesMethod(), results);
+	    return results;
+	} catch (Throwable t) {
+	    throw GrpcUtils.handleClientMethodException(DeviceManagementGrpc.getGetContainedAreaTypesMethod(), t);
+	}
     }
 
     /*
