@@ -14,10 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import com.sitewhere.microservice.api.asset.IAssetManagement;
 import com.sitewhere.rest.model.common.PersistentEntity;
-import com.sitewhere.rest.model.device.DeviceAssignmentSummary;
 import com.sitewhere.rest.model.device.DeviceSummary;
 import com.sitewhere.spi.SiteWhereException;
-import com.sitewhere.spi.asset.IAsset;
 import com.sitewhere.spi.device.IDeviceAssignmentSummary;
 import com.sitewhere.spi.device.IDeviceSummary;
 
@@ -35,6 +33,7 @@ public class DeviceSummaryMarshalHelper {
     private boolean includeAsset = false;
 
     public DeviceSummary convert(IDeviceSummary api, IAssetManagement assetManagement) throws SiteWhereException {
+	DeviceAssignmentSummaryMarshalHelper helper = new DeviceAssignmentSummaryMarshalHelper();
 	DeviceSummary summary = new DeviceSummary();
 	summary.setComments(api.getComments());
 	summary.setStatus(api.getStatus());
@@ -44,41 +43,8 @@ public class DeviceSummaryMarshalHelper {
 	summary.setDeviceTypeImageUrl(api.getDeviceTypeImageUrl());
 	summary.setDeviceAssignmentSummaries(new ArrayList<>());
 	for (IDeviceAssignmentSummary assnApi : api.getDeviceAssignmentSummaries()) {
-	    summary.getDeviceAssignmentSummaries().add(cloneAssignmentSummary(assnApi, assetManagement));
+	    summary.getDeviceAssignmentSummaries().add(helper.convert(assnApi, assetManagement));
 	}
-	PersistentEntity.copy(api, summary);
-	return summary;
-    }
-
-    /**
-     * Clone a device assignment summary record.
-     * 
-     * @param api
-     * @param assetManagement
-     * @return
-     * @throws SiteWhereException
-     */
-    protected DeviceAssignmentSummary cloneAssignmentSummary(IDeviceAssignmentSummary api,
-	    IAssetManagement assetManagement) throws SiteWhereException {
-	DeviceAssignmentSummary summary = new DeviceAssignmentSummary();
-	summary.setActiveDate(api.getActiveDate());
-	summary.setAreaId(api.getAreaId());
-	summary.setAreaName(api.getAreaName());
-	summary.setAreaImageUrl(api.getAreaImageUrl());
-
-	summary.setAssetId(api.getAssetId());
-	if (isIncludeAsset() && (api.getAssetId() != null)) {
-	    IAsset asset = assetManagement.getAsset(api.getAssetId());
-	    if (asset != null) {
-		summary.setAssetName(asset.getName());
-		summary.setAssetImageUrl(asset.getImageUrl());
-	    }
-	}
-	summary.setCustomerId(api.getCustomerId());
-	summary.setCustomerName(api.getCustomerName());
-	summary.setCustomerImageUrl(api.getCustomerImageUrl());
-	summary.setReleasedDate(api.getReleasedDate());
-	summary.setStatus(api.getStatus());
 	PersistentEntity.copy(api, summary);
 	return summary;
     }
