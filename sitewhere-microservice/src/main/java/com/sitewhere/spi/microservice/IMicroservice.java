@@ -29,7 +29,7 @@ import com.sitewhere.spi.system.IVersion;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
-import io.sitewhere.k8s.crd.ISiteWhereKubernetesClient;
+import io.sitewhere.k8s.api.ISiteWhereKubernetesClient;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.instance.dataset.InstanceDatasetTemplate;
 
