@@ -12,15 +12,15 @@ ext {
 ext['git.revision'] = ext.git.head().id
 ext['git.revision.abbrev'] = ext.git.head().abbreviatedId
 
-ext['sitewhere.k8s.api.version'] = '3.0.0.beta3'
-ext['sitewhere.grpc.api.version'] = '3.0.0.beta12'
+ext['sitewhere.k8s.api.version'] = '3.0.0.beta4'
+ext['sitewhere.grpc.api.version'] = '3.0.0.beta13'
 ext['jackson.version'] = '2.9.10'
 
 apply plugin: 'distribution'
 	
 allprojects {
 	group = 'com.sitewhere'
-	version = '3.0.0.beta22'
+	version = '3.0.0.beta23'
 	
 	repositories {
 		maven { url "https://repo.maven.apache.org/maven2" }
@@ -42,7 +42,9 @@ subprojects {
 	
 	// Common dependencies used for all projects.
 	dependencies {
-		compile platform('io.quarkus:quarkus-bom:1.2.1.Final')
+		compile platform('io.quarkus:quarkus-bom:1.7.2.Final')
+		
+		compile group: 'org.graalvm.nativeimage', name: 'svm', version: '20.2.0'
 		
 		testCompile group: 'junit', name: 'junit', version: '4.12'
 	}
