@@ -25,7 +25,7 @@ dependencies {
 	compile group: 'org.redisson', name: 'redisson', version: '3.12.0'
 	
 	// Graal runtime support.
-	compile group: 'com.oracle.substratevm', name: 'svm'
+	compile group: 'org.graalvm.nativeimage', name: 'svm'
 	
     compile group: 'org.apache.commons', name: 'commons-lang3'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
