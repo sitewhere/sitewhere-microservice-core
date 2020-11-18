@@ -8,7 +8,6 @@
 package com.sitewhere.spi.microservice.configuration;
 
 import com.google.inject.Injector;
-import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
@@ -31,20 +30,6 @@ public interface IConfigurableMicroservice<F extends IFunctionIdentifier, C exte
     Class<C> getConfigurationClass();
 
     /**
-     * Get instance configuration monitor.
-     * 
-     * @return
-     */
-    IInstanceConfigurationMonitor getInstanceConfigurationMonitor();
-
-    /**
-     * Get microservice configuration monitor.
-     * 
-     * @return
-     */
-    IMicroserviceConfigurationMonitor getMicroserviceConfigurationMonitor();
-
-    /**
      * Get script configuration monitor.
      * 
      * @return
@@ -64,13 +49,6 @@ public interface IConfigurableMicroservice<F extends IFunctionIdentifier, C exte
      * @return
      */
     IScriptManagement getScriptManagement();
-
-    /**
-     * Wait for configuration to be loaded.
-     * 
-     * @throws SiteWhereException
-     */
-    void waitForConfigurationReady() throws SiteWhereException;
 
     /**
      * Get most recent k8s instance resource.
