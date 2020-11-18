@@ -140,12 +140,6 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
 	    updates.setFirstUpdate(true);
 	}
 
-	// Detect instance namespace updated.
-	if (oldSpec == null || (oldSpec.getInstanceNamespace() != null
-		&& !oldSpec.getInstanceNamespace().equals(newSpec.getInstanceNamespace()))) {
-	    updates.setInstanceNamespaceUpdated(true);
-	}
-
 	// Check whether configuration template was updated.
 	if (oldSpec == null || (oldSpec.getConfigurationTemplate() != null
 		&& !oldSpec.getConfigurationTemplate().equals(newSpec.getConfigurationTemplate()))) {
