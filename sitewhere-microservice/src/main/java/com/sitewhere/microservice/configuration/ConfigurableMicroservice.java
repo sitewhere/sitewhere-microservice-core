@@ -24,7 +24,11 @@ import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
+import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener;
+import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationMonitor;
 import com.sitewhere.spi.microservice.configuration.IInstanceModule;
+import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationListener;
+import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationMonitor;
 import com.sitewhere.spi.microservice.configuration.IMicroserviceModule;
 import com.sitewhere.spi.microservice.configuration.IScriptConfigurationListener;
 import com.sitewhere.spi.microservice.configuration.IScriptConfigurationMonitor;
@@ -36,16 +40,24 @@ import com.sitewhere.spi.microservice.scripting.IScriptManagement;
 
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
+import io.sitewhere.k8s.crd.instance.SiteWhereInstanceSpec;
 import io.sitewhere.k8s.crd.microservice.MicroserviceLoggingEntry;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
+import io.sitewhere.k8s.crd.microservice.SiteWhereMicroserviceSpec;
 
 /**
  * Base class for microservices that monitor the configuration folder for
  * updates.
  */
 public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration>
-	extends Microservice<F, C>
-	implements IConfigurableMicroservice<F, C>, IScriptConfigurationListener, IScriptVersionConfigurationListener {
+	extends Microservice<F, C> implements IConfigurableMicroservice<F, C>, IInstanceConfigurationListener,
+	IMicroserviceConfigurationListener, IScriptConfigurationListener, IScriptVersionConfigurationListener {
+
+    /** Instance configuration monitor */
+    private IInstanceConfigurationMonitor instanceConfigurationMonitor;
+
+    /** Microservice configuration monitor */
+    private IMicroserviceConfigurationMonitor microserviceConfigurationMonitor;
 
     /** Script configuration monitor */
     private IScriptConfigurationMonitor scriptMonitor;
@@ -57,10 +69,10 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     private IScriptManagement scriptManagement;
 
     /** Latest instance resource */
-    private SiteWhereInstance lastInstanceResource;
+    private SiteWhereInstance instanceResource;
 
     /** Latest microservice resource */
-    private SiteWhereMicroservice lastMicroserviceResource;
+    private SiteWhereMicroservice microserviceResource;
 
     /** Instance configuration */
     private InstanceConfiguration instanceConfiguration;
@@ -83,7 +95,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public SiteWhereInstance getLastInstanceResource() {
-	return this.lastInstanceResource;
+	return this.instanceResource;
     }
 
     /*
@@ -92,7 +104,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     @Override
     public SiteWhereMicroservice getLastMicroserviceResource() {
-	return this.lastMicroserviceResource;
+	return this.microserviceResource;
     }
 
     /*
@@ -170,6 +182,18 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     public void createKubernetesResourceControllers(SharedInformerFactory informers) throws SiteWhereException {
 	super.createKubernetesResourceControllers(informers);
 
+	// Add shared informer for instance configuration monitoring.
+	this.instanceConfigurationMonitor = new InstanceConfigurationMonitor(this.instanceResource,
+		getKubernetesClient(), informers);
+	getInstanceConfigurationMonitor().getListeners().add(this);
+	getInstanceConfigurationMonitor().start();
+
+	// Add shared informer for microservice configuration monitoring.
+	this.microserviceConfigurationMonitor = new MicroserviceConfigurationMonitor(this.microserviceResource,
+		getKubernetesClient(), informers);
+	getMicroserviceConfigurationMonitor().getListeners().add(this);
+	getMicroserviceConfigurationMonitor().start();
+
 	// Add shared informer for script configuration monitoring.
 	this.scriptMonitor = new ScriptConfigurationMonitor(getKubernetesClient(), informers, this);
 	getScriptConfigurationMonitor().getListeners().add(this);
@@ -234,6 +258,22 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	onConfigurationUpdated();
     }
 
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener#
+     * onInstanceSpecificationUpdated(io.sitewhere.k8s.crd.instance.
+     * SiteWhereInstanceSpec)
+     */
+    @Override
+    public void onInstanceSpecificationUpdated(SiteWhereInstanceSpec specification) {
+	try {
+	    handleInstanceUpdated(getInstanceConfigurationMonitor().getResource());
+	    onConfigurationUpdated();
+	} catch (SiteWhereException e) {
+	    getLogger().warn("Exception handling instance configuration update.", e);
+	}
+    }
+
     /**
      * Handle updated k8s metadata for instance.
      * 
@@ -242,7 +282,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     protected void handleInstanceUpdated(SiteWhereInstance instance) throws SiteWhereException {
 	// Save resource reference.
-	this.lastInstanceResource = instance;
+	this.instanceResource = instance;
 
 	// Skip partially configured instance.
 	if (instance.getSpec().getConfiguration() == null) {
@@ -258,6 +298,54 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	} catch (JsonProcessingException e) {
 	    throw new SiteWhereException(String.format("Invalid instance configuration (%s). Content is: \n\n%s\n",
 		    e.getMessage(), instance.getSpec().getConfiguration()));
+	}
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.
+     * IMicroserviceConfigurationListener#onMicroserviceSpecificationUpdated(io.
+     * sitewhere.k8s.crd.microservice.SiteWhereMicroserviceSpec)
+     */
+    @Override
+    public void onMicroserviceSpecificationUpdated(SiteWhereMicroserviceSpec specification) {
+	try {
+	    handleMicroserviceUpdated(getMicroserviceConfigurationMonitor().getResource());
+	    onConfigurationUpdated();
+	} catch (SiteWhereException e) {
+	    getLogger().warn("Exception handling microservice configuration update.", e);
+	}
+    }
+
+    /**
+     * Handle updated microservice k8s resource.
+     * 
+     * @param microservice
+     * @throws SiteWhereException
+     */
+    protected void handleMicroserviceUpdated(SiteWhereMicroservice microservice) throws SiteWhereException {
+	// Validate that functional area in k8s metadata matches expected value.
+	if (!getIdentifier().getPath()
+		.equals(getMicroservice().getSiteWhereKubernetesClient().getFunctionalArea(microservice))) {
+	    throw new SiteWhereException(
+		    String.format("Functional area in k8s metadata('%s') does not match expected value of %s.",
+			    getMicroservice().getSiteWhereKubernetesClient().getFunctionalArea(microservice)));
+	}
+
+	// Check for logging updates and process them.
+	handleLoggingConfigurationUpdates(microservice);
+
+	// Save updated resource and parse configuration.
+	this.microserviceResource = microservice;
+	try {
+	    C configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
+		    getConfigurationClass());
+	    this.microserviceConfiguration = configuration;
+	    this.microserviceConfigurationModule = createConfigurationModule();
+	    getLogger().debug(String.format("Successfully handled configuraion update for '%s'.",
+		    microservice.getMetadata().getName()));
+	} catch (JsonProcessingException e) {
+	    throw new SiteWhereException(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
+		    e.getMessage(), microservice.getSpec().getConfiguration()));
 	}
     }
 
@@ -290,39 +378,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     }
 
     /**
-     * Handle updated microservice k8s resource.
-     * 
-     * @param microservice
-     * @throws SiteWhereException
-     */
-    protected void handleMicroserviceUpdated(SiteWhereMicroservice microservice) throws SiteWhereException {
-	// Validate that functional area in k8s metadata matches expected value.
-	if (!getIdentifier().getPath()
-		.equals(getMicroservice().getSiteWhereKubernetesClient().getFunctionalArea(microservice))) {
-	    throw new SiteWhereException(
-		    String.format("Functional area in k8s metadata('%s') does not match expected value of %s.",
-			    getMicroservice().getSiteWhereKubernetesClient().getFunctionalArea(microservice)));
-	}
-
-	// Check for logging updates and process them.
-	handleLoggingConfigurationUpdates(microservice);
-
-	// Save updated resource and parse configuration.
-	this.lastMicroserviceResource = microservice;
-	try {
-	    C configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
-		    getConfigurationClass());
-	    this.microserviceConfiguration = configuration;
-	    this.microserviceConfigurationModule = createConfigurationModule();
-	    getLogger().debug(String.format("Successfully handled configuraion update for '%s'.",
-		    microservice.getMetadata().getName()));
-	} catch (JsonProcessingException e) {
-	    throw new SiteWhereException(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
-		    e.getMessage(), microservice.getSpec().getConfiguration()));
-	}
-    }
-
-    /**
      * Process updated configuration.
      * 
      * @throws SiteWhereException
@@ -343,6 +398,24 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public InstanceConfiguration getInstanceConfiguration() {
 	return this.instanceConfiguration;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
+     * getInstanceConfigurationMonitor()
+     */
+    @Override
+    public IInstanceConfigurationMonitor getInstanceConfigurationMonitor() {
+	return this.instanceConfigurationMonitor;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#
+     * getMicroserviceConfigurationMonitor()
+     */
+    @Override
+    public IMicroserviceConfigurationMonitor getMicroserviceConfigurationMonitor() {
+	return this.microserviceConfigurationMonitor;
     }
 
     /*

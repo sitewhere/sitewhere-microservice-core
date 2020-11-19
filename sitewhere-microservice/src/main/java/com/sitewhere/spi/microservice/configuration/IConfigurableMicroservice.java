@@ -30,6 +30,20 @@ public interface IConfigurableMicroservice<F extends IFunctionIdentifier, C exte
     Class<C> getConfigurationClass();
 
     /**
+     * Get instance configuration monitor.
+     * 
+     * @return
+     */
+    IInstanceConfigurationMonitor getInstanceConfigurationMonitor();
+
+    /**
+     * Get microservice configuration monitor.
+     * 
+     * @return
+     */
+    IMicroserviceConfigurationMonitor getMicroserviceConfigurationMonitor();
+
+    /**
      * Get script configuration monitor.
      * 
      * @return
