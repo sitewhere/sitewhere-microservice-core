@@ -11,7 +11,6 @@ import com.sitewhere.microservice.tenant.TenantWrapper;
 import com.sitewhere.rest.model.microservice.MicroserviceSummary;
 import com.sitewhere.spi.tenant.ITenant;
 
-import io.sitewhere.k8s.crd.ResourceLabels;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
@@ -31,8 +30,7 @@ public class K8sModelConverter {
 	summary.setId(microservice.getMetadata().getName());
 	summary.setName(microservice.getSpec().getName());
 	summary.setDescription(microservice.getSpec().getDescription());
-	summary.setFunctionalArea(
-		microservice.getMetadata().getLabels().get(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA));
+	summary.setFunctionalArea(microservice.getSpec().getFunctionalArea());
 	summary.setIcon(microservice.getSpec().getIcon());
 	summary.setMultitenant(microservice.getSpec().isMultitenant());
 	summary.setDockerImageTag(microservice.getSpec().getPodSpec().getImageTag());

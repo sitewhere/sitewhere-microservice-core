@@ -8,9 +8,7 @@
 package com.sitewhere.microservice.configuration;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -18,34 +16,21 @@ import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sitewhere.spi.microservice.IFunctionIdentifier;
-import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationListener;
 import com.sitewhere.spi.microservice.configuration.IMicroserviceConfigurationMonitor;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
-import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.sitewhere.k8s.crd.ResourceContexts;
 import io.sitewhere.k8s.crd.controller.ResourceChangeType;
 import io.sitewhere.k8s.crd.controller.SiteWhereResourceController;
-import io.sitewhere.k8s.crd.microservice.DoneableSiteWhereMicroservice;
-import io.sitewhere.k8s.crd.microservice.MicroserviceDebugSpecification;
-import io.sitewhere.k8s.crd.microservice.MicroservicePodSpecification;
-import io.sitewhere.k8s.crd.microservice.MicroserviceServiceSpecification;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroserviceList;
-import io.sitewhere.k8s.crd.microservice.SiteWhereMicroserviceSpec;
-import io.sitewhere.k8s.crd.microservice.SiteWhereMicroserviceStatus;
 
 /**
  * Monitors microservice resources for changes.
  */
-@RegisterForReflection(targets = { SiteWhereMicroservice.class, SiteWhereMicroserviceList.class,
-	SiteWhereMicroserviceSpec.class, SiteWhereMicroserviceStatus.class, DoneableSiteWhereMicroservice.class,
-	MicroserviceDebugSpecification.class, MicroservicePodSpecification.class,
-	MicroserviceServiceSpecification.class })
 public class MicroserviceConfigurationMonitor extends SiteWhereResourceController<SiteWhereMicroservice>
 	implements IMicroserviceConfigurationMonitor {
 
@@ -55,8 +40,8 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
     /** Resync period in milliseconds */
     private static final int RESYNC_PERIOD_MS = 10 * 60 * 1000;
 
-    /** Get map of most recent microservice resources */
-    private Map<String, SiteWhereMicroservice> microservicesByFunction = new HashMap<>();
+    /** Get instance resource */
+    private SiteWhereMicroservice microserviceResource;
 
     /** Handles processing of queued updates */
     private ExecutorService queueProcessor = Executors.newSingleThreadExecutor(new MonitorThreadFactory());
@@ -64,8 +49,10 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
     /** Listeners */
     private List<IMicroserviceConfigurationListener> listeners = new ArrayList<>();
 
-    public MicroserviceConfigurationMonitor(KubernetesClient client, SharedInformerFactory informerFactory) {
+    public MicroserviceConfigurationMonitor(SiteWhereMicroservice microservice, KubernetesClient client,
+	    SharedInformerFactory informerFactory) {
 	super(client, informerFactory);
+	this.microserviceResource = microservice;
     }
 
     /*
@@ -88,48 +75,50 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
     }
 
     /*
+     * @see com.sitewhere.spi.microservice.configuration.
+     * IMicroserviceConfigurationMonitor#getResource()
+     */
+    @Override
+    public SiteWhereMicroservice getResource() {
+	return this.microserviceResource;
+    }
+
+    /*
      * @see io.sitewhere.k8s.crd.controller.SiteWhereResourceController#
      * reconcileResourceChange(io.sitewhere.k8s.crd.controller.ResourceChangeType,
      * io.fabric8.kubernetes.client.CustomResource)
      */
     @Override
     public void reconcileResourceChange(ResourceChangeType type, SiteWhereMicroservice microservice) {
-	String function = getSitewhereClient().getFunctionalArea(microservice);
-
-	// Skip changes that don't affect specification.
-	SiteWhereMicroservice previous = this.microservicesByFunction.get(function);
-	if (previous != null && previous.getMetadata().getGeneration() == microservice.getMetadata().getGeneration()) {
+	// Skip checks
+	if (getResource() == null) {
 	    return;
 	}
+
+	// Skip changes for other microservices or that don't affect specification.
+	boolean sameMicroservice = microservice.getMetadata().getUid() == getResource().getMetadata().getUid();
+	boolean differentGeneration = getResource().getMetadata().getGeneration() != microservice.getMetadata()
+		.getGeneration();
+	if (!sameMicroservice || !differentGeneration) {
+	    return;
+	}
+
 	LOGGER.debug(String.format("Detected %s resource change in microservice %s.", type.name(),
 		microservice.getMetadata().getName()));
+	this.microserviceResource = microservice;
+
 	switch (type) {
 	case CREATE: {
-	    this.microservicesByFunction.put(function, microservice);
-	    getListeners().forEach(listener -> listener.onMicroserviceAdded(microservice));
 	    break;
 	}
 	case UPDATE: {
-	    this.microservicesByFunction.put(function, microservice);
-	    getListeners().forEach(listener -> listener.onMicroserviceUpdated(microservice));
+	    getListeners().forEach(listener -> listener.onMicroserviceSpecificationUpdated(microservice.getSpec()));
 	    break;
 	}
 	case DELETE: {
-	    this.microservicesByFunction.remove(function);
-	    getListeners().forEach(listener -> listener.onMicroserviceDeleted(microservice));
 	    break;
 	}
 	}
-    }
-
-    /*
-     * @see com.sitewhere.spi.microservice.configuration.
-     * IMicroserviceConfigurationMonitor#getMicroserviceResource(com.sitewhere.spi.
-     * microservice.IMicroservice)
-     */
-    @Override
-    public SiteWhereMicroservice getMicroserviceResource(IMicroservice<? extends IFunctionIdentifier, ?> microservice) {
-	return microservicesByFunction.get(microservice.getIdentifier().getPath());
     }
 
     /*

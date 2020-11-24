@@ -29,6 +29,9 @@ public interface IInstanceSettings {
     @ConfigProperty(name = "product.id", defaultValue = "sitewhere")
     String getProductId();
 
-    @ConfigProperty(name = "instance.template.id", defaultValue = "default")
-    String getInstanceTemplateId();
+    @ConfigProperty(name = "keycloak.service.name", defaultValue = "sitewhere-keycloak-http")
+    String getKeycloakServiceName();
+
+    @ConfigProperty(name = "keycloak.realm", defaultValue = "sitewhere")
+    String getKeycloakRealm();
 }

@@ -7,7 +7,7 @@
  */
 package com.sitewhere.spi.microservice.configuration;
 
-import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
+import io.sitewhere.k8s.crd.instance.SiteWhereInstanceSpec;
 
 /**
  * Listens for changes in instance configuration.
@@ -15,26 +15,9 @@ import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 public interface IInstanceConfigurationListener {
 
     /**
-     * Called when instance configuration is added.
+     * Called when instance specification is updated.
      * 
-     * @param instance
+     * @param specification
      */
-    void onInstanceAdded(SiteWhereInstance instance);
-
-    /**
-     * Called when instance configuration is updated.
-     * 
-     * @param instance
-     * @param specUpdates
-     * @param statusUpdates
-     */
-    void onInstanceUpdated(SiteWhereInstance instance, IInstanceSpecUpdates specUpdates,
-	    IInstanceStatusUpdates statusUpdates);
-
-    /**
-     * Called when instance configuration is deleted.
-     * 
-     * @param instance
-     */
-    void onInstanceDeleted(SiteWhereInstance instance);
+    void onInstanceSpecificationUpdated(SiteWhereInstanceSpec specification);
 }

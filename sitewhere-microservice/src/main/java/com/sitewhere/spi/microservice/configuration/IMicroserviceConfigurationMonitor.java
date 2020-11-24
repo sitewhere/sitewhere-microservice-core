@@ -9,9 +9,6 @@ package com.sitewhere.spi.microservice.configuration;
 
 import java.util.List;
 
-import com.sitewhere.spi.microservice.IFunctionIdentifier;
-import com.sitewhere.spi.microservice.IMicroservice;
-
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 
 /**
@@ -25,17 +22,16 @@ public interface IMicroserviceConfigurationMonitor {
     void start();
 
     /**
-     * Get latest resource for a microservice.
-     * 
-     * @param microservice
-     * @return
-     */
-    SiteWhereMicroservice getMicroserviceResource(IMicroservice<? extends IFunctionIdentifier, ?> microservice);
-
-    /**
      * Get list of listeners.
      * 
      * @return
      */
     List<IMicroserviceConfigurationListener> getListeners();
+
+    /**
+     * Get resource being monitored.
+     * 
+     * @return
+     */
+    SiteWhereMicroservice getResource();
 }
