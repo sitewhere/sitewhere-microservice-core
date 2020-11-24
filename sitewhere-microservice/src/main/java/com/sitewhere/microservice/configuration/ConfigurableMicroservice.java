@@ -249,7 +249,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 		.withName(getInstanceSettings().getKubernetesName()).get();
 	if (microservice == null) {
 	    throw new SiteWhereException(
-		    String.format("No instance found in namespace '%s' with name '%s'. Aborting startup.",
+		    String.format("No microservice found in namespace '%s' with name '%s'. Aborting startup.",
 			    getInstanceSettings().getKubernetesNamespace(), getInstanceSettings().getKubernetesName()));
 	}
 	handleMicroserviceUpdated(microservice);
@@ -324,11 +324,10 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      */
     protected void handleMicroserviceUpdated(SiteWhereMicroservice microservice) throws SiteWhereException {
 	// Validate that functional area in k8s metadata matches expected value.
-	if (!getIdentifier().getPath()
-		.equals(getMicroservice().getSiteWhereKubernetesClient().getFunctionalArea(microservice))) {
+	if (!getIdentifier().getPath().equals(microservice.getSpec().getFunctionalArea())) {
 	    throw new SiteWhereException(
 		    String.format("Functional area in k8s metadata('%s') does not match expected value of %s.",
-			    getMicroservice().getSiteWhereKubernetesClient().getFunctionalArea(microservice)));
+			    microservice.getSpec().getFunctionalArea()));
 	}
 
 	// Check for logging updates and process them.
