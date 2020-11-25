@@ -18,7 +18,12 @@ import com.sitewhere.spi.microservice.cache.ICacheConfiguration;
 import com.sitewhere.spi.microservice.cache.ICacheProvider;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.search.ISearchResults;
-import com.sitewhere.spi.user.*;
+import com.sitewhere.spi.user.IGrantedAuthority;
+import com.sitewhere.spi.user.IGrantedAuthoritySearchCriteria;
+import com.sitewhere.spi.user.IRole;
+import com.sitewhere.spi.user.IRoleSearchCriteria;
+import com.sitewhere.spi.user.IUser;
+import com.sitewhere.spi.user.IUserSearchCriteria;
 import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
 import com.sitewhere.spi.user.request.IRoleCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
@@ -26,7 +31,7 @@ import com.sitewhere.spi.user.request.IUserCreateRequest;
 /**
  * Adds caching support to user management API channel.
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({ "rawtypes" })
 public class CachedUserManagementApiChannel extends TenantEngineLifecycleComponent implements IUserManagement {
 
     /** Cache settings */
@@ -96,22 +101,6 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
 
     /*
      * @see
-     * com.sitewhere.grpc.client.user.UserManagementApiChannel#getGrantedAuthorities
-     * (java.lang.String)
-     */
-    @Override
-    public List<IGrantedAuthority> getGrantedAuthorities(String username) throws SiteWhereException {
-	List<IGrantedAuthority> auths = (List<IGrantedAuthority>) getGrantedAuthorityCache().getCacheEntry(null,
-		username);
-	if (auths == null) {
-	    auths = getWrapped().getGrantedAuthorities(username);
-	    getGrantedAuthorityCache().setCacheEntry(null, username, auths);
-	}
-	return auths;
-    }
-
-    /*
-     * @see
      * com.sitewhere.spi.user.IUserManagement#createUser(com.sitewhere.spi.user.
      * request.IUserCreateRequest, java.lang.Boolean)
      */
@@ -147,27 +136,6 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
     public IUser updateUser(String username, IUserCreateRequest request, boolean encodePassword)
 	    throws SiteWhereException {
 	return getWrapped().updateUser(username, request, encodePassword);
-    }
-
-    /*
-     * @see com.sitewhere.spi.user.IUserManagement#addGrantedAuthorities(java.lang.
-     * String, java.util.List)
-     */
-    @Override
-    public List<IGrantedAuthority> addGrantedAuthorities(String username, List<String> authorities)
-	    throws SiteWhereException {
-	return getWrapped().addGrantedAuthorities(username, authorities);
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.user.IUserManagement#removeGrantedAuthorities(java.lang.
-     * String, java.util.List)
-     */
-    @Override
-    public List<IGrantedAuthority> removeGrantedAuthorities(String username, List<String> authorities)
-	    throws SiteWhereException {
-	return getWrapped().removeGrantedAuthorities(username, authorities);
     }
 
     /*
@@ -246,7 +214,8 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
     }
 
     /*
-     * @see com.sitewhere.spi.user.IUserManagement#addRoles(java.lang.String, java.util.List)
+     * @see com.sitewhere.spi.user.IUserManagement#addRoles(java.lang.String,
+     * java.util.List)
      */
     @Override
     public List<IRole> addRoles(String username, List<String> roles) throws SiteWhereException {
@@ -254,16 +223,18 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
     }
 
     /*
-     * @see com.sitewhere.spi.user.IUserManagement#removeRoles(java.lang.String, java.util.List)
+     * @see com.sitewhere.spi.user.IUserManagement#removeRoles(java.lang.String,
+     * java.util.List)
      */
     @Override
-    public List<IRole> removeRoles(String username, List<String> roles)
-		    throws SiteWhereException {
+    public List<IRole> removeRoles(String username, List<String> roles) throws SiteWhereException {
 	return getWrapped().removeRoles(username, roles);
     }
 
     /*
-     * @see com.sitewhere.spi.user.IUserManagement#createRole(com.sitewhere.spi.user.request.IRoleCreateRequest)
+     * @see
+     * com.sitewhere.spi.user.IUserManagement#createRole(com.sitewhere.spi.user.
+     * request.IRoleCreateRequest)
      */
     @Override
     public IRole createRole(IRoleCreateRequest request) throws SiteWhereException {
@@ -279,20 +250,20 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
     }
 
     /*
-     * @see com.sitewhere.spi.user.IUserManagement#updateRole(java.lang.String, com.sitewhere.spi.user.request.IRoleCreateRequest)
+     * @see com.sitewhere.spi.user.IUserManagement#updateRole(java.lang.String,
+     * com.sitewhere.spi.user.request.IRoleCreateRequest)
      */
     @Override
-    public IRole updateRole(String name, IRoleCreateRequest request)
-		    throws SiteWhereException {
+    public IRole updateRole(String name, IRoleCreateRequest request) throws SiteWhereException {
 	return getWrapped().updateRole(name, request);
     }
 
     /*
-     * @see com.sitewhere.spi.user.IUserManagement#listRoles(com.sitewhere.spi.user.IRoleSearchCriteria)
+     * @see com.sitewhere.spi.user.IUserManagement#listRoles(com.sitewhere.spi.user.
+     * IRoleSearchCriteria)
      */
     @Override
-    public ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria)
-		    throws SiteWhereException {
+    public ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria) throws SiteWhereException {
 	return getWrapped().listRoles(criteria);
     }
 

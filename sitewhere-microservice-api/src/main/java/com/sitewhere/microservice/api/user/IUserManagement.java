@@ -12,7 +12,12 @@ import java.util.List;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 import com.sitewhere.spi.search.ISearchResults;
-import com.sitewhere.spi.user.*;
+import com.sitewhere.spi.user.IGrantedAuthority;
+import com.sitewhere.spi.user.IGrantedAuthoritySearchCriteria;
+import com.sitewhere.spi.user.IRole;
+import com.sitewhere.spi.user.IRoleSearchCriteria;
+import com.sitewhere.spi.user.IUser;
+import com.sitewhere.spi.user.IUserSearchCriteria;
 import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
 import com.sitewhere.spi.user.request.IRoleCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
@@ -72,37 +77,6 @@ public interface IUserManagement extends ILifecycleComponent {
      * @throws SiteWhereException
      */
     IUser getUserByUsername(String username) throws SiteWhereException;
-
-    /**
-     * Get the granted authorities for a specific user. Does not include any
-     * authorities inherited from groups.
-     *
-     * @param username
-     * @return
-     * @throws SiteWhereException
-     */
-    List<IGrantedAuthority> getGrantedAuthorities(String username) throws SiteWhereException;
-
-    /**
-     * Add user authorities. Duplicates are ignored.
-     *
-     * @param username
-     * @param authorities
-     * @return
-     * @throws SiteWhereException
-     */
-    List<IGrantedAuthority> addGrantedAuthorities(String username, List<String> authorities) throws SiteWhereException;
-
-    /**
-     * Remove user authorities. Ignore if not previously granted.
-     *
-     * @param username
-     * @param authorities
-     * @return
-     * @throws SiteWhereException
-     */
-    List<IGrantedAuthority> removeGrantedAuthorities(String username, List<String> authorities)
-	    throws SiteWhereException;
 
     /**
      * Find users that match the given search criteria.
@@ -195,8 +169,7 @@ public interface IUserManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    List<IRole> removeRoles(String username, List<String> roles)
-                    throws SiteWhereException;
+    List<IRole> removeRoles(String username, List<String> roles) throws SiteWhereException;
 
     /**
      * Create a new granted authority.
@@ -223,8 +196,7 @@ public interface IUserManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    IRole updateRole(String name, IRoleCreateRequest request)
-                    throws SiteWhereException;
+    IRole updateRole(String name, IRoleCreateRequest request) throws SiteWhereException;
 
     /**
      * List roles that match the given criteria.
@@ -233,8 +205,7 @@ public interface IUserManagement extends ILifecycleComponent {
      * @return
      * @throws SiteWhereException
      */
-    ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria)
-                    throws SiteWhereException;
+    ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria) throws SiteWhereException;
 
     /**
      * Delete a role.
@@ -243,5 +214,4 @@ public interface IUserManagement extends ILifecycleComponent {
      * @throws SiteWhereException
      */
     void deleteRole(String role) throws SiteWhereException;
-
 }
