@@ -12,7 +12,12 @@ import java.util.List;
 import com.sitewhere.microservice.lifecycle.LifecycleComponentDecorator;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.search.ISearchResults;
-import com.sitewhere.spi.user.*;
+import com.sitewhere.spi.user.IGrantedAuthority;
+import com.sitewhere.spi.user.IGrantedAuthoritySearchCriteria;
+import com.sitewhere.spi.user.IRole;
+import com.sitewhere.spi.user.IRoleSearchCriteria;
+import com.sitewhere.spi.user.IUser;
+import com.sitewhere.spi.user.IUserSearchCriteria;
 import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
 import com.sitewhere.spi.user.request.IRoleCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
@@ -83,42 +88,6 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
     @Override
     public IUser getUserByUsername(String username) throws SiteWhereException {
 	return getDelegate().getUserByUsername(username);
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sitewhere.spi.user.IUserManagement#getGrantedAuthorities(java.lang.
-     * String)
-     */
-    @Override
-    public List<IGrantedAuthority> getGrantedAuthorities(String username) throws SiteWhereException {
-	return getDelegate().getGrantedAuthorities(username);
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sitewhere.spi.user.IUserManagement#addGrantedAuthorities(java.lang.
-     * String, java.util.List)
-     */
-    @Override
-    public List<IGrantedAuthority> addGrantedAuthorities(String username, List<String> authorities)
-	    throws SiteWhereException {
-	return getDelegate().addGrantedAuthorities(username, authorities);
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.sitewhere.spi.user.IUserManagement#removeGrantedAuthorities(java.lang
-     * .String, java.util.List)
-     */
-    @Override
-    public List<IGrantedAuthority> removeGrantedAuthorities(String username, List<String> authorities)
-	    throws SiteWhereException {
-	return getDelegate().removeGrantedAuthorities(username, authorities);
     }
 
     /*
@@ -194,44 +163,79 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
 	getDelegate().deleteGrantedAuthority(authority);
     }
 
+    /*
+     * @see com.sitewhere.microservice.api.user.IUserManagement#getRoles(java.lang.
+     * String)
+     */
     @Override
     public List<IRole> getRoles(String username) throws SiteWhereException {
 	return getDelegate().getRoles(username);
     }
 
+    /*
+     * @see com.sitewhere.microservice.api.user.IUserManagement#addRoles(java.lang.
+     * String, java.util.List)
+     */
     @Override
     public List<IRole> addRoles(String username, List<String> roles) throws SiteWhereException {
 	return getDelegate().addRoles(username, roles);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.user.IUserManagement#removeRoles(java.lang.
+     * String, java.util.List)
+     */
     @Override
-    public List<IRole> removeRoles(String username, List<String> roles)
-		    throws SiteWhereException {
+    public List<IRole> removeRoles(String username, List<String> roles) throws SiteWhereException {
 	return getDelegate().removeRoles(username, roles);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.user.IUserManagement#createRole(com.sitewhere.
+     * spi.user.request.IRoleCreateRequest)
+     */
     @Override
     public IRole createRole(IRoleCreateRequest request) throws SiteWhereException {
 	return getDelegate().createRole(request);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.user.IUserManagement#getRoleByName(java.lang.
+     * String)
+     */
     @Override
     public IRole getRoleByName(String name) throws SiteWhereException {
 	return getDelegate().getRoleByName(name);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.user.IUserManagement#updateRole(java.lang.
+     * String, com.sitewhere.spi.user.request.IRoleCreateRequest)
+     */
     @Override
-    public IRole updateRole(String name, IRoleCreateRequest request)
-		    throws SiteWhereException {
+    public IRole updateRole(String name, IRoleCreateRequest request) throws SiteWhereException {
 	return getDelegate().updateRole(name, request);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.user.IUserManagement#listRoles(com.sitewhere.
+     * spi.user.IRoleSearchCriteria)
+     */
     @Override
-    public ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria)
-		    throws SiteWhereException {
+    public ISearchResults<IRole> listRoles(IRoleSearchCriteria criteria) throws SiteWhereException {
 	return getDelegate().listRoles(criteria);
     }
 
+    /*
+     * @see
+     * com.sitewhere.microservice.api.user.IUserManagement#deleteRole(java.lang.
+     * String)
+     */
     @Override
     public void deleteRole(String role) throws SiteWhereException {
 	getDelegate().deleteRole(role);
