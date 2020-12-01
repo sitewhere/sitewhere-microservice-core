@@ -40,8 +40,6 @@ import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.metrics.IMetricsServer;
 import com.sitewhere.spi.microservice.scripting.IScriptManager;
 import com.sitewhere.spi.microservice.scripting.IScriptTemplateManager;
-import com.sitewhere.spi.microservice.security.ISystemUser;
-import com.sitewhere.spi.microservice.security.ITokenManagement;
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 import com.sitewhere.spi.system.IVersion;
 
@@ -70,14 +68,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     /** Kafka topic naming */
     @Inject
     private IKafkaTopicNaming kafkaTopicNaming;
-
-    /** System superuser */
-    @Inject
-    private ISystemUser systemUser;
-
-    /** JWT token management */
-    @Inject
-    private ITokenManagement tokenManagement;
 
     /** SiteWhere Kubernetes client wrapper */
     private ISiteWhereKubernetesClient sitewhereKubernetesClient;
@@ -458,27 +448,11 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     }
 
     /*
-     * @see com.sitewhere.microservice.spi.IMicroservice#getTokenManagement()
-     */
-    @Override
-    public ITokenManagement getTokenManagement() {
-	return tokenManagement;
-    }
-
-    /*
      * @see com.sitewhere.spi.microservice.IMicroservice#getTenantManagement()
      */
     @Override
     public ITenantManagement getTenantManagement() {
 	return tenantManagement;
-    }
-
-    /*
-     * @see com.sitewhere.microservice.spi.IMicroservice#getSystemUser()
-     */
-    @Override
-    public ISystemUser getSystemUser() {
-	return systemUser;
     }
 
     /*

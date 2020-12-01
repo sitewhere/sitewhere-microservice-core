@@ -52,13 +52,13 @@ public abstract class SystemUserCallable<V> implements Callable<V> {
 	IMicroservice<?, ?> microservice = getComponent().getMicroservice();
 	SiteWhereTenant tenant = getComponent().getTenantEngine().getTenantResource();
 	try {
-	    if (tenant != null) {
-		SiteWhereAuthentication system = microservice.getSystemUser().getAuthenticationForTenant(tenant);
-		UserContext.setContext(system);
-	    } else {
-		SiteWhereAuthentication system = microservice.getSystemUser().getAuthentication();
-		UserContext.setContext(system);
-	    }
+//	    if (tenant != null) {
+//		SiteWhereAuthentication system = microservice.getSystemUser().getAuthenticationForTenant(tenant);
+//		UserContext.setContext(system);
+//	    } else {
+//		SiteWhereAuthentication system = microservice.getSystemUser().getAuthentication();
+//		UserContext.setContext(system);
+//	    }
 	    return runAsSystemUser();
 	} catch (Throwable e) {
 	    LOGGER.error("Unhandled exception.", e);

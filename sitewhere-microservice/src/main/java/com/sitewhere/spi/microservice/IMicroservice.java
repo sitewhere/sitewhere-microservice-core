@@ -22,8 +22,6 @@ import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 import com.sitewhere.spi.microservice.metrics.IMetricsServer;
 import com.sitewhere.spi.microservice.scripting.IScriptManager;
 import com.sitewhere.spi.microservice.scripting.IScriptTemplateManager;
-import com.sitewhere.spi.microservice.security.ISystemUser;
-import com.sitewhere.spi.microservice.security.ITokenManagement;
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 import com.sitewhere.spi.system.IVersion;
 
@@ -96,25 +94,11 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
     InstanceConfiguration getInstanceConfiguration();
 
     /**
-     * Get token management interface.
-     * 
-     * @return
-     */
-    ITokenManagement getTokenManagement();
-
-    /**
      * Get tenant management API.
      * 
      * @return
      */
     ITenantManagement getTenantManagement();
-
-    /**
-     * Get system superuser.
-     * 
-     * @return
-     */
-    ISystemUser getSystemUser();
 
     /**
      * Get Kafka topic naming helper.
