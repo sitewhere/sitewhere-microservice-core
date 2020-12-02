@@ -46,4 +46,7 @@ public interface IInstanceSettings {
 
     @ConfigProperty(name = "keycloak.master.password", defaultValue = "sitewhere")
     String getKeycloakMasterPassword();
+
+    @ConfigProperty(name = "keycloak.oidc.secret", defaultValue = "this-should-be-set-via-environment")
+    String getKeycloakOidcSecret();
 }
