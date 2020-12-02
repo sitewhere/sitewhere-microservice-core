@@ -32,6 +32,18 @@ public interface IInstanceSettings {
     @ConfigProperty(name = "keycloak.service.name", defaultValue = "sitewhere-keycloak-http")
     String getKeycloakServiceName();
 
+    @ConfigProperty(name = "keycloak.api.port", defaultValue = "80")
+    int getKeycloakApiPort();
+
     @ConfigProperty(name = "keycloak.realm", defaultValue = "sitewhere")
     String getKeycloakRealm();
+
+    @ConfigProperty(name = "keycloak.master.realm", defaultValue = "master")
+    String getKeycloakMasterRealm();
+
+    @ConfigProperty(name = "keycloak.master.username", defaultValue = "sitewhere")
+    String getKeycloakMasterUsername();
+
+    @ConfigProperty(name = "keycloak.master.password", defaultValue = "sitewhere")
+    String getKeycloakMasterPassword();
 }
