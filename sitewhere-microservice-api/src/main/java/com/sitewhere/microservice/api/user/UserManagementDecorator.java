@@ -33,38 +33,31 @@ public class UserManagementDecorator extends LifecycleComponentDecorator<IUserMa
     }
 
     /*
-     * (non-Javadoc)
-     *
      * @see
-     * com.sitewhere.spi.user.IUserManagement#createUser(com.sitewhere.spi.user.
-     * request.IUserCreateRequest, java.lang.Boolean)
+     * com.sitewhere.microservice.api.user.IUserManagement#createUser(com.sitewhere.
+     * spi.user.request.IUserCreateRequest)
      */
     @Override
-    public IUser createUser(IUserCreateRequest request, Boolean encodePassword) throws SiteWhereException {
-	return getDelegate().createUser(request, encodePassword);
+    public IUser createUser(IUserCreateRequest request) throws SiteWhereException {
+	return getDelegate().createUser(request);
     }
 
     /*
-     * (non-Javadoc)
-     *
      * @see
-     * com.sitewhere.spi.user.IUserManagement#importUser(com.sitewhere.spi.user.
-     * IUser, boolean)
+     * com.sitewhere.microservice.api.user.IUserManagement#getAccessToken(java.lang.
+     * String, java.lang.String)
      */
     @Override
-    public IUser importUser(IUser user, boolean overwrite) throws SiteWhereException {
-	return getDelegate().importUser(user, overwrite);
+    public String getAccessToken(String username, String password) throws SiteWhereException {
+	return getDelegate().getAccessToken(username, password);
     }
 
     /*
-     * (non-Javadoc)
-     *
-     * @see com.sitewhere.spi.user.IUserManagement#authenticate(java.lang.String,
-     * java.lang.String, boolean)
+     * @see com.sitewhere.microservice.api.user.IUserManagement#getPublicKey()
      */
     @Override
-    public IUser authenticate(String username, String password, boolean updateLastLogin) throws SiteWhereException {
-	return getDelegate().authenticate(username, password, updateLastLogin);
+    public String getPublicKey() throws SiteWhereException {
+	return getDelegate().getPublicKey();
     }
 
     /*
