@@ -25,6 +25,7 @@ import com.sitewhere.spi.microservice.scripting.IScriptTemplateManager;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
+import com.sitewhere.spi.microservice.user.IUserManagement;
 import com.sitewhere.spi.system.IVersion;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -108,6 +109,13 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
      * @return
      */
     ITenantManagement getTenantManagement();
+
+    /**
+     * Get user management API.
+     * 
+     * @return
+     */
+    IUserManagement getUserManagement();
 
     /**
      * Get system superuser.

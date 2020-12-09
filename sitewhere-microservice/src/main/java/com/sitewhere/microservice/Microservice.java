@@ -43,6 +43,7 @@ import com.sitewhere.spi.microservice.scripting.IScriptTemplateManager;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
 import com.sitewhere.spi.microservice.tenant.ITenantManagement;
+import com.sitewhere.spi.microservice.user.IUserManagement;
 import com.sitewhere.spi.system.IVersion;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -78,6 +79,10 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     /** JWT token management */
     @Inject
     private ITokenManagement tokenManagement;
+
+    /** User management */
+    @Inject
+    private IUserManagement userManagement;
 
     /** SiteWhere Kubernetes client wrapper */
     private ISiteWhereKubernetesClient sitewhereKubernetesClient;
@@ -185,6 +190,12 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 
 	// Start tenant management.
 	initialize.addStartStep(this, getTenantManagement(), true);
+
+	// Initialize user management.
+	initialize.addInitializeStep(this, getUserManagement(), true);
+
+	// Start user management.
+	initialize.addStartStep(this, getUserManagement(), true);
 
 	// Execute initialization steps.
 	initialize.execute(monitor);
@@ -294,6 +305,9 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     public void terminate(ILifecycleProgressMonitor monitor) throws SiteWhereException {
 	// Create step that will stop components.
 	ICompositeLifecycleStep stop = new CompositeLifecycleStep("Stop " + getComponentName());
+
+	// Stop user management.
+	stop.addStopStep(this, getUserManagement());
 
 	// Stop tenant management.
 	stop.addStopStep(this, getTenantManagement());
@@ -471,6 +485,14 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @Override
     public ITenantManagement getTenantManagement() {
 	return tenantManagement;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#getUserManagement()
+     */
+    @Override
+    public IUserManagement getUserManagement() {
+	return this.userManagement;
     }
 
     /*

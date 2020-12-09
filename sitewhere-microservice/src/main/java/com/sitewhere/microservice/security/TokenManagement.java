@@ -7,24 +7,18 @@
  */
 package com.sitewhere.microservice.security;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
-import com.sitewhere.spi.user.IRole;
-import com.sitewhere.spi.user.IUser;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 
 /**
@@ -32,45 +26,6 @@ import io.jsonwebtoken.UnsupportedJwtException;
  */
 @ApplicationScoped
 public class TokenManagement implements ITokenManagement {
-
-    /** Token issuer */
-    private static final String ISSUER = "sitewhere";
-
-    /** Claim identifier for granted authorities */
-    private static final String CLAIM_GRANTED_AUTHORITIES = "auth";
-
-    /** Secret used for encoding */
-    private String secret = "secret";
-
-    /** Signature algorithm */
-    private SignatureAlgorithm SIGNATURE_ALGORITHM = SignatureAlgorithm.HS512;
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.sitewhere.microservice.spi.security.ITokenManagement#generateToken(
-     * com.sitewhere.spi.user.IUser)
-     */
-    public String generateToken(IUser user, int expirationInMinutes) throws SiteWhereException {
-	try {
-	    JwtBuilder builder = Jwts.builder().setIssuer(ISSUER).setSubject(user.getUsername()).setIssuedAt(new Date())
-		    .setExpiration(getExpirationDate(expirationInMinutes)).signWith(SIGNATURE_ALGORITHM, getSecret());
-	    builder.claim(CLAIM_GRANTED_AUTHORITIES, getAuthorities(user));
-	    return builder.compact();
-	} catch (Throwable t) {
-	    throw new SiteWhereException("Unable to generate JWT.", t);
-	}
-    }
-
-    private List<String> getAuthorities(IUser user) {
-	List<String> authorities = new ArrayList<>();
-	for (IRole role : user.getRoles()) {
-	    List<String> authoritiesToAdd = role.getAuthorities().stream().map(result -> result.getAuthority())
-		    .collect(Collectors.toList());
-	    authorities.addAll(authoritiesToAdd);
-	}
-	return authorities;
-    }
 
     /*
      * (non-Javadoc)
@@ -80,7 +35,7 @@ public class TokenManagement implements ITokenManagement {
      */
     public Claims getClaimsForToken(String token) throws SiteWhereException {
 	try {
-	    return Jwts.parser().setSigningKey(getSecret()).parseClaimsJws(token).getBody();
+	    return Jwts.parser().setSigningKey("").parseClaimsJws(token).getBody();
 	} catch (ExpiredJwtException e) {
 	    throw new JwtExpiredException("JWT has expired.", e);
 	} catch (UnsupportedJwtException e) {
@@ -126,20 +81,11 @@ public class TokenManagement implements ITokenManagement {
      * getGrantedAuthoritiesFromClaims(io.jsonwebtoken.Claims)
      */
     @Override
-    @SuppressWarnings("unchecked")
     public List<String> getGrantedAuthoritiesFromClaims(Claims claims) throws SiteWhereException {
-	return (List<String>) claims.get(CLAIM_GRANTED_AUTHORITIES, List.class);
+	return null;
     }
 
     public Date getExpirationDate(int expirationInMinutes) {
 	return new Date(System.currentTimeMillis() + (expirationInMinutes * 60 * 1000));
-    }
-
-    public String getSecret() {
-	return secret;
-    }
-
-    public void setSecret(String secret) {
-	this.secret = secret;
     }
 }
