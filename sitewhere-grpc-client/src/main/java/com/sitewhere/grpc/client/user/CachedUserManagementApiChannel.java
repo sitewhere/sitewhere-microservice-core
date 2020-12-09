@@ -10,13 +10,13 @@ package com.sitewhere.grpc.client.user;
 import java.util.List;
 
 import com.sitewhere.grpc.client.spi.client.IUserManagementApiChannel;
-import com.sitewhere.microservice.api.user.IUserManagement;
 import com.sitewhere.microservice.cache.CacheConfiguration;
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.cache.ICacheConfiguration;
 import com.sitewhere.spi.microservice.cache.ICacheProvider;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.user.IUserManagement;
 import com.sitewhere.spi.search.ISearchResults;
 import com.sitewhere.spi.user.IGrantedAuthority;
 import com.sitewhere.spi.user.IGrantedAuthoritySearchCriteria;

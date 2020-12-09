@@ -10,6 +10,9 @@ dependencies {
     
     // JSON web token support.
     compile group: 'io.jsonwebtoken', name: 'jjwt', version:'0.7.0'
+	
+	// Keycloak
+	compile group: 'org.keycloak', name: 'keycloak-admin-client', version: '11.0.3'
     
     // SLF4J Extension for i18n.
     compile group: 'org.slf4j', name: 'slf4j-ext', version: '1.7.25'
