@@ -31,32 +31,28 @@ public interface IUserManagement extends ILifecycleComponent {
      * Create a new user based on the given input.
      *
      * @param request
-     * @param encodePassword
      * @return
      * @throws SiteWhereException
      */
-    IUser createUser(IUserCreateRequest request, Boolean encodePassword) throws SiteWhereException;
+    IUser createUser(IUserCreateRequest request) throws SiteWhereException;
 
     /**
-     * Imports a user (including encrypted password) from an external system.
-     *
-     * @param user
-     * @param overwrite
-     * @return
-     * @throws SiteWhereException
-     */
-    IUser importUser(IUser user, boolean overwrite) throws SiteWhereException;
-
-    /**
-     * Authenticate the given username and password.
-     *
+     * Authenticate the given user and return an access token.
+     * 
      * @param username
      * @param password
-     * @param updateLastLogin
      * @return
      * @throws SiteWhereException
      */
-    IUser authenticate(String username, String password, boolean updateLastLogin) throws SiteWhereException;
+    String getAccessToken(String username, String password) throws SiteWhereException;
+
+    /**
+     * Get public key used to validate access token.
+     * 
+     * @return
+     * @throws SiteWhereException
+     */
+    String getPublicKey() throws SiteWhereException;
 
     /**
      * Update details for a user.

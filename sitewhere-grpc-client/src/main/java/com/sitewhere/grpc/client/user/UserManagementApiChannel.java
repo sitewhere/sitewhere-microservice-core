@@ -14,8 +14,6 @@ import com.sitewhere.grpc.client.GrpcUtils;
 import com.sitewhere.grpc.client.spi.client.IUserManagementApiChannel;
 import com.sitewhere.grpc.service.GAddRolesRequest;
 import com.sitewhere.grpc.service.GAddRolesResponse;
-import com.sitewhere.grpc.service.GAuthenticateRequest;
-import com.sitewhere.grpc.service.GAuthenticateResponse;
 import com.sitewhere.grpc.service.GCreateGrantedAuthorityRequest;
 import com.sitewhere.grpc.service.GCreateGrantedAuthorityResponse;
 import com.sitewhere.grpc.service.GCreateRoleRequest;
@@ -26,16 +24,18 @@ import com.sitewhere.grpc.service.GDeleteGrantedAuthorityRequest;
 import com.sitewhere.grpc.service.GDeleteRoleRequest;
 import com.sitewhere.grpc.service.GDeleteUserRequest;
 import com.sitewhere.grpc.service.GDeleteUserResponse;
+import com.sitewhere.grpc.service.GGetAccessTokenRequest;
+import com.sitewhere.grpc.service.GGetAccessTokenResponse;
 import com.sitewhere.grpc.service.GGetGrantedAuthorityByNameRequest;
 import com.sitewhere.grpc.service.GGetGrantedAuthorityByNameResponse;
+import com.sitewhere.grpc.service.GGetPublicKeyRequest;
+import com.sitewhere.grpc.service.GGetPublicKeyResponse;
 import com.sitewhere.grpc.service.GGetRoleByNameRequest;
 import com.sitewhere.grpc.service.GGetRoleByNameResponse;
 import com.sitewhere.grpc.service.GGetRolesRequest;
 import com.sitewhere.grpc.service.GGetRolesResponse;
 import com.sitewhere.grpc.service.GGetUserByUsernameRequest;
 import com.sitewhere.grpc.service.GGetUserByUsernameResponse;
-import com.sitewhere.grpc.service.GImportUserRequest;
-import com.sitewhere.grpc.service.GImportUserResponse;
 import com.sitewhere.grpc.service.GListGrantedAuthoritiesRequest;
 import com.sitewhere.grpc.service.GListGrantedAuthoritiesResponse;
 import com.sitewhere.grpc.service.GListRolesRequest;
@@ -96,19 +96,16 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
     }
 
     /*
-     * (non-Javadoc)
-     *
      * @see
-     * com.sitewhere.spi.user.IUserManagement#createUser(com.sitewhere.spi.user.
-     * request.IUserCreateRequest, java.lang.Boolean)
+     * com.sitewhere.microservice.api.user.IUserManagement#createUser(com.sitewhere.
+     * spi.user.request.IUserCreateRequest)
      */
     @Override
-    public IUser createUser(IUserCreateRequest request, Boolean encodePassword) throws SiteWhereException {
+    public IUser createUser(IUserCreateRequest request) throws SiteWhereException {
 	try {
 	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getCreateUserMethod());
 	    GCreateUserRequest.Builder grequest = GCreateUserRequest.newBuilder();
 	    grequest.setRequest(UserModelConverter.asGrpcUserCreateRequest(request));
-	    grequest.setEncodePassword(((encodePassword != null) && (encodePassword == false)) ? false : true);
 	    GCreateUserResponse gresponse = getGrpcChannel().getBlockingStub().createUser(grequest.build());
 	    IUser response = UserModelConverter.asApiUser(gresponse.getUser());
 	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getCreateUserMethod(), response);
@@ -119,48 +116,40 @@ public class UserManagementApiChannel extends ApiChannel<UserManagementGrpcChann
     }
 
     /*
-     * (non-Javadoc)
-     *
      * @see
-     * com.sitewhere.spi.user.IUserManagement#importUser(com.sitewhere.spi.user.
-     * IUser, boolean)
+     * com.sitewhere.microservice.api.user.IUserManagement#getAccessToken(java.lang.
+     * String, java.lang.String)
      */
     @Override
-    public IUser importUser(IUser user, boolean overwrite) throws SiteWhereException {
+    public String getAccessToken(String username, String password) throws SiteWhereException {
 	try {
-	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getImportUserMethod());
-	    GImportUserRequest.Builder grequest = GImportUserRequest.newBuilder();
-	    grequest.setUser(UserModelConverter.asGrpcUser(user));
-	    grequest.setOverwrite(overwrite);
-	    GImportUserResponse gresponse = getGrpcChannel().getBlockingStub().importUser(grequest.build());
-	    IUser response = UserModelConverter.asApiUser(gresponse.getUser());
-	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getImportUserMethod(), response);
+	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getGetAccessTokenMethod());
+	    GGetAccessTokenRequest.Builder grequest = GGetAccessTokenRequest.newBuilder();
+	    grequest.setUsername(username);
+	    grequest.setPassword(password);
+	    GGetAccessTokenResponse gresponse = getGrpcChannel().getBlockingStub().getAccessToken(grequest.build());
+	    String response = gresponse.getToken();
+	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getGetAccessTokenMethod(), response);
 	    return response;
 	} catch (Throwable t) {
-	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getImportUserMethod(), t);
+	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getGetAccessTokenMethod(), t);
 	}
     }
 
     /*
-     * (non-Javadoc)
-     *
-     * @see com.sitewhere.spi.user.IUserManagement#authenticate(java.lang.String,
-     * java.lang.String, boolean)
+     * @see com.sitewhere.microservice.api.user.IUserManagement#getPublicKey()
      */
     @Override
-    public IUser authenticate(String username, String password, boolean updateLastLogin) throws SiteWhereException {
+    public String getPublicKey() throws SiteWhereException {
 	try {
-	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getAuthenticateMethod());
-	    GAuthenticateRequest.Builder grequest = GAuthenticateRequest.newBuilder();
-	    grequest.setUsername(username);
-	    grequest.setPassword(password);
-	    grequest.setUpdateLastLogin(updateLastLogin);
-	    GAuthenticateResponse gresponse = getGrpcChannel().getBlockingStub().authenticate(grequest.build());
-	    IUser response = UserModelConverter.asApiUser(gresponse.getUser());
-	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getAuthenticateMethod(), response);
+	    GrpcUtils.handleClientMethodEntry(this, UserManagementGrpc.getGetPublicKeyMethod());
+	    GGetPublicKeyRequest.Builder grequest = GGetPublicKeyRequest.newBuilder();
+	    GGetPublicKeyResponse gresponse = getGrpcChannel().getBlockingStub().getPublicKey(grequest.build());
+	    String response = gresponse.getKey();
+	    GrpcUtils.logClientMethodResponse(UserManagementGrpc.getGetPublicKeyMethod(), response);
 	    return response;
 	} catch (Throwable t) {
-	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getAuthenticateMethod(), t);
+	    throw GrpcUtils.handleClientMethodException(UserManagementGrpc.getGetPublicKeyMethod(), t);
 	}
     }
 
