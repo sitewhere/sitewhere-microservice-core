@@ -49,4 +49,10 @@ public interface IInstanceSettings {
 
     @ConfigProperty(name = "keycloak.oidc.secret", defaultValue = "this-should-be-set-via-environment")
     String getKeycloakOidcSecret();
+
+    @ConfigProperty(name = "keycloak.system.username", defaultValue = "system")
+    String getKeycloakSystemUsername();
+
+    @ConfigProperty(name = "keycloak.system.password", defaultValue = "system")
+    String getKeycloakSystemPassword();
 }

@@ -25,7 +25,6 @@ import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.GroupResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.ServerInfoResource;
-import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.token.TokenManager;
 import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.ClientRepresentation;
@@ -299,6 +298,17 @@ public class KeycloakUserManagement extends AsyncStartLifecycleComponent impleme
 	if (result.getStatus() != HttpStatus.SC_CREATED) {
 	    throw new SiteWhereException(result.getStatusInfo().getReasonPhrase());
 	}
+
+	UserRepresentation match = findSingleUserByUsername(request.getUsername());
+	if (match != null && request.getRoles() != null) {
+	    for (String role : request.getRoles()) {
+		GroupRepresentation groupMatch = findSingleGroupByName(role);
+		if (groupMatch != null) {
+		    getRealmResource().users().get(match.getId()).joinGroup(groupMatch.getId());
+		}
+	    }
+	}
+
 	return getUserByUsername(request.getUsername());
     }
 
@@ -315,7 +325,6 @@ public class KeycloakUserManagement extends AsyncStartLifecycleComponent impleme
 	TokenManager tokenManager = instance.tokenManager();
 	AccessTokenResponse accessToken = tokenManager.getAccessToken();
 	String json = new String(MarshalUtils.marshalJson(accessToken));
-	getLogger().info(String.format("Access token:\n%s\n\n", accessToken));
 	return json;
     }
 
@@ -370,12 +379,8 @@ public class KeycloakUserManagement extends AsyncStartLifecycleComponent impleme
      */
     @Override
     public IUser getUserByUsername(String username) throws SiteWhereException {
-	try {
-	    UserRepresentation match = findSingleUserByUsername(username);
-	    return convert(match, true);
-	} catch (NotFoundException e) {
-	    return null;
-	}
+	UserRepresentation match = findSingleUserByUsername(username);
+	return match != null ? convert(match, true) : null;
     }
 
     /*
@@ -456,6 +461,11 @@ public class KeycloakUserManagement extends AsyncStartLifecycleComponent impleme
 	return null;
     }
 
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.user.IUserManagement#getGrantedAuthorityByName
+     * (java.lang.String)
+     */
     @Override
     public IGrantedAuthority getGrantedAuthorityByName(String name) throws SiteWhereException {
 	RoleRepresentation match = getKeycloakRoleByName(name);
@@ -520,12 +530,15 @@ public class KeycloakUserManagement extends AsyncStartLifecycleComponent impleme
      */
     @Override
     public List<IRole> addRoles(String username, List<String> roles) throws SiteWhereException {
-	UserResource userResource = getRealmResource().users().get(username);
-	if (userResource != null) {
+	UserRepresentation match = findSingleUserByUsername(username);
+	if (match != null) {
 	    List<IRole> created = new ArrayList<>();
 	    for (String role : roles) {
-		userResource.joinGroup(role);
-		created.add(convert(getRealmResource().groups().group(role).toRepresentation(), false));
+		GroupRepresentation groupMatch = findSingleGroupByName(role);
+		if (groupMatch != null) {
+		    getRealmResource().users().get(match.getId()).joinGroup(groupMatch.getId());
+		    created.add(convert(groupMatch, false));
+		}
 	    }
 	    return created;
 	}
@@ -539,12 +552,15 @@ public class KeycloakUserManagement extends AsyncStartLifecycleComponent impleme
      */
     @Override
     public List<IRole> removeRoles(String username, List<String> roles) throws SiteWhereException {
-	UserResource userResource = getRealmResource().users().get(username);
-	if (userResource != null) {
+	UserRepresentation match = findSingleUserByUsername(username);
+	if (match != null) {
 	    List<IRole> removed = new ArrayList<>();
 	    for (String role : roles) {
-		userResource.leaveGroup(role);
-		removed.add(convert(getRealmResource().groups().group(role).toRepresentation(), false));
+		GroupRepresentation groupMatch = findSingleGroupByName(role);
+		if (groupMatch != null) {
+		    getRealmResource().users().get(match.getId()).joinGroup(groupMatch.getId());
+		    removed.add(convert(groupMatch, false));
+		}
 	    }
 	    return removed;
 	}
@@ -574,6 +590,23 @@ public class KeycloakUserManagement extends AsyncStartLifecycleComponent impleme
 	return getRoleByName(group.getName());
     }
 
+    /**
+     * Find single Keycloak group by name.
+     * 
+     * @param name
+     * @return
+     * @throws SiteWhereException
+     */
+    protected GroupRepresentation findSingleGroupByName(String name) throws SiteWhereException {
+	List<GroupRepresentation> matches = getRealmResource().groups().groups(name, 0, 1);
+	if (matches.size() > 1) {
+	    throw new SiteWhereException(String.format("Matched multiple groups for: %s", name));
+	} else if (matches.size() == 0) {
+	    return null;
+	}
+	return matches.get(0);
+    }
+
     /*
      * @see
      * com.sitewhere.spi.microservice.user.IUserManagement#getRoleByName(java.lang.
@@ -581,15 +614,8 @@ public class KeycloakUserManagement extends AsyncStartLifecycleComponent impleme
      */
     @Override
     public IRole getRoleByName(String name) throws SiteWhereException {
-	try {
-	    List<GroupRepresentation> matches = getRealmResource().groups().groups(name, 0, 1);
-	    if (matches.size() == 0) {
-		return null;
-	    }
-	    return convert(matches.get(0), true);
-	} catch (NotFoundException e) {
-	    return null;
-	}
+	GroupRepresentation match = findSingleGroupByName(name);
+	return match != null ? convert(match, true) : null;
     }
 
     /*
@@ -625,7 +651,10 @@ public class KeycloakUserManagement extends AsyncStartLifecycleComponent impleme
      */
     @Override
     public void deleteRole(String role) throws SiteWhereException {
-	getRealmResource().groups().group(role).remove();
+	GroupRepresentation match = findSingleGroupByName(role);
+	if (match != null) {
+	    getRealmResource().groups().group(match.getId()).remove();
+	}
     }
 
     protected Keycloak getKeycloak() {
