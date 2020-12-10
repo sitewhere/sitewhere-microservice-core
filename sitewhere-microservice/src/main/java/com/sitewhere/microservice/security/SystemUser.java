@@ -7,26 +7,29 @@
  */
 package com.sitewhere.microservice.security;
 
-import java.util.Collections;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
 
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
 /**
- * Bean that provides a system "superuser" that allows microservices to
- * authenticate with other microservices.
+ * Provides a system "superuser" that allows microservices to authenticate with
+ * other microservices via JWT.
  */
 @ApplicationScoped
 public class SystemUser implements ISystemUser {
 
     /** Number of seconds between renewing JWT */
-    private static final int RENEW_INTERVAL_SEC = 60 * 60;
+    private static final int RENEW_INTERVAL_SEC = 60 * 3;
+
+    /** Instance settings */
+    @Inject
+    IInstanceSettings instanceSettings;
 
     /** JWT token management */
     @Inject
@@ -44,7 +47,8 @@ public class SystemUser implements ISystemUser {
     @Override
     public SiteWhereAuthentication getAuthentication() throws SiteWhereException {
 	if ((System.currentTimeMillis() - lastGenerated) > (RENEW_INTERVAL_SEC * 1000)) {
-	    this.last = new SiteWhereAuthentication("system", Collections.emptyList(), null);
+	    this.last = getTokenManagement().getAuthenticationForUser(getInstanceSettings().getKeycloakSystemUsername(),
+		    getInstanceSettings().getKeycloakSystemPassword());
 	    this.lastGenerated = System.currentTimeMillis();
 	}
 	return this.last;
@@ -56,9 +60,15 @@ public class SystemUser implements ISystemUser {
      */
     @Override
     public SiteWhereAuthentication getAuthenticationForTenant(SiteWhereTenant tenant) throws SiteWhereException {
-	SiteWhereAuthentication auth = getAuthentication();
-	auth.setTenantToken(tenant.getMetadata().getName());
-	return auth;
+	SiteWhereAuthentication existing = getAuthentication();
+	SiteWhereAuthentication clone = new SiteWhereAuthentication(existing.getUsername(),
+		existing.getGrantedAuthorities(), existing.getJwt());
+	clone.setTenantToken(tenant.getMetadata().getName());
+	return clone;
+    }
+
+    protected IInstanceSettings getInstanceSettings() {
+	return instanceSettings;
     }
 
     protected ITokenManagement getTokenManagement() {

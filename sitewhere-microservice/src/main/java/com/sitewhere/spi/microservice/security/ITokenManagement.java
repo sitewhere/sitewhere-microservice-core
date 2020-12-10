@@ -9,6 +9,7 @@ package com.sitewhere.spi.microservice.security;
 
 import java.util.List;
 
+import com.sitewhere.microservice.security.SiteWhereAuthentication;
 import com.sitewhere.spi.SiteWhereException;
 
 import io.jsonwebtoken.Claims;
@@ -17,6 +18,25 @@ import io.jsonwebtoken.Claims;
  * Allows for creating and validation of JWT tokens.
  */
 public interface ITokenManagement {
+
+    /**
+     * Get authentication details for a username/password combination.
+     * 
+     * @param username
+     * @param password
+     * @return
+     * @throws SiteWhereException
+     */
+    SiteWhereAuthentication getAuthenticationForUser(String username, String password) throws SiteWhereException;
+
+    /**
+     * Get authentication/authorization details from a JWT.
+     * 
+     * @param token
+     * @return
+     * @throws SiteWhereException
+     */
+    SiteWhereAuthentication getAuthenticationFromToken(String token) throws SiteWhereException;
 
     /**
      * Get claims for the given token.
