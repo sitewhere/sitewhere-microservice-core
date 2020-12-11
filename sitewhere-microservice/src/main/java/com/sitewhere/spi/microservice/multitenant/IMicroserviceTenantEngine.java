@@ -157,6 +157,16 @@ public interface IMicroserviceTenantEngine<T extends ITenantEngineConfiguration>
     ITenantEngineBootstrapper getTenantEngineBootstrapper() throws SiteWhereException;
 
     /**
+     * Detects whether a dataset has already been loaded for the tenant engine. This
+     * prevents re-running dataset bootstrap scripts in cases where the bootstrap
+     * flag has been reset.
+     * 
+     * @return
+     * @throws SiteWhereException
+     */
+    boolean hasExistingDataset() throws SiteWhereException;
+
+    /**
      * Set any bindings required by scripts for bootstrapping tenant engine.
      * 
      * @param binding
