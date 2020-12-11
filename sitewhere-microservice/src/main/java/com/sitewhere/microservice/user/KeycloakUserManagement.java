@@ -36,7 +36,7 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.info.SystemInfoRepresentation;
 
-import com.sitewhere.microservice.lifecycle.AsyncStartLifecycleComponent;
+import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.rest.model.search.Pager;
 import com.sitewhere.rest.model.search.SearchResults;
@@ -45,6 +45,7 @@ import com.sitewhere.rest.model.user.Role;
 import com.sitewhere.rest.model.user.User;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
+import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
 import com.sitewhere.spi.microservice.user.IUserManagement;
 import com.sitewhere.spi.search.ISearchResults;
@@ -65,7 +66,7 @@ import io.sitewhere.k8s.api.ISiteWhereKubernetesClient;
  * Keycloak instance.
  */
 @ApplicationScoped
-public class KeycloakUserManagement extends AsyncStartLifecycleComponent implements IUserManagement {
+public class KeycloakUserManagement extends LifecycleComponent implements IUserManagement {
 
     /** Client id for OpenID Connect support */
     private static final String CLIENT_ID_OPENID_CONNECT = "sitewhere-openid";
@@ -92,11 +93,12 @@ public class KeycloakUserManagement extends AsyncStartLifecycleComponent impleme
     }
 
     /*
-     * @see com.sitewhere.spi.microservice.lifecycle.IAsyncStartLifecycleComponent#
-     * asyncStart()
+     * @see
+     * com.sitewhere.microservice.lifecycle.AsyncStartLifecycleComponent#start(com.
+     * sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor)
      */
     @Override
-    public void asyncStart() throws SiteWhereException {
+    public void start(ILifecycleProgressMonitor monitor) throws SiteWhereException {
 	IInstanceSettings settings = getMicroservice().getInstanceSettings();
 
 	// Create Keycloak API client and test it.

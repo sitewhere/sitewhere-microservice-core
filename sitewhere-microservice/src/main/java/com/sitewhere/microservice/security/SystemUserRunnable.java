@@ -7,6 +7,9 @@
  */
 package com.sitewhere.microservice.security;
 
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.NotFoundException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -45,13 +48,26 @@ public abstract class SystemUserRunnable implements Runnable {
     public void run() {
 	SiteWhereAuthentication previous = UserContext.getCurrentUser();
 	try {
-	    if (getComponent().getTenantEngine() != null) {
-		SiteWhereAuthentication system = getComponent().getMicroservice().getSystemUser()
-			.getAuthenticationForTenant(getComponent().getTenantEngine().getTenantResource());
-		UserContext.setContext(system);
-	    } else {
-		SiteWhereAuthentication system = getComponent().getMicroservice().getSystemUser().getAuthentication();
-		UserContext.setContext(system);
+	    boolean systemUserFound = false;
+	    while (!systemUserFound) {
+		try {
+		    if (getComponent().getTenantEngine() != null) {
+			SiteWhereAuthentication system = getComponent().getMicroservice().getSystemUser()
+				.getAuthenticationForTenant(getComponent().getTenantEngine().getTenantResource());
+			UserContext.setContext(system);
+		    } else {
+			SiteWhereAuthentication system = getComponent().getMicroservice().getSystemUser()
+				.getAuthentication();
+			UserContext.setContext(system);
+		    }
+		    systemUserFound = true;
+		} catch (NotFoundException e) {
+		    LOGGER.info(String.format("No system user found. Waiting for another attempt."));
+		    Thread.sleep(5000);
+		} catch (NotAuthorizedException e) {
+		    LOGGER.info(String.format("System user not available. Waiting for another attempt."));
+		    Thread.sleep(5000);
+		}
 	    }
 	    runAsSystemUser();
 	} catch (Throwable e) {
