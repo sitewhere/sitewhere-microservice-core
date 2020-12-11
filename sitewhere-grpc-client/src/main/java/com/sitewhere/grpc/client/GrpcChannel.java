@@ -100,7 +100,7 @@ public abstract class GrpcChannel<B, A> extends TenantEngineLifecycleComponent i
      * @return
      */
     public static String computeHostname(IInstanceSettings settings, IFunctionIdentifier identifier) {
-	return String.format("%s-%s-svc", settings.getProductId(), identifier.getPath());
+	return String.format("%s", identifier.getPath());
     }
 
     /*
