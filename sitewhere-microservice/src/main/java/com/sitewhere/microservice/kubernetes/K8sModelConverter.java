@@ -33,10 +33,14 @@ public class K8sModelConverter {
 	summary.setFunctionalArea(microservice.getSpec().getFunctionalArea());
 	summary.setIcon(microservice.getSpec().getIcon());
 	summary.setMultitenant(microservice.getSpec().isMultitenant());
-	summary.setDockerImageTag(microservice.getSpec().getPodSpec().getImageTag());
-	summary.setDebugEnabled(microservice.getSpec().getDebug().isEnabled());
-	summary.setDebugJdwpPort(microservice.getSpec().getDebug().getJdwpPort());
-	summary.setDebugJmxPort(microservice.getSpec().getDebug().getJmxPort());
+	if (microservice.getSpec().getPodSpec() != null) {
+	    summary.setDockerImageTag(microservice.getSpec().getPodSpec().getImageTag());
+	}
+	if (microservice.getSpec().getDebug() != null) {
+	    summary.setDebugEnabled(microservice.getSpec().getDebug().isEnabled());
+	    summary.setDebugJdwpPort(microservice.getSpec().getDebug().getJdwpPort());
+	    summary.setDebugJmxPort(microservice.getSpec().getDebug().getJmxPort());
+	}
 	return summary;
     }
 
