@@ -201,13 +201,12 @@ public class TenantEngineConfigurationMonitor extends SiteWhereResourceControlle
      */
     protected void addOrUpdateTenantEngineResource(SiteWhereTenantEngine engine) throws SiteWhereException {
 	String tenant = engine.getMetadata().getLabels().get(ResourceLabels.LABEL_SITEWHERE_TENANT);
-	String functionalArea = engine.getMetadata().getLabels().get(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA);
 	if (tenant == null) {
 	    throw new SiteWhereException(
 		    String.format("No tenant label found for tenant engine: %s", engine.getMetadata().getName()));
 	}
-	LOGGER.info(String.format("Caching new instance of tenant engine resource for %s, tenant %s, functiona area %s",
-		engine.getMetadata().getName()), tenant, functionalArea);
+	LOGGER.info(
+		String.format("Caching new instance of tenant engine resource for %s", engine.getMetadata().getName()));
 	getTenantEngineResourcesByTenant().put(tenant, engine);
     }
 
