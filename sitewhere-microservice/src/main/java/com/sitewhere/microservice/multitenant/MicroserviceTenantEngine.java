@@ -438,6 +438,15 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 
     /*
      * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
+     * hasExistingDataset()
+     */
+    @Override
+    public boolean hasExistingDataset() throws SiteWhereException {
+	return false;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine#
      * getTenantEngineBootstrapper()
      */
     @Override

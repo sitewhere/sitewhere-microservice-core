@@ -81,6 +81,12 @@ public class TenantEngineBootstrapper extends AsyncStartLifecycleComponent imple
      * @throws SiteWhereException
      */
     protected void bootstrap() throws SiteWhereException {
+	if (getTenantEngine().hasExistingDataset()) {
+	    getLogger().info("Existing tenant dataset detected. Skipping data bootstrap processing.");
+	    setTenantEngineBootstrapState(BootstrapState.Bootstrapped);
+	    return;
+	}
+
 	// Load latest tenant engine resource from k8s.
 	SiteWhereTenantEngine current = getTenantEngine().loadTenantEngineResource();
 	if (current.getStatus() != null && current.getStatus().getBootstrapState() == BootstrapState.Bootstrapped) {
