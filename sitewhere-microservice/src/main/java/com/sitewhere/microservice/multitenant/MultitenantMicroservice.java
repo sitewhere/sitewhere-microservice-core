@@ -19,6 +19,7 @@ import com.sitewhere.spi.microservice.configuration.IScriptVersionSpecUpdates;
 import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ICompositeLifecycleStep;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
+import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 import com.sitewhere.spi.microservice.multitenant.IMultitenantMicroservice;
 import com.sitewhere.spi.microservice.multitenant.ITenantEngineConfiguration;
@@ -28,6 +29,7 @@ import com.sitewhere.spi.microservice.multitenant.TenantEngineNotAvailableExcept
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.sitewhere.k8s.crd.ResourceLabels;
 import io.sitewhere.k8s.crd.exception.SiteWhereK8sException;
+import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
@@ -106,6 +108,23 @@ public abstract class MultitenantMicroservice<F extends IFunctionIdentifier, C e
 
 	// Execute shutdown steps.
 	stop.execute(monitor);
+    }
+
+    /*
+     * @see com.sitewhere.microservice.configuration.ConfigurableMicroservice#
+     * handleInstanceUpdated(io.sitewhere.k8s.crd.instance.SiteWhereInstance)
+     */
+    @Override
+    protected void handleInstanceUpdated(SiteWhereInstance instance) throws SiteWhereException {
+	super.handleInstanceUpdated(instance);
+	if (getTenantEngineManager() != null
+		&& getTenantEngineManager().getLifecycleStatus() == LifecycleStatus.Started) {
+	    getLogger().info("Instance configuration updated. Restarting all tenant engines.");
+	    getTenantEngineManager().restartAllTenantEngines();
+	} else {
+	    getLogger().info(
+		    "Instance configuration updated but tenant engine manager not started yet. Skipping restart.");
+	}
     }
 
     /*

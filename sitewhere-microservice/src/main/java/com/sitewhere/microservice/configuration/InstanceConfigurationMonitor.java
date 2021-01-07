@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener;
 import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationMonitor;
 
@@ -41,6 +42,9 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
     private static final int RESYNC_PERIOD_MS = 10 * 60 * 1000;
 
     /** Get instance resource */
+    private IMicroservice<?, ?> microservice;
+
+    /** Get instance resource */
     private SiteWhereInstance instanceResource;
 
     /** Handles processing of queued updates */
@@ -49,10 +53,10 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
     /** Listeners */
     private List<IInstanceConfigurationListener> listeners = new ArrayList<>();
 
-    public InstanceConfigurationMonitor(SiteWhereInstance instance, KubernetesClient client,
+    public InstanceConfigurationMonitor(IMicroservice<?, ?> microservice, KubernetesClient client,
 	    SharedInformerFactory informerFactory) {
 	super(client, informerFactory);
-	this.instanceResource = instance;
+	this.microservice = microservice;
     }
 
     /*
@@ -92,20 +96,24 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
      */
     @Override
     public void reconcileResourceChange(ResourceChangeType type, SiteWhereInstance instance) {
-	// Skip checks if init failed.
-	if (getResource() == null) {
-	    return;
-	}
-
 	// Skip changes for other instances or that don't affect specification.
-	boolean sameInstance = instance.getMetadata().getUid() == getResource().getMetadata().getUid();
-	boolean differentGeneration = getResource().getMetadata().getGeneration() != instance.getMetadata()
-		.getGeneration();
-	if (!sameInstance || !differentGeneration) {
+	boolean sameInstance = instance.getMetadata().getName()
+		.equals(getMicroservice().getInstanceSettings().getKubernetesNamespace());
+	boolean differentGeneration = getResource() == null ? true
+		: getResource().getMetadata().getGeneration() != instance.getMetadata().getGeneration();
+	if (!sameInstance) {
+	    LOGGER.debug(String.format("Skipping %s resource change in instance %s due to wrong instance (%s).",
+		    type.name(), instance.getMetadata().getName(),
+		    getMicroservice().getInstanceSettings().getKubernetesNamespace()));
+	    return;
+	}
+	if (!differentGeneration) {
+	    LOGGER.debug(String.format("Skipping %s resource change in instance %s due to same generation.",
+		    type.name(), instance.getMetadata().getName()));
 	    return;
 	}
 
-	LOGGER.debug(String.format("Detected %s resource change in instance %s.", type.name(),
+	LOGGER.info(String.format("Detected %s resource change in instance %s.", type.name(),
 		instance.getMetadata().getName()));
 	this.instanceResource = instance;
 
@@ -131,6 +139,10 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
     @Override
     public List<IInstanceConfigurationListener> getListeners() {
 	return this.listeners;
+    }
+
+    protected IMicroservice<?, ?> getMicroservice() {
+	return microservice;
     }
 
     protected ExecutorService getQueueProcessor() {
