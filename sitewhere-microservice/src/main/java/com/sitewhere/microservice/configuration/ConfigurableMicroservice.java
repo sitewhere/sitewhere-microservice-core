@@ -183,14 +183,13 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	super.createKubernetesResourceControllers(informers);
 
 	// Add shared informer for instance configuration monitoring.
-	this.instanceConfigurationMonitor = new InstanceConfigurationMonitor(this.instanceResource,
-		getKubernetesClient(), informers);
+	this.instanceConfigurationMonitor = new InstanceConfigurationMonitor(this, getKubernetesClient(), informers);
 	getInstanceConfigurationMonitor().getListeners().add(this);
 	getInstanceConfigurationMonitor().start();
 
 	// Add shared informer for microservice configuration monitoring.
-	this.microserviceConfigurationMonitor = new MicroserviceConfigurationMonitor(this.microserviceResource,
-		getKubernetesClient(), informers);
+	this.microserviceConfigurationMonitor = new MicroserviceConfigurationMonitor(this, getKubernetesClient(),
+		informers);
 	getMicroserviceConfigurationMonitor().getListeners().add(this);
 	getMicroserviceConfigurationMonitor().start();
 
@@ -267,6 +266,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public void onInstanceSpecificationUpdated(SiteWhereInstanceSpec specification) {
 	try {
+	    getLogger().info("Detected instance configuration update.");
 	    handleInstanceUpdated(getInstanceConfigurationMonitor().getResource());
 	    onConfigurationUpdated();
 	} catch (SiteWhereException e) {
@@ -295,6 +295,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	    this.instanceConfiguration = MarshalUtils.unmarshalJsonNode(instance.getSpec().getConfiguration(),
 		    InstanceConfiguration.class);
 	    this.instanceConfigurationModule = new InstanceModule(getInstanceConfiguration());
+	    getLogger().info("Updated instance configuration and reloaded instance configuration module.");
 	} catch (JsonProcessingException e) {
 	    throw new SiteWhereException(String.format("Invalid instance configuration (%s). Content is: \n\n%s\n",
 		    e.getMessage(), instance.getSpec().getConfiguration()));
