@@ -244,8 +244,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	handleInstanceUpdated(instance);
 
 	SiteWhereMicroservice microservice = getSiteWhereKubernetesClient().getMicroservices()
-		.inNamespace(getInstanceSettings().getKubernetesNamespace())
-		.withName(getInstanceSettings().getKubernetesName()).get();
+		.inNamespace(getInstanceSettings().getKubernetesNamespace()).withName(getIdentifier().getPath()).get();
 	if (microservice == null) {
 	    throw new SiteWhereException(
 		    String.format("No microservice found in namespace '%s' with name '%s'. Aborting startup.",
