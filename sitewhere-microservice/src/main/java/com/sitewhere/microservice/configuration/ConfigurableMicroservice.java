@@ -235,6 +235,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      * @throws SiteWhereException
      */
     protected void loadConfigurationFromK8s() throws SiteWhereException {
+	getLogger().info("Loading instance information from Kubernetes...");
 	SiteWhereInstance instance = getSiteWhereKubernetesClient().getInstances()
 		.withName(getInstanceSettings().getKubernetesNamespace()).get();
 	if (instance == null) {
@@ -242,15 +243,18 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 		    getInstanceSettings().getKubernetesNamespace()));
 	}
 	handleInstanceUpdated(instance);
+	getLogger().info("Instance information loaded successfully.");
 
+	getLogger().info("Loading microservice information from Kubernetes...");
 	SiteWhereMicroservice microservice = getSiteWhereKubernetesClient().getMicroservices()
 		.inNamespace(getInstanceSettings().getKubernetesNamespace()).withName(getIdentifier().getPath()).get();
 	if (microservice == null) {
 	    throw new SiteWhereException(
 		    String.format("No microservice found in namespace '%s' with name '%s'. Aborting startup.",
-			    getInstanceSettings().getKubernetesNamespace(), getInstanceSettings().getKubernetesName()));
+			    getInstanceSettings().getKubernetesNamespace(), getIdentifier().getPath()));
 	}
 	handleMicroserviceUpdated(microservice);
+	getLogger().info("Microservice information loaded successfully.");
 
 	// Handle updated configuration.
 	onConfigurationUpdated();
@@ -265,7 +269,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public void onInstanceSpecificationUpdated(SiteWhereInstanceSpec specification) {
 	try {
-	    getLogger().info("Detected instance configuration update.");
+	    getLogger().info("Configuration monitor detected instance configuration update...");
 	    handleInstanceUpdated(getInstanceConfigurationMonitor().getResource());
 	    onConfigurationUpdated();
 	} catch (SiteWhereException e) {
@@ -280,6 +284,8 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      * @throws SiteWhereException
      */
     protected void handleInstanceUpdated(SiteWhereInstance instance) throws SiteWhereException {
+	getLogger().info("Processing instance configuration update...");
+
 	// Save resource reference.
 	this.instanceResource = instance;
 
@@ -288,6 +294,9 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	    getLogger().info("Skipping instance configuration which has not yet been bootstrapped.");
 	    return;
 	}
+
+	getLogger().info(String.format("Instance will use configuration:\n%s\n\n",
+		MarshalUtils.marshalJsonAsPrettyString(instance.getSpec().getConfiguration())));
 
 	// Save updated resource and parse configuration.
 	try {
@@ -309,6 +318,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     @Override
     public void onMicroserviceSpecificationUpdated(SiteWhereMicroserviceSpec specification) {
 	try {
+	    getLogger().info("Configuration monitor detected microservice configuration update...");
 	    handleMicroserviceUpdated(getMicroserviceConfigurationMonitor().getResource());
 	    onConfigurationUpdated();
 	} catch (SiteWhereException e) {
@@ -323,12 +333,17 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      * @throws SiteWhereException
      */
     protected void handleMicroserviceUpdated(SiteWhereMicroservice microservice) throws SiteWhereException {
+	getLogger().info("Processing microservice configuration update...");
+
 	// Validate that functional area in k8s metadata matches expected value.
 	if (!getIdentifier().getPath().equals(microservice.getSpec().getFunctionalArea())) {
 	    throw new SiteWhereException(
 		    String.format("Functional area in k8s metadata('%s') does not match expected value of %s.",
 			    microservice.getSpec().getFunctionalArea()));
 	}
+
+	getLogger().info(String.format("Microservice will use configuration:\n%s\n\n",
+		MarshalUtils.marshalJsonAsPrettyString(microservice.getSpec().getConfiguration())));
 
 	// Check for logging updates and process them.
 	handleLoggingConfigurationUpdates(microservice);
@@ -340,7 +355,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 		    getConfigurationClass());
 	    this.microserviceConfiguration = configuration;
 	    this.microserviceConfigurationModule = createConfigurationModule();
-	    getLogger().debug(String.format("Successfully handled configuraion update for '%s'.",
+	    getLogger().debug(String.format("Successfully handled microservice configuration update for '%s'.",
 		    microservice.getMetadata().getName()));
 	} catch (JsonProcessingException e) {
 	    throw new SiteWhereException(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
