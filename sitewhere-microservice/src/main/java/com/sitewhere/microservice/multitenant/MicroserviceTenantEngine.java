@@ -267,10 +267,8 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
      */
     protected void refreshConfiguration() throws SiteWhereException {
 	this.activeConfiguration = parseConfiguration();
-	if (getLogger().isDebugEnabled()) {
-	    getLogger().debug(String.format("Refreshed tenant engine configuration: \n%s\n\n",
-		    MarshalUtils.marshalJsonAsPrettyString(getActiveConfiguration())));
-	}
+	getLogger().info(String.format("Tenant engine will use configuration: \n%s\n\n",
+		MarshalUtils.marshalJsonAsPrettyString(getActiveConfiguration())));
 	try {
 	    // Inherit existing bindings from the microsevice injector.
 	    this.injector = ((IConfigurableMicroservice<?, ?>) getMicroservice()).getInjector()
