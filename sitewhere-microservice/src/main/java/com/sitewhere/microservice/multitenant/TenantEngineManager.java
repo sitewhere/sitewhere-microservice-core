@@ -184,6 +184,11 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
     @Override
     public void onTenantEngineDeleted(SiteWhereTenantEngine engine) {
 	getLogger().info(String.format("Tenant engine deleted for %s", engine.getMetadata().getName()));
+	try {
+	    removeTenantEngine(getTenantTokenForTenantEngine(engine));
+	} catch (SiteWhereException e) {
+	    getLogger().error("Unable to process tenant engine shutdown.", e);
+	}
     }
 
     /*
@@ -508,6 +513,8 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
 		SiteWhereTenantEngine engine = null;
 		try {
 		    engine = getTenantInitializationQueue().take();
+		    getLogger().info(String.format("Processing startup request for tenant engine %s...",
+			    engine.getMetadata().getName()));
 		    token = getTenantTokenForTenantEngine(engine);
 		} catch (InterruptedException e) {
 		    getLogger().info("Tenant engine manager init processing shutting down...");
@@ -560,6 +567,8 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
 		try {
 		    // Get next tenant engine resource from the queue.
 		    SiteWhereTenantEngine engine = getTenantShutdownQueue().take();
+		    getLogger().info(String.format("Processing shutdown request for tenant engine %s...",
+			    engine.getMetadata().getName()));
 		    String token = getTenantTokenForTenantEngine(engine);
 
 		    // Start tenant shutdown.
