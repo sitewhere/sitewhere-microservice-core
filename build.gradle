@@ -13,14 +13,14 @@ ext['git.revision'] = ext.git.head().id
 ext['git.revision.abbrev'] = ext.git.head().abbreviatedId
 
 ext['sitewhere.k8s.api.version'] = '3.0.0.beta15'
-ext['sitewhere.grpc.api.version'] = '3.0.0.beta20'
+ext['sitewhere.grpc.api.version'] = '3.0.0.beta21'
 ext['jackson.version'] = '2.9.10'
 
 apply plugin: 'distribution'
 	
 allprojects {
 	group = 'com.sitewhere'
-	version = '3.0.0.beta43'
+	version = '3.0.0.beta44'
 	
 	repositories {
 		maven { url "https://repo.maven.apache.org/maven2" }
