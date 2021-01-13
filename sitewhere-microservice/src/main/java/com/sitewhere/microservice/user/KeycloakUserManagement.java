@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.ClientErrorException;
@@ -22,7 +24,6 @@ import org.apache.http.HttpStatus;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.ClientResource;
-import org.keycloak.admin.client.resource.GroupResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.ServerInfoResource;
 import org.keycloak.admin.client.token.TokenManager;
@@ -205,23 +206,37 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
      * 
      * @param kc
      * @param includeRoles
+     * @param includeAuths
      * @return
      * @throws SiteWhereException
      */
-    protected User convert(UserRepresentation kc, boolean includeRoles) throws SiteWhereException {
+    protected User convert(UserRepresentation kc, boolean includeRoles, boolean includeAuths)
+	    throws SiteWhereException {
 	User user = new User();
 	user.setUsername(kc.getUsername());
 	user.setFirstName(kc.getFirstName());
 	user.setLastName(kc.getLastName());
 	user.setEmail(kc.getEmail());
 	user.setCreatedDate(new Date(kc.getCreatedTimestamp()));
+
+	// Pull metadata.
+	if (kc.getAttributes() != null) {
+	    user.setMetadata(new HashMap<>());
+	    for (String key : kc.getAttributes().keySet()) {
+		List<String> value = kc.getAttributes().get(key);
+		if (value.size() > 0) {
+		    user.getMetadata().put(key, value.get(0));
+		}
+	    }
+	}
+
+	// Conditionally pull roles.
 	if (includeRoles) {
 	    user.setRoles(new ArrayList<>());
-	    List<String> groups = kc.getGroups();
+	    List<GroupRepresentation> groups = getRealmResource().users().get(kc.getId()).groups();
 	    if (groups != null) {
-		for (String group : groups) {
-		    GroupResource groupResource = getRealmResource().groups().group(group);
-		    Role role = convert(groupResource.toRepresentation(), true);
+		for (GroupRepresentation group : groups) {
+		    Role role = convert(group, includeAuths);
 		    user.getRoles().add(role);
 		}
 	    }
@@ -256,11 +271,11 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
 	role.setDescription(kc.getPath());
 	if (includeAuthorities) {
 	    role.setAuthorities(new ArrayList<>());
-	    List<String> realmRoles = kc.getRealmRoles();
+	    List<RoleRepresentation> realmRoles = getRealmResource().groups().group(kc.getId()).roles().realmLevel()
+		    .listEffective();
 	    if (realmRoles != null) {
-		for (String realmRole : realmRoles) {
-		    RoleRepresentation kcRole = getRealmResource().rolesById().getRole(realmRole);
-		    role.getAuthorities().add(convert(kcRole));
+		for (RoleRepresentation realmRole : realmRoles) {
+		    role.getAuthorities().add(convert(realmRole));
 		}
 	    }
 	}
@@ -274,17 +289,28 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
      * @return
      */
     protected UserRepresentation createUserFromRequest(IUserCreateRequest request) {
-	CredentialRepresentation credential = new CredentialRepresentation();
-	credential.setType(CredentialRepresentation.PASSWORD);
-	credential.setValue(request.getPassword());
-
 	UserRepresentation user = new UserRepresentation();
 	user.setUsername(request.getUsername());
 	user.setFirstName(request.getFirstName());
 	user.setLastName(request.getLastName());
 	user.setEmail(request.getEmail());
-	user.setCredentials(Arrays.asList(credential));
-	user.setEnabled(true);
+	user.setEnabled(request.isEnabled());
+
+	if (request.getPassword() != null) {
+	    CredentialRepresentation credential = new CredentialRepresentation();
+	    credential.setType(CredentialRepresentation.PASSWORD);
+	    credential.setValue(request.getPassword());
+	    user.setCredentials(Arrays.asList(credential));
+	}
+
+	if (request.getMetadata() != null && request.getMetadata().size() > 0) {
+	    Map<String, List<String>> attrs = new HashMap<>();
+	    for (String key : request.getMetadata().keySet()) {
+		String value = request.getMetadata().get(key);
+		attrs.put(key, Collections.singletonList(value));
+	    }
+	    user.setAttributes(attrs);
+	}
 	return user;
     }
 
@@ -352,8 +378,12 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
     @Override
     public IUser updateUser(String username, IUserCreateRequest request, boolean encodePassword)
 	    throws SiteWhereException {
+	UserRepresentation match = findSingleUserByUsername(username);
+	if (match == null) {
+	    throw new SiteWhereException(String.format("No user found for username: %s", username));
+	}
 	UserRepresentation user = createUserFromRequest(request);
-	getRealmResource().users().get(username).update(user);
+	getRealmResource().users().get(match.getId()).update(user);
 	return getUserByUsername(request.getUsername());
     }
 
@@ -382,7 +412,7 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
     @Override
     public IUser getUserByUsername(String username) throws SiteWhereException {
 	UserRepresentation match = findSingleUserByUsername(username);
-	return match != null ? convert(match, true) : null;
+	return match != null ? convert(match, true, true) : null;
     }
 
     /*
@@ -395,7 +425,7 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
 	List<UserRepresentation> kcUsers = getRealmResource().users().list();
 	Pager<IUser> pager = new Pager<IUser>(criteria);
 	for (UserRepresentation kcUser : kcUsers) {
-	    IUser user = convert(kcUser, false);
+	    IUser user = convert(kcUser, true, false);
 	    pager.process(user);
 	}
 	return new SearchResults<IUser>(pager.getResults(), pager.getTotal());
@@ -410,13 +440,13 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
     public IUser deleteUser(String username) throws SiteWhereException {
 	UserRepresentation match = findSingleUserByUsername(username);
 	if (match == null) {
-	    return null;
+	    throw new SiteWhereException(String.format("No user found for username: %s", username));
 	}
-	Response result = getRealmResource().users().delete(username);
-	if (result.getStatus() != HttpStatus.SC_OK) {
+	Response result = getRealmResource().users().delete(match.getId());
+	if (result.getStatus() != HttpStatus.SC_NO_CONTENT) {
 	    throw new SiteWhereException(result.getStatusInfo().getReasonPhrase());
 	}
-	return convert(match, false);
+	return convert(match, false, false);
     }
 
     /*

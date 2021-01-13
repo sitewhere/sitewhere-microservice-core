@@ -39,11 +39,13 @@ public class UserManagementPersistenceLogic extends Persistence {
 
 	require("Username", request.getUsername());
 	user.setUsername(request.getUsername());
+	require("Password", request.getPassword());
+	require("Last name", request.getFirstName());
 	user.setFirstName(request.getFirstName());
+	require("First name", request.getLastName());
 	user.setLastName(request.getLastName());
 	user.setEmail(request.getEmail());
-	user.setLastLogin(null);
-	user.setStatus(request.getStatus());
+	user.setEnabled(request.isEnabled());
 	return user;
     }
 
@@ -70,12 +72,7 @@ public class UserManagementPersistenceLogic extends Persistence {
 	if (request.getEmail() != null) {
 	    target.setEmail(request.getEmail());
 	}
-	if (request.getStatus() != null) {
-	    target.setStatus(request.getStatus());
-	}
-	if (request.getStatus() != null) {
-	    target.setStatus(request.getStatus());
-	}
+	target.setEnabled(request.isEnabled());
     }
 
     /**
