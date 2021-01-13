@@ -121,17 +121,21 @@ public class TenantEngineConfigurationMonitor extends SiteWhereResourceControlle
 		return;
 	    }
 
+	    LOGGER.info(String.format("Detected %s resource change in tenant engine %s.", type.name(),
+		    tenantEngine.getMetadata().getName()));
+
 	    // Check for existing tenant engine resource reference.
 	    SiteWhereTenantEngine existing = getExistingForSameTenant(tenantEngine);
 
 	    // Skip changes that don't affect specification.
-	    if (existing != null
+	    if (type == ResourceChangeType.UPDATE && existing != null
 		    && existing.getMetadata().getGeneration() == tenantEngine.getMetadata().getGeneration()) {
+		LOGGER.info(
+			String.format("Skipping %s resource change in tenant engine %s since generation not updated.",
+				type.name(), tenantEngine.getMetadata().getName()));
 		return;
 	    }
 
-	    LOGGER.info(String.format("Detected %s resource change in tenant engine %s.", type.name(),
-		    tenantEngine.getMetadata().getName()));
 	    switch (type) {
 	    case CREATE: {
 		addOrUpdateTenantEngineResource(tenantEngine);
