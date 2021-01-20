@@ -18,6 +18,7 @@ import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 
 import org.apache.http.HttpStatus;
@@ -104,12 +105,38 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
 
 	// Create Keycloak API client and test it.
 	String url = getServerUrl();
+	getLogger().info(String.format("Connecting to Keycloak API at '%s'.", url));
 	this.keycloak = KeycloakBuilder.builder().serverUrl(url).realm(settings.getKeycloakMasterRealm())
 		.username(settings.getKeycloakMasterUsername()).password(settings.getKeycloakMasterPassword())
 		.clientId("admin-cli").build();
-	ServerInfoResource server = getKeycloak().serverInfo();
-	SystemInfoRepresentation system = server.getInfo().getSystemInfo();
-	getLogger().info(String.format("Keycloak API validated as version '%s'.", system.getVersion()));
+
+	// Wait for Keycloak connection to become available.
+	boolean connected = false;
+	while (!connected) {
+	    ServerInfoResource server = null;
+	    try {
+		server = getKeycloak().serverInfo();
+		if (server != null) {
+		    SystemInfoRepresentation system = server.getInfo().getSystemInfo();
+		    getLogger().info(String.format("Keycloak API validated as version '%s'.", system.getVersion()));
+		    connected = true;
+		} else {
+		    getLogger().info("Received null response to Keycloak server info request.");
+		}
+	    } catch (ProcessingException e) {
+		connected = false;
+	    }
+
+	    if (!connected) {
+		try {
+		    getLogger().info("Unable to connect to Keycloak. Waiting to retry...");
+		    Thread.sleep(2000);
+		} catch (InterruptedException e1) {
+		    getLogger().warn("Interrupted while waiting for Keycloak connection.");
+		    return;
+		}
+	    }
+	}
 
 	// Make sure that the expected realm exists.
 	assureRealmExists();

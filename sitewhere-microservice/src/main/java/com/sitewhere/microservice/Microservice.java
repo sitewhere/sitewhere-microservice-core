@@ -221,29 +221,6 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     }
 
     /**
-     * Build sentinel addresses based on configuration.
-     * 
-     * @return
-     */
-    protected String[] buildRedisSentinelAddresses() {
-	String systemNamespace = getInstanceConfiguration().getInfrastructure().getNamespace();
-	RedisConfiguration redis = getInstanceConfiguration().getInfrastructure().getRedis();
-	int nodeCount = redis.getNodeCount();
-	String[] addresses = new String[nodeCount];
-
-	int nodeIndex = nodeCount;
-	while (nodeIndex > 0) {
-	    int index = nodeCount - nodeIndex;
-	    String nodeName = String.format("%s://%s-%d.%s:%d", "redis", redis.getHostname(), index, systemNamespace,
-		    redis.getPort());
-	    addresses[index] = nodeName;
-	    getLogger().info(String.format("Computed Redis Sentinal node name '%s' and added to list.", nodeName));
-	    nodeIndex--;
-	}
-	return addresses;
-    }
-
-    /**
      * Initialize connectivity to Redis.
      * 
      * @throws SiteWhereException
@@ -254,8 +231,9 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	    try {
 		RedisConfiguration redis = getInstanceConfiguration().getInfrastructure().getRedis();
 		Config config = new Config();
-		config.useSentinelServers().setMasterName(redis.getMasterGroupName())
-			.addSentinelAddress(buildRedisSentinelAddresses());
+		String redisAddress = String.format("redis://%s:%s", redis.getHostname(),
+			String.valueOf(redis.getPort()));
+		config.useSingleServer().setAddress(redisAddress);
 		config.setCodec(new CborJacksonCodec());
 		this.redissonClient = Redisson.create(config);
 		break;

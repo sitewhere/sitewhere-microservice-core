@@ -21,12 +21,6 @@ public class RedisConfiguration {
     /** Port */
     private int port;
 
-    /** Number of nodes in cluster */
-    private int nodeCount;
-
-    /** Sentinel master group name */
-    private String masterGroupName;
-
     public String getHostname() {
 	return hostname;
     }
@@ -41,21 +35,5 @@ public class RedisConfiguration {
 
     public void setPort(int port) {
 	this.port = port;
-    }
-
-    public int getNodeCount() {
-	return nodeCount;
-    }
-
-    public void setNodeCount(int nodeCount) {
-	this.nodeCount = nodeCount;
-    }
-
-    public String getMasterGroupName() {
-	return masterGroupName;
-    }
-
-    public void setMasterGroupName(String masterGroupName) {
-	this.masterGroupName = masterGroupName;
     }
 }
