@@ -20,7 +20,6 @@ import org.redisson.api.RedissonClient;
 import org.redisson.codec.CborJacksonCodec;
 import org.redisson.config.Config;
 
-import com.sitewhere.microservice.configuration.model.instance.infrastructure.RedisConfiguration;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.microservice.metrics.MetricsServer;
@@ -229,11 +228,14 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	getLogger().info("Initializing Redis connectivity...");
 	while (true) {
 	    try {
-		RedisConfiguration redis = getInstanceConfiguration().getInfrastructure().getRedis();
+		IInstanceSettings settings = getMicroservice().getInstanceSettings();
+		String serviceName = settings.getRedisServiceName() + "."
+			+ ISiteWhereKubernetesClient.NS_SITEWHERE_SYSTEM;
 		Config config = new Config();
-		String redisAddress = String.format("redis://%s:%s", redis.getHostname(),
-			String.valueOf(redis.getPort()));
-		config.useSingleServer().setAddress(redisAddress);
+		String redisAddress = String.format("redis://%s:%s", serviceName,
+			String.valueOf(settings.getRedisPort()));
+		getLogger().info(String.format("Connecting to Redis server using address: %s", redisAddress));
+		config.useSingleServer().setAddress(redisAddress).setPassword(settings.getRedisPassword());
 		config.setCodec(new CborJacksonCodec());
 		this.redissonClient = Redisson.create(config);
 		break;
