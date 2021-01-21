@@ -14,6 +14,7 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KafkaStreams.State;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.errors.LogAndContinueExceptionHandler;
 
 import com.sitewhere.microservice.lifecycle.TenantEngineLifecycleComponent;
 import com.sitewhere.spi.SiteWhereException;
@@ -73,6 +74,8 @@ public abstract class KafkaStreamPipeline extends TenantEngineLifecycleComponent
 	props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, KafkaUtils.getBootstrapServers(getMicroservice()));
 	props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, getDefaultKeySerdeClass());
 	props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, getDefaultValueSerdeClass());
+	props.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG,
+		LogAndContinueExceptionHandler.class);
 
 	final StreamsBuilder builder = new StreamsBuilder();
 	buildStreams(builder);
