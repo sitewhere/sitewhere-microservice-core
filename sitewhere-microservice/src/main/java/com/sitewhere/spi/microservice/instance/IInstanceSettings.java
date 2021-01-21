@@ -55,4 +55,13 @@ public interface IInstanceSettings {
 
     @ConfigProperty(name = "keycloak.system.password", defaultValue = "system")
     String getKeycloakSystemPassword();
+
+    @ConfigProperty(name = "redis.service.name", defaultValue = "sitewhere-redis-headless")
+    String getRedisServiceName();
+
+    @ConfigProperty(name = "redis.port", defaultValue = "6379")
+    int getRedisPort();
+
+    @ConfigProperty(name = "redis.password", defaultValue = "sitewhere")
+    String getRedisPassword();
 }
