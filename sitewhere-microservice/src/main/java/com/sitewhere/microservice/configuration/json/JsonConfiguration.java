@@ -28,6 +28,16 @@ public class JsonConfiguration {
     }
 
     /**
+     * Create {@link StringSubstitutor} subclass for given configuration type.
+     * 
+     * @param component
+     * @return
+     */
+    public StringSubstitutor createStringSubstitutor(ITenantEngineLifecycleComponent component) {
+	return new StringSubstitutor(new SiteWhereStringLookup(getComponent()));
+    }
+
+    /**
      * Parse an integer value using variable substitution.
      * 
      * @param fieldName
@@ -41,7 +51,7 @@ public class JsonConfiguration {
 	if (field == null) {
 	    return defaultValue;
 	}
-	StringSubstitutor sub = new StringSubstitutor(new SiteWhereStringLookup(getComponent()));
+	StringSubstitutor sub = createStringSubstitutor(getComponent());
 	try {
 	    return field.isTextual() ? Integer.parseInt(sub.replace(field.textValue())) : field.asInt();
 	} catch (NumberFormatException e) {
@@ -65,7 +75,7 @@ public class JsonConfiguration {
 	if (field == null) {
 	    return defaultValue;
 	}
-	StringSubstitutor sub = new StringSubstitutor(new SiteWhereStringLookup(getComponent()));
+	StringSubstitutor sub = createStringSubstitutor(getComponent());
 	return sub.replace(field.textValue());
     }
 
@@ -84,7 +94,7 @@ public class JsonConfiguration {
 	if (field == null) {
 	    return defaultValue;
 	}
-	StringSubstitutor sub = new StringSubstitutor(new SiteWhereStringLookup(getComponent()));
+	StringSubstitutor sub = createStringSubstitutor(getComponent());
 	try {
 	    return field.isBoolean() ? field.asBoolean() : Boolean.parseBoolean(sub.replace(field.textValue()));
 	} catch (NumberFormatException e) {
