@@ -15,14 +15,19 @@
  */
 package com.sitewhere.grpc.client;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.protobuf.AbstractMessageLite;
 import com.sitewhere.grpc.client.common.security.NotAuthorizedException;
 import com.sitewhere.grpc.client.common.security.UnauthenticatedException;
 import com.sitewhere.grpc.client.common.tracing.DebugParameter;
 import com.sitewhere.grpc.client.spi.IApiChannel;
 import com.sitewhere.grpc.client.spi.server.IGrpcApiImplementation;
+import com.sitewhere.grpc.common.CommonModelConverter;
 import com.sitewhere.microservice.security.UserContext;
 import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
@@ -198,5 +203,24 @@ public class GrpcUtils {
 	    thrown = Status.fromThrowable(t).asException();
 	}
 	return thrown;
+    }
+
+    /**
+     * Marshal a gRPC message to a byte[].
+     * 
+     * @param message
+     * @return
+     * @throws SiteWhereException
+     */
+    public static byte[] marshal(AbstractMessageLite<?, ?> message) throws SiteWhereException {
+	ByteArrayOutputStream output = new ByteArrayOutputStream();
+	try {
+	    message.writeTo(output);
+	    return output.toByteArray();
+	} catch (IOException e) {
+	    throw new SiteWhereException("Unable to marshal gRPC message.", e);
+	} finally {
+	    CommonModelConverter.closeQuietly(output);
+	}
     }
 }

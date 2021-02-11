@@ -15,9 +15,12 @@
  */
 package com.sitewhere.grpc.client.user;
 
-import java.util.List;
-
-import com.sitewhere.microservice.cache.RedissonCacheProvider;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.sitewhere.grpc.client.GrpcUtils;
+import com.sitewhere.grpc.model.UserModel.GUser;
+import com.sitewhere.grpc.user.UserModelConverter;
+import com.sitewhere.microservice.cache.RedisCacheProvider;
+import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.cache.ICacheConfiguration;
 import com.sitewhere.spi.user.IUser;
@@ -33,21 +36,39 @@ public class UserManagementCacheProviders {
     /**
      * Cache users by username.
      */
-    public static class UserByTokenCache extends RedissonCacheProvider<String, IUser> {
+    public static class UserByTokenCache extends RedisCacheProvider<String, IUser> {
 
 	public UserByTokenCache(IMicroservice<?, ?> microservice, ICacheConfiguration configuration) {
-	    super(microservice, USER_BY_USERNAME, String.class, IUser.class, configuration);
+	    super(microservice, USER_BY_USERNAME, configuration);
 	}
-    }
 
-    /**
-     * Cache for user granted authorities.
-     */
-    @SuppressWarnings("rawtypes")
-    public static class GrantedAuthorityByTokenCache extends RedissonCacheProvider<String, List> {
+	/*
+	 * @see
+	 * com.sitewhere.microservice.cache.RedisCacheProvider#convertKey(java.lang.
+	 * Object)
+	 */
+	@Override
+	public String convertKey(String key) throws SiteWhereException {
+	    return key;
+	}
 
-	public GrantedAuthorityByTokenCache(IMicroservice<?, ?> microservice, ICacheConfiguration configuration) {
-	    super(microservice, GRANTED_AUTHORITY_BY_TOKEN, String.class, List.class, configuration);
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#serialize(java.lang.
+	 * Object)
+	 */
+	@Override
+	public byte[] serialize(IUser value) throws SiteWhereException {
+	    GUser message = UserModelConverter.asGrpcUser(value);
+	    return GrpcUtils.marshal(message);
+	}
+
+	@Override
+	public IUser deserialize(byte[] value) throws SiteWhereException {
+	    try {
+		return UserModelConverter.asApiUser(GUser.parseFrom(value));
+	    } catch (InvalidProtocolBufferException e) {
+		throw new SiteWhereException("Unable to parse gRPC message.", e);
+	    }
 	}
     }
 }

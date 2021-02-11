@@ -23,11 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
-import org.redisson.Redisson;
-import org.redisson.api.RedissonClient;
-import org.redisson.codec.CborJacksonCodec;
-import org.redisson.config.Config;
-
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.microservice.metrics.MetricsServer;
@@ -56,6 +51,9 @@ import com.sitewhere.spi.system.IVersion;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.codec.ByteArrayCodec;
 import io.sitewhere.k8s.SiteWhereKubernetesClient;
 import io.sitewhere.k8s.api.ISiteWhereKubernetesClient;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
@@ -94,8 +92,11 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     /** SiteWhere Kubernetes client wrapper */
     private ISiteWhereKubernetesClient sitewhereKubernetesClient;
 
-    /** Redisson Redis client */
-    private RedissonClient redissonClient;
+    /** Lettuce Redis client */
+    private RedisClient redisClient;
+
+    /** Current Redis connection */
+    private StatefulRedisConnection<byte[], byte[]> redisConnection;
 
     /** Shared informer factory for k8s resources */
     private SharedInformerFactory sharedInformerFactory;
@@ -239,13 +240,11 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 		IInstanceSettings settings = getMicroservice().getInstanceSettings();
 		String serviceName = settings.getRedisServiceName() + "."
 			+ ISiteWhereKubernetesClient.NS_SITEWHERE_SYSTEM;
-		Config config = new Config();
-		String redisAddress = String.format("redis://%s:%s", serviceName,
+		String redisAddress = String.format("redis://%s@%s:%s", settings.getRedisPassword(), serviceName,
 			String.valueOf(settings.getRedisPort()));
 		getLogger().info(String.format("Connecting to Redis server using address: %s", redisAddress));
-		config.useSingleServer().setAddress(redisAddress).setPassword(settings.getRedisPassword());
-		config.setCodec(new CborJacksonCodec());
-		this.redissonClient = Redisson.create(config);
+		this.redisClient = RedisClient.create(redisAddress);
+		this.redisConnection = getRedisClient().connect(new ByteArrayCodec());
 		break;
 	    } catch (Throwable t) {
 		getLogger().warn("Unable to establish Redis connection.", t);
@@ -354,11 +353,19 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     }
 
     /*
-     * @see com.sitewhere.spi.microservice.IMicroservice#getRedissonClient()
+     * @see com.sitewhere.spi.microservice.IMicroservice#getRedisClient()
      */
     @Override
-    public RedissonClient getRedissonClient() {
-	return this.redissonClient;
+    public RedisClient getRedisClient() {
+	return redisClient;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#getRedisConnection()
+     */
+    @Override
+    public StatefulRedisConnection<byte[], byte[]> getRedisConnection() {
+	return redisConnection;
     }
 
     /*

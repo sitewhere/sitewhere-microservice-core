@@ -244,10 +244,10 @@ public class CachedAssetManagementApiChannel extends TenantEngineLifecycleCompon
     public static class CacheSettings {
 
 	/** Cache configuraton for asset types */
-	private ICacheConfiguration assetTypeConfiguration = new CacheConfiguration(1000, 60);
+	private ICacheConfiguration assetTypeConfiguration = new CacheConfiguration(60);
 
 	/** Cache configuraton for assets */
-	private ICacheConfiguration assetConfiguration = new CacheConfiguration(10000, 60);
+	private ICacheConfiguration assetConfiguration = new CacheConfiguration(60);
 
 	public ICacheConfiguration getAssetTypeConfiguration() {
 	    return assetTypeConfiguration;

@@ -22,36 +22,15 @@ import com.sitewhere.spi.microservice.cache.ICacheConfiguration;
  */
 public class CacheConfiguration implements ICacheConfiguration {
 
-    /** Maximum number of cache entries */
-    private int maximumSize;
-
     /** Max life of cache entries in seconds */
     private int ttlInSeconds;
 
     /** Indicates if cache is enabled */
     private boolean enabled;
 
-    public CacheConfiguration(int maximumSize, int ttlInSeconds) {
-	this.maximumSize = maximumSize;
+    public CacheConfiguration(int ttlInSeconds) {
 	this.ttlInSeconds = ttlInSeconds;
 	this.enabled = true;
-    }
-
-    /*
-     * @see com.sitewhere.grpc.client.spi.cache.ICacheConfiguration#getMaximumSize()
-     */
-    @Override
-    public int getMaximumSize() {
-	return maximumSize;
-    }
-
-    /*
-     * @see
-     * com.sitewhere.grpc.client.spi.cache.ICacheConfiguration#setMaximumSize(int)
-     */
-    @Override
-    public void setMaximumSize(int maximumSize) {
-	this.maximumSize = maximumSize;
     }
 
     /*

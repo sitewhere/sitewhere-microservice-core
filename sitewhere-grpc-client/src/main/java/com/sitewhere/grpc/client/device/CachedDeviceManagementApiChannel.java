@@ -18,6 +18,9 @@ package com.sitewhere.grpc.client.device;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sitewhere.grpc.client.spi.client.IDeviceManagementApiChannel;
 import com.sitewhere.microservice.api.device.IDeviceManagement;
 import com.sitewhere.microservice.cache.CacheConfiguration;
@@ -72,6 +75,10 @@ import com.sitewhere.spi.search.device.IZoneSearchCriteria;
  * Adds caching support to device management API channel.
  */
 public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleComponent implements IDeviceManagement {
+
+    /** Static logger instance */
+    @SuppressWarnings("unused")
+    private static Logger LOGGER = LoggerFactory.getLogger(CachedDeviceManagementApiChannel.class);
 
     /** Cache settings */
     private CacheSettings cacheSettings;
@@ -156,6 +163,20 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
 
     /*
      * @see
+     * com.sitewhere.spi.device.IDeviceManagement#createArea(com.sitewhere.spi.area.
+     * request.IAreaCreateRequest)
+     */
+    @Override
+    public IArea createArea(IAreaCreateRequest request) throws SiteWhereException {
+	IArea created = getWrapped().createArea(request);
+	String tenantId = UserContext.getCurrentTenantId();
+	getAreaCache().setCacheEntry(tenantId, created.getToken(), created);
+	getAreaByIdCache().setCacheEntry(tenantId, created.getId(), created);
+	return created;
+    }
+
+    /*
+     * @see
      * com.sitewhere.grpc.client.device.DeviceManagementApiChannel#getAreaByToken(
      * java.lang.String)
      */
@@ -184,6 +205,31 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
 	    getAreaByIdCache().setCacheEntry(tenantId, id, area);
 	}
 	return area;
+    }
+
+    /*
+     * @see com.sitewhere.spi.device.IDeviceManagement#updateArea(java.util.UUID,
+     * com.sitewhere.spi.area.request.IAreaCreateRequest)
+     */
+    @Override
+    public IArea updateArea(UUID id, IAreaCreateRequest request) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IArea updated = getWrapped().updateArea(id, request);
+	getAreaCache().setCacheEntry(tenantId, updated.getToken(), updated);
+	getAreaByIdCache().setCacheEntry(tenantId, updated.getId(), updated);
+	return updated;
+    }
+
+    /*
+     * @see com.sitewhere.spi.device.IDeviceManagement#deleteArea(java.util.UUID)
+     */
+    @Override
+    public IArea deleteArea(UUID id) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IArea deleted = getWrapped().deleteArea(id);
+	getAreaCache().removeCacheEntry(tenantId, deleted.getToken());
+	getAreaByIdCache().removeCacheEntry(tenantId, deleted.getId());
+	return deleted;
     }
 
     /*
@@ -369,6 +415,20 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
 	    throws SiteWhereException {
 	String tenantId = UserContext.getCurrentTenantId();
 	IDeviceAssignment updated = getWrapped().updateDeviceAssignment(id, request);
+	getDeviceAssignmentCache().setCacheEntry(tenantId, updated.getToken(), updated);
+	getDeviceAssignmentByIdCache().setCacheEntry(tenantId, updated.getId(), updated);
+	return updated;
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.device.IDeviceManagement#endDeviceAssignment(java.util.
+     * UUID)
+     */
+    @Override
+    public IDeviceAssignment endDeviceAssignment(UUID id) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IDeviceAssignment updated = getWrapped().endDeviceAssignment(id);
 	getDeviceAssignmentCache().setCacheEntry(tenantId, updated.getToken(), updated);
 	getDeviceAssignmentByIdCache().setCacheEntry(tenantId, updated.getId(), updated);
 	return updated;
@@ -597,16 +657,6 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
     public ISearchResults<? extends IDeviceAssignmentSummary> listDeviceAssignmentSummaries(
 	    IDeviceAssignmentSearchCriteria criteria) throws SiteWhereException {
 	return getWrapped().listDeviceAssignmentSummaries(criteria);
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.device.IDeviceManagement#endDeviceAssignment(java.util.
-     * UUID)
-     */
-    @Override
-    public IDeviceAssignment endDeviceAssignment(UUID id) throws SiteWhereException {
-	return getWrapped().endDeviceAssignment(id);
     }
 
     /*
@@ -869,30 +919,11 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
 
     /*
      * @see
-     * com.sitewhere.spi.device.IDeviceManagement#createArea(com.sitewhere.spi.area.
-     * request.IAreaCreateRequest)
-     */
-    @Override
-    public IArea createArea(IAreaCreateRequest request) throws SiteWhereException {
-	return getWrapped().createArea(request);
-    }
-
-    /*
-     * @see
      * com.sitewhere.spi.device.IDeviceManagement#getAreaChildren(java.lang.String)
      */
     @Override
     public List<? extends IArea> getAreaChildren(String token) throws SiteWhereException {
 	return getWrapped().getAreaChildren(token);
-    }
-
-    /*
-     * @see com.sitewhere.spi.device.IDeviceManagement#updateArea(java.util.UUID,
-     * com.sitewhere.spi.area.request.IAreaCreateRequest)
-     */
-    @Override
-    public IArea updateArea(UUID id, IAreaCreateRequest request) throws SiteWhereException {
-	return getWrapped().updateArea(id, request);
     }
 
     /*
@@ -911,14 +942,6 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
     @Override
     public List<? extends ITreeNode> getAreasTree() throws SiteWhereException {
 	return getWrapped().getAreasTree();
-    }
-
-    /*
-     * @see com.sitewhere.spi.device.IDeviceManagement#deleteArea(java.util.UUID)
-     */
-    @Override
-    public IArea deleteArea(UUID id) throws SiteWhereException {
-	return getWrapped().deleteArea(id);
     }
 
     /*
@@ -1083,16 +1106,16 @@ public class CachedDeviceManagementApiChannel extends TenantEngineLifecycleCompo
     public static class CacheSettings {
 
 	/** Cache configuraton for areas */
-	private ICacheConfiguration areaConfiguration = new CacheConfiguration(1000, 60);
+	private ICacheConfiguration areaConfiguration = new CacheConfiguration(60);
 
 	/** Cache configuration for device types */
-	private ICacheConfiguration deviceTypeConfiguration = new CacheConfiguration(1000, 60);
+	private ICacheConfiguration deviceTypeConfiguration = new CacheConfiguration(60);
 
 	/** Cache configuration for devices */
-	private ICacheConfiguration deviceConfiguration = new CacheConfiguration(10000, 60);
+	private ICacheConfiguration deviceConfiguration = new CacheConfiguration(60);
 
 	/** Cache configuration for device assignments */
-	private ICacheConfiguration deviceAssignmentConfiguration = new CacheConfiguration(10000, 60);
+	private ICacheConfiguration deviceAssignmentConfiguration = new CacheConfiguration(60);
 
 	public ICacheConfiguration getAreaConfiguration() {
 	    return areaConfiguration;

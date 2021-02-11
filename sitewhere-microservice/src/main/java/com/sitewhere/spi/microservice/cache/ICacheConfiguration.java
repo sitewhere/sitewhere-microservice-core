@@ -21,20 +21,6 @@ package com.sitewhere.spi.microservice.cache;
 public interface ICacheConfiguration {
 
     /**
-     * Get maximum size for cache.
-     * 
-     * @return
-     */
-    public int getMaximumSize();
-
-    /**
-     * Set maximum size for cache.
-     * 
-     * @param value
-     */
-    public void setMaximumSize(int value);
-
-    /**
      * Get time to live in seconds.
      * 
      * @return

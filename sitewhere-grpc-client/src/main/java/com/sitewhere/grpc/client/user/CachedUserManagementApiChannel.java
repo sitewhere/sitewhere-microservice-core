@@ -39,7 +39,6 @@ import com.sitewhere.spi.user.request.IUserCreateRequest;
 /**
  * Adds caching support to user management API channel.
  */
-@SuppressWarnings({ "rawtypes" })
 public class CachedUserManagementApiChannel extends TenantEngineLifecycleComponent implements IUserManagement {
 
     /** Cache settings */
@@ -50,9 +49,6 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
 
     /** User cache */
     private ICacheProvider<String, IUser> userCache;
-
-    /** Granted authority cache */
-    private ICacheProvider<String, List> grantedAuthorityCache;
 
     public CachedUserManagementApiChannel(IUserManagementApiChannel<?> wrapped, CacheSettings cache) {
 	this.wrapped = wrapped;
@@ -68,8 +64,6 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
 	initializeNestedComponent(getWrapped(), monitor, true);
 	this.userCache = new UserManagementCacheProviders.UserByTokenCache(getMicroservice(),
 		getCacheSettings().getUserConfiguration());
-	this.grantedAuthorityCache = new UserManagementCacheProviders.GrantedAuthorityByTokenCache(getMicroservice(),
-		getCacheSettings().getGrantedAuthConfiguration());
     }
 
     /*
@@ -285,10 +279,10 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
     public static class CacheSettings {
 
 	/** Cache configuraton for users */
-	private ICacheConfiguration userConfiguration = new CacheConfiguration(1000, 60);
+	private ICacheConfiguration userConfiguration = new CacheConfiguration(60);
 
 	/** Cache configuraton for granted authorities */
-	private ICacheConfiguration grantedAuthConfiguration = new CacheConfiguration(1000, 60);
+	private ICacheConfiguration grantedAuthConfiguration = new CacheConfiguration(60);
 
 	public ICacheConfiguration getUserConfiguration() {
 	    return userConfiguration;
@@ -301,10 +295,6 @@ public class CachedUserManagementApiChannel extends TenantEngineLifecycleCompone
 
     protected ICacheProvider<String, IUser> getUserCache() {
 	return userCache;
-    }
-
-    protected ICacheProvider<String, List> getGrantedAuthorityCache() {
-	return grantedAuthorityCache;
     }
 
     protected IUserManagementApiChannel<?> getWrapped() {

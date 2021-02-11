@@ -17,7 +17,15 @@ package com.sitewhere.grpc.client.device;
 
 import java.util.UUID;
 
-import com.sitewhere.microservice.cache.RedissonCacheProvider;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.sitewhere.grpc.client.GrpcUtils;
+import com.sitewhere.grpc.device.DeviceModelConverter;
+import com.sitewhere.grpc.model.DeviceModel.GArea;
+import com.sitewhere.grpc.model.DeviceModel.GDevice;
+import com.sitewhere.grpc.model.DeviceModel.GDeviceAssignment;
+import com.sitewhere.grpc.model.DeviceModel.GDeviceType;
+import com.sitewhere.microservice.cache.RedisCacheProvider;
+import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.area.IArea;
 import com.sitewhere.spi.device.IDevice;
 import com.sitewhere.spi.device.IDeviceAssignment;
@@ -42,80 +50,336 @@ public class DeviceManagementCacheProviders {
     /**
      * Cache for areas.
      */
-    public static class AreaByTokenCache extends RedissonCacheProvider<String, IArea> {
+    public static class AreaByTokenCache extends RedisCacheProvider<String, IArea> {
 
 	public AreaByTokenCache(IMicroservice<?, ?> microservice, ICacheConfiguration configuration) {
-	    super(microservice, AREA_BY_TOKEN, String.class, IArea.class, configuration);
+	    super(microservice, AREA_BY_TOKEN, configuration);
+	}
+
+	/*
+	 * @see
+	 * com.sitewhere.microservice.cache.RedisCacheProvider#convertKey(java.lang.
+	 * Object)
+	 */
+	@Override
+	public String convertKey(String key) throws SiteWhereException {
+	    return key;
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#serialize(java.lang.
+	 * Object)
+	 */
+	@Override
+	public byte[] serialize(IArea value) throws SiteWhereException {
+	    GArea message = DeviceModelConverter.asGrpcArea(value);
+	    return GrpcUtils.marshal(message);
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#deserialize(byte[])
+	 */
+	@Override
+	public IArea deserialize(byte[] value) throws SiteWhereException {
+	    try {
+		return DeviceModelConverter.asApiArea(GArea.parseFrom(value));
+	    } catch (InvalidProtocolBufferException e) {
+		throw new SiteWhereException("Unable to parse gRPC message.", e);
+	    }
 	}
     }
 
     /**
      * Cache for areas by id.
      */
-    public static class AreaByIdCache extends RedissonCacheProvider<UUID, IArea> {
+    public static class AreaByIdCache extends RedisCacheProvider<UUID, IArea> {
 
 	public AreaByIdCache(IMicroservice<?, ?> microservice, ICacheConfiguration configuration) {
-	    super(microservice, AREA_BY_ID, UUID.class, IArea.class, configuration);
+	    super(microservice, AREA_BY_ID, configuration);
+	}
+
+	/*
+	 * @see
+	 * com.sitewhere.microservice.cache.RedisCacheProvider#convertKey(java.lang.
+	 * Object)
+	 */
+	@Override
+	public String convertKey(UUID key) throws SiteWhereException {
+	    return key.toString();
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#serialize(java.lang.
+	 * Object)
+	 */
+	@Override
+	public byte[] serialize(IArea value) throws SiteWhereException {
+	    GArea message = DeviceModelConverter.asGrpcArea(value);
+	    return GrpcUtils.marshal(message);
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#deserialize(byte[])
+	 */
+	@Override
+	public IArea deserialize(byte[] value) throws SiteWhereException {
+	    try {
+		return DeviceModelConverter.asApiArea(GArea.parseFrom(value));
+	    } catch (InvalidProtocolBufferException e) {
+		throw new SiteWhereException("Unable to parse gRPC message.", e);
+	    }
 	}
     }
 
     /**
      * Cache for device types.
      */
-    public static class DeviceTypeByTokenCache extends RedissonCacheProvider<String, IDeviceType> {
+    public static class DeviceTypeByTokenCache extends RedisCacheProvider<String, IDeviceType> {
 
 	public DeviceTypeByTokenCache(IMicroservice<?, ?> microservice, ICacheConfiguration configuration) {
-	    super(microservice, DEVICE_TYPE_BY_TOKEN, String.class, IDeviceType.class, configuration);
+	    super(microservice, DEVICE_TYPE_BY_TOKEN, configuration);
+	}
+
+	/*
+	 * @see
+	 * com.sitewhere.microservice.cache.RedisCacheProvider#convertKey(java.lang.
+	 * Object)
+	 */
+	@Override
+	public String convertKey(String key) throws SiteWhereException {
+	    return key;
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#serialize(java.lang.
+	 * Object)
+	 */
+	@Override
+	public byte[] serialize(IDeviceType value) throws SiteWhereException {
+	    GDeviceType message = DeviceModelConverter.asGrpcDeviceType(value);
+	    return GrpcUtils.marshal(message);
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#deserialize(byte[])
+	 */
+	@Override
+	public IDeviceType deserialize(byte[] value) throws SiteWhereException {
+	    try {
+		return DeviceModelConverter.asApiDeviceType(GDeviceType.parseFrom(value));
+	    } catch (InvalidProtocolBufferException e) {
+		throw new SiteWhereException("Unable to parse gRPC message.", e);
+	    }
 	}
     }
 
     /**
      * Cache for device types by id.
      */
-    public static class DeviceTypeByIdCache extends RedissonCacheProvider<UUID, IDeviceType> {
+    public static class DeviceTypeByIdCache extends RedisCacheProvider<UUID, IDeviceType> {
 
 	public DeviceTypeByIdCache(IMicroservice<?, ?> microservice, ICacheConfiguration configuration) {
-	    super(microservice, DEVICE_TYPE_BY_ID, UUID.class, IDeviceType.class, configuration);
+	    super(microservice, DEVICE_TYPE_BY_ID, configuration);
+	}
+
+	/*
+	 * @see
+	 * com.sitewhere.microservice.cache.RedisCacheProvider#convertKey(java.lang.
+	 * Object)
+	 */
+	@Override
+	public String convertKey(UUID key) throws SiteWhereException {
+	    return key.toString();
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#serialize(java.lang.
+	 * Object)
+	 */
+	@Override
+	public byte[] serialize(IDeviceType value) throws SiteWhereException {
+	    GDeviceType message = DeviceModelConverter.asGrpcDeviceType(value);
+	    return GrpcUtils.marshal(message);
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#deserialize(byte[])
+	 */
+	@Override
+	public IDeviceType deserialize(byte[] value) throws SiteWhereException {
+	    try {
+		return DeviceModelConverter.asApiDeviceType(GDeviceType.parseFrom(value));
+	    } catch (InvalidProtocolBufferException e) {
+		throw new SiteWhereException("Unable to parse gRPC message.", e);
+	    }
 	}
     }
 
     /**
      * Cache for devices by token.
      */
-    public static class DeviceByTokenCache extends RedissonCacheProvider<String, IDevice> {
+    public static class DeviceByTokenCache extends RedisCacheProvider<String, IDevice> {
 
 	public DeviceByTokenCache(IMicroservice<?, ?> microservice, ICacheConfiguration configuration) {
-	    super(microservice, DEVICE_BY_TOKEN, String.class, IDevice.class, configuration);
+	    super(microservice, DEVICE_BY_TOKEN, configuration);
+	}
+
+	/*
+	 * @see
+	 * com.sitewhere.microservice.cache.RedisCacheProvider#convertKey(java.lang.
+	 * Object)
+	 */
+	@Override
+	public String convertKey(String key) throws SiteWhereException {
+	    return key;
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#serialize(java.lang.
+	 * Object)
+	 */
+	@Override
+	public byte[] serialize(IDevice value) throws SiteWhereException {
+	    GDevice message = DeviceModelConverter.asGrpcDevice(value);
+	    return GrpcUtils.marshal(message);
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#deserialize(byte[])
+	 */
+	@Override
+	public IDevice deserialize(byte[] value) throws SiteWhereException {
+	    try {
+		return DeviceModelConverter.asApiDevice(GDevice.parseFrom(value));
+	    } catch (InvalidProtocolBufferException e) {
+		throw new SiteWhereException("Unable to parse gRPC message.", e);
+	    }
 	}
     }
 
     /**
      * Cache for devices by id.
      */
-    public static class DeviceByIdCache extends RedissonCacheProvider<UUID, IDevice> {
+    public static class DeviceByIdCache extends RedisCacheProvider<UUID, IDevice> {
 
 	public DeviceByIdCache(IMicroservice<?, ?> microservice, ICacheConfiguration configuration) {
-	    super(microservice, DEVICE_BY_ID, UUID.class, IDevice.class, configuration);
+	    super(microservice, DEVICE_BY_ID, configuration);
+	}
+
+	/*
+	 * @see
+	 * com.sitewhere.microservice.cache.RedisCacheProvider#convertKey(java.lang.
+	 * Object)
+	 */
+	@Override
+	public String convertKey(UUID key) throws SiteWhereException {
+	    return key.toString();
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#serialize(java.lang.
+	 * Object)
+	 */
+	@Override
+	public byte[] serialize(IDevice value) throws SiteWhereException {
+	    GDevice message = DeviceModelConverter.asGrpcDevice(value);
+	    return GrpcUtils.marshal(message);
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#deserialize(byte[])
+	 */
+	@Override
+	public IDevice deserialize(byte[] value) throws SiteWhereException {
+	    try {
+		return DeviceModelConverter.asApiDevice(GDevice.parseFrom(value));
+	    } catch (InvalidProtocolBufferException e) {
+		throw new SiteWhereException("Unable to parse gRPC message.", e);
+	    }
 	}
     }
 
     /**
      * Cache for device assignments by token.
      */
-    public static class DeviceAssignmentByTokenCache extends RedissonCacheProvider<String, IDeviceAssignment> {
+    public static class DeviceAssignmentByTokenCache extends RedisCacheProvider<String, IDeviceAssignment> {
 
 	public DeviceAssignmentByTokenCache(IMicroservice<?, ?> microservice, ICacheConfiguration configuration) {
-	    super(microservice, DEVICE_ASSIGNMENT_BY_TOKEN, String.class, IDeviceAssignment.class, configuration);
+	    super(microservice, DEVICE_ASSIGNMENT_BY_TOKEN, configuration);
+	}
+
+	/*
+	 * @see
+	 * com.sitewhere.microservice.cache.RedisCacheProvider#convertKey(java.lang.
+	 * Object)
+	 */
+	@Override
+	public String convertKey(String key) throws SiteWhereException {
+	    return key;
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#serialize(java.lang.
+	 * Object)
+	 */
+	@Override
+	public byte[] serialize(IDeviceAssignment value) throws SiteWhereException {
+	    GDeviceAssignment message = DeviceModelConverter.asGrpcDeviceAssignment(value);
+	    return GrpcUtils.marshal(message);
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#deserialize(byte[])
+	 */
+	@Override
+	public IDeviceAssignment deserialize(byte[] value) throws SiteWhereException {
+	    try {
+		return DeviceModelConverter.asApiDeviceAssignment(GDeviceAssignment.parseFrom(value));
+	    } catch (InvalidProtocolBufferException e) {
+		throw new SiteWhereException("Unable to parse gRPC message.", e);
+	    }
 	}
     }
 
     /**
      * Cache for device assignments by id.
      */
-    public static class DeviceAssignmentByIdCache extends RedissonCacheProvider<UUID, IDeviceAssignment> {
+    public static class DeviceAssignmentByIdCache extends RedisCacheProvider<UUID, IDeviceAssignment> {
 
 	public DeviceAssignmentByIdCache(IMicroservice<?, ?> microservice, ICacheConfiguration configuration) {
-	    super(microservice, DEVICE_ASSIGNMENT_BY_ID, UUID.class, IDeviceAssignment.class, configuration);
+	    super(microservice, DEVICE_ASSIGNMENT_BY_ID, configuration);
+	}
+
+	/*
+	 * @see
+	 * com.sitewhere.microservice.cache.RedisCacheProvider#convertKey(java.lang.
+	 * Object)
+	 */
+	@Override
+	public String convertKey(UUID key) throws SiteWhereException {
+	    return key.toString();
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#serialize(java.lang.
+	 * Object)
+	 */
+	@Override
+	public byte[] serialize(IDeviceAssignment value) throws SiteWhereException {
+	    GDeviceAssignment message = DeviceModelConverter.asGrpcDeviceAssignment(value);
+	    return GrpcUtils.marshal(message);
+	}
+
+	/*
+	 * @see com.sitewhere.microservice.cache.RedisCacheProvider#deserialize(byte[])
+	 */
+	@Override
+	public IDeviceAssignment deserialize(byte[] value) throws SiteWhereException {
+	    try {
+		return DeviceModelConverter.asApiDeviceAssignment(GDeviceAssignment.parseFrom(value));
+	    } catch (InvalidProtocolBufferException e) {
+		throw new SiteWhereException("Unable to parse gRPC message.", e);
+	    }
 	}
     }
 }

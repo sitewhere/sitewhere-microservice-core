@@ -18,8 +18,6 @@ package com.sitewhere.spi.microservice;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import org.redisson.api.RedissonClient;
-
 import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
@@ -38,6 +36,8 @@ import com.sitewhere.spi.system.IVersion;
 
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.sitewhere.k8s.api.ISiteWhereKubernetesClient;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.instance.dataset.InstanceDatasetTemplate;
@@ -211,7 +211,14 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
      * 
      * @return
      */
-    RedissonClient getRedissonClient();
+    RedisClient getRedisClient();
+
+    /**
+     * Get stateful Redis connect for current client.
+     * 
+     * @return
+     */
+    StatefulRedisConnection<byte[], byte[]> getRedisConnection();
 
     /**
      * Get metrics server.

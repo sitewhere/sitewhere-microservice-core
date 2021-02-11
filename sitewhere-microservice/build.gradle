@@ -24,8 +24,8 @@ dependencies {
 	// Google Guice for configuration management.
 	compile group: 'com.google.inject', name: 'guice', version: '4.2.2'
 	
-	// Redisson Redis client.
-	compile group: 'org.redisson', name: 'redisson', version: '3.14.1'
+	// Lettuce Redis client.
+	compile group: 'io.lettuce', name: 'lettuce-core', version: '6.0.2.RELEASE'
 	
 	// Graal runtime support.
 	compile group: 'org.graalvm.nativeimage', name: 'svm'
