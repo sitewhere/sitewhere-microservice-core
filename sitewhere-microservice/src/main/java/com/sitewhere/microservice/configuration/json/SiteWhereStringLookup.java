@@ -29,6 +29,9 @@ public class SiteWhereStringLookup implements StringLookup {
     /** Static logger instance */
     private static Logger LOGGER = LoggerFactory.getLogger(SiteWhereStringLookup.class);
 
+    /** Replace with id of current instance */
+    private static final String INSTANCE_ID = "instance.id";
+
     /** Replace with token of current tenant */
     private static final String TENANT_TOKEN = "tenant.token";
 
@@ -56,7 +59,12 @@ public class SiteWhereStringLookup implements StringLookup {
 	}
 	// Only resolve component-relative references if available.
 	if (getComponent() != null) {
-	    if (TENANT_TOKEN.equals(key)) {
+	    // Handle replacement for instance id.
+	    if (INSTANCE_ID.equals(key)) {
+		return getComponent().getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	    }
+	    // Handle replacement for tenant token.
+	    else if (TENANT_TOKEN.equals(key)) {
 		return getComponent().getTenantEngine().getTenantResource().getMetadata().getName();
 	    }
 	}
