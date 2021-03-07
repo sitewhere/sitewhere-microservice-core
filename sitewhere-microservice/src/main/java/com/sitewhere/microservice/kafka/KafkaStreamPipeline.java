@@ -88,6 +88,14 @@ public abstract class KafkaStreamPipeline extends TenantEngineLifecycleComponent
 	final StreamsBuilder builder = new StreamsBuilder();
 	buildStreams(builder);
 	this.pipeline = new KafkaStreams(builder.build(), props);
+
+	// Register handler for uncaught exceptions.
+	getPipeline().setUncaughtExceptionHandler((Thread thread, Throwable throwable) -> {
+	    getLogger().warn("Unhandled exception in Kafka Streams processing.", throwable);
+	});
+
+	// Shut down Kafka Streams if JVM is exiting.
+	Runtime.getRuntime().addShutdownHook(new Thread(getPipeline()::close));
     }
 
     /*

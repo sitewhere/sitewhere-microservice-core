@@ -130,7 +130,7 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
 	    break;
 	}
 	case UPDATE: {
-	    getListeners().forEach(listener -> listener.onMicroserviceSpecificationUpdated(microservice.getSpec()));
+	    getListeners().forEach(listener -> listener.onMicroserviceSpecificationUpdated(microservice));
 	    break;
 	}
 	case DELETE: {

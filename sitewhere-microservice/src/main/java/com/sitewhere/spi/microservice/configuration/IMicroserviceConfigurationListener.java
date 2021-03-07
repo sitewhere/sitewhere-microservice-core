@@ -15,7 +15,7 @@
  */
 package com.sitewhere.spi.microservice.configuration;
 
-import io.sitewhere.k8s.crd.microservice.SiteWhereMicroserviceSpec;
+import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
 
 /**
  * Listens for changes in microservice configuration.
@@ -25,7 +25,7 @@ public interface IMicroserviceConfigurationListener {
     /**
      * Called when microservice specification is updated.
      * 
-     * @param specification
+     * @param microservice
      */
-    void onMicroserviceSpecificationUpdated(SiteWhereMicroserviceSpec specification);
+    void onMicroserviceSpecificationUpdated(SiteWhereMicroservice microservice);
 }

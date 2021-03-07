@@ -51,7 +51,6 @@ import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstanceSpec;
 import io.sitewhere.k8s.crd.microservice.MicroserviceLoggingEntry;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
-import io.sitewhere.k8s.crd.microservice.SiteWhereMicroserviceSpec;
 
 /**
  * Base class for microservices that monitor the configuration folder for
@@ -321,13 +320,20 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     /*
      * @see com.sitewhere.spi.microservice.configuration.
      * IMicroserviceConfigurationListener#onMicroserviceSpecificationUpdated(io.
-     * sitewhere.k8s.crd.microservice.SiteWhereMicroserviceSpec)
+     * sitewhere.k8s.crd.microservice.SiteWhereMicroservice)
      */
     @Override
-    public void onMicroserviceSpecificationUpdated(SiteWhereMicroserviceSpec specification) {
+    public void onMicroserviceSpecificationUpdated(SiteWhereMicroservice microservice) {
 	try {
 	    getLogger().info("Configuration monitor detected microservice configuration update...");
-	    handleMicroserviceUpdated(getMicroserviceConfigurationMonitor().getResource());
+
+	    // Warn and skip if attempting to load using a null configuration.
+	    if (microservice.getSpec().getConfiguration() == null) {
+		getLogger().warn(String.format("Skipping load of microservice resource with null configuration."));
+		return;
+	    }
+
+	    handleMicroserviceUpdated(microservice);
 	    onConfigurationUpdated();
 	} catch (SiteWhereException e) {
 	    getLogger().warn("Exception handling microservice configuration update.", e);
@@ -341,6 +347,11 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      * @throws SiteWhereException
      */
     protected void handleMicroserviceUpdated(SiteWhereMicroservice microservice) throws SiteWhereException {
+	// Warn and skip if attempting to load using a null configuration.
+	if (microservice.getSpec().getConfiguration() == null) {
+	    getLogger().warn(String.format("Skipping update of microservice resource with null configuration."));
+	    return;
+	}
 	getLogger().info("Processing microservice configuration update...");
 
 	// Validate that functional area in k8s metadata matches expected value.
