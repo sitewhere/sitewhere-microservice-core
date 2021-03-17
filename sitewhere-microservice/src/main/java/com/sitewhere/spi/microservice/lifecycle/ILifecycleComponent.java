@@ -83,13 +83,6 @@ public interface ILifecycleComponent {
     SiteWhereException getLifecycleError();
 
     /**
-     * Get list of parameters associated with component.
-     * 
-     * @return
-     */
-    List<ILifecycleComponentParameter<?>> getParameters();
-
-    /**
      * Overridden in subclasses to initialize parameters.
      * 
      * @throws SiteWhereException

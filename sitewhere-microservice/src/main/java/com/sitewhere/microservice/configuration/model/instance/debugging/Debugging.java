@@ -13,40 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sitewhere.spi.microservice.lifecycle;
+package com.sitewhere.microservice.configuration.model.instance.debugging;
+
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /**
- * Parameter used to configure a lifecycle component.
- *
- * @param <T>
+ * Instance-level configuration for debugging.
  */
-public interface ILifecycleComponentParameter<T> {
+@RegisterForReflection
+public class Debugging {
 
-    /**
-     * Get component name.
-     * 
-     * @return
-     */
-    String getName();
+    /** Event pipeline debugging */
+    private EventPipeline eventPipeLine;
 
-    /**
-     * Get configured value for component.
-     * 
-     * @return
-     */
-    T getValue();
+    public EventPipeline getEventPipeLine() {
+	return eventPipeLine;
+    }
 
-    /**
-     * Indicates whether the parameter is required.
-     * 
-     * @return
-     */
-    boolean isRequired();
-
-    /**
-     * Get parent component.
-     * 
-     * @return
-     */
-    ILifecycleComponent getParent();
+    public void setEventPipeLine(EventPipeline eventPipeLine) {
+	this.eventPipeLine = eventPipeLine;
+    }
 }

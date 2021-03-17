@@ -121,7 +121,7 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
 	    return;
 	}
 
-	LOGGER.info(String.format("Detected %s resource change in microservice %s.", type.name(),
+	LOGGER.debug(String.format("Detected %s resource change in microservice %s.", type.name(),
 		microservice.getMetadata().getName()));
 	this.microserviceResource = microservice;
 
@@ -130,7 +130,7 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
 	    break;
 	}
 	case UPDATE: {
-	    getListeners().forEach(listener -> listener.onMicroserviceSpecificationUpdated(microservice.getSpec()));
+	    getListeners().forEach(listener -> listener.onMicroserviceSpecificationUpdated(microservice));
 	    break;
 	}
 	case DELETE: {

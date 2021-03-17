@@ -15,6 +15,7 @@
  */
 package com.sitewhere.microservice.configuration.model.instance;
 
+import com.sitewhere.microservice.configuration.model.instance.debugging.Debugging;
 import com.sitewhere.microservice.configuration.model.instance.infrastructure.InfrastructureConfiguration;
 import com.sitewhere.microservice.configuration.model.instance.persistence.PersistenceConfigurations;
 
@@ -32,6 +33,9 @@ public class InstanceConfiguration {
     /** Persistence configurations */
     private PersistenceConfigurations persistenceConfigurations;
 
+    /** Instance-level debug configuration */
+    private Debugging debugging;
+
     public InfrastructureConfiguration getInfrastructure() {
 	return infrastructure;
     }
@@ -46,5 +50,13 @@ public class InstanceConfiguration {
 
     public void setPersistenceConfigurations(PersistenceConfigurations persistenceConfigurations) {
 	this.persistenceConfigurations = persistenceConfigurations;
+    }
+
+    public Debugging getDebugging() {
+	return debugging;
+    }
+
+    public void setDebugging(Debugging debugging) {
+	this.debugging = debugging;
     }
 }

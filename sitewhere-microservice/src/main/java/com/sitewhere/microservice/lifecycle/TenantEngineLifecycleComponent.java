@@ -19,7 +19,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.sitewhere.microservice.configuration.model.instance.debugging.Debugging;
+import com.sitewhere.microservice.instance.EventPipelineLog;
 import com.sitewhere.spi.SiteWhereException;
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.instance.EventPipelineLogLevel;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
@@ -100,6 +104,94 @@ public abstract class TenantEngineLifecycleComponent extends LifecycleComponent
     }
 
     /**
+     * Get topic used for pub/sub on pipeline event log.
+     * 
+     * @param component
+     * @return
+     */
+    public static String getLogPipelineTopic(ITenantEngineLifecycleComponent component) {
+	return component.getTenantEngine().getTenantResource().getMetadata().getName() + ":pipeline-event-log";
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent#
+     * logPipelineEvent(java.lang.String, java.lang.String,
+     * com.sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
+     * java.lang.String,
+     * com.sitewhere.spi.microservice.instance.EventPipelineLogLevel)
+     */
+    @Override
+    public void logPipelineEvent(String source, String deviceToken, IFunctionIdentifier microservice, String message,
+	    String detail, EventPipelineLogLevel level) {
+	Debugging debugging = getMicroservice().getInstanceConfiguration().getDebugging();
+	if (debugging != null && debugging.getEventPipeLine() != null
+		&& debugging.getEventPipeLine().getDebugLevel() != null) {
+	    EventPipelineLogLevel desired = EventPipelineLogLevel
+		    .getLevelForPrefix(debugging.getEventPipeLine().getDebugLevel());
+	    if (level.getLevel() >= desired.getLevel()) {
+		EventPipelineLog log = new EventPipelineLog();
+		log.setTimestamp(System.currentTimeMillis());
+		log.setSource(source);
+		log.setLevel(level);
+		log.setDeviceToken(deviceToken);
+		log.setMicroservice(microservice.getPath());
+		log.setMessage(message);
+		log.setDetail(detail);
+
+		String topic = getLogPipelineTopic(this);
+		getMicroservice().getRedisStreamConnection().sync().xadd(topic, log.toMap());
+		if (getLogger().isDebugEnabled()) {
+		    getLogger().debug(String.format("Sent pipeline event: %s %s %s", log.getSource(),
+			    log.getDeviceToken(), log.getMessage()));
+		}
+	    } else {
+		if (getLogger().isDebugEnabled()) {
+		    getLogger().debug(String.format("Skipped pipeline event due to filtered error level: %s %s %s",
+			    source, deviceToken, message));
+		}
+	    }
+	} else {
+	    if (getLogger().isDebugEnabled()) {
+		getLogger().debug(String.format("Skipped pipeline event due to missing debug settings: %s %s %s",
+			source, deviceToken, message));
+	    }
+	}
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent#
+     * logPipelineException(java.lang.String, java.lang.String,
+     * com.sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
+     * java.lang.Throwable,
+     * com.sitewhere.spi.microservice.instance.EventPipelineLogLevel)
+     */
+    @Override
+    public void logPipelineException(String source, String deviceToken, IFunctionIdentifier microservice,
+	    String message, Throwable throwable, EventPipelineLogLevel level) {
+	logPipelineEvent(source, deviceToken, microservice, message, throwable.getMessage(), level);
+	switch (level) {
+	case Debug: {
+	    getLogger().debug(message, throwable);
+	    break;
+	}
+	case Error: {
+	    getLogger().error(message, throwable);
+	    break;
+	}
+	case Info: {
+	    getLogger().info(message, throwable);
+	    break;
+	}
+	case Warning: {
+	    getLogger().warn(message, throwable);
+	    break;
+	}
+	}
+    }
+
+    /**
      * Merge standard SiteWhere labels before extras.
      * 
      * @param labelNames
@@ -125,10 +217,6 @@ public abstract class TenantEngineLifecycleComponent extends LifecycleComponent
 	all.add(0, getTenantEngine().getTenantResource().getMetadata().getName());
 	all.add(0, getMicroservice().getInstanceSettings().getKubernetesPodAddress());
 	all.add(0, getMicroservice().getIdentifier().getPath());
-	// getLogger().debug(String.format("For labels: tenant: %s k8s-pod: %s fa: %s",
-	// getTenantEngine().getTenantResource().getMetadata().getName(),
-	// getMicroservice().getInstanceSettings().getKubernetesPodAddress(),
-	// getMicroservice().getIdentifier().getPath()));
 	return all.toArray(new String[all.size()]);
     }
 

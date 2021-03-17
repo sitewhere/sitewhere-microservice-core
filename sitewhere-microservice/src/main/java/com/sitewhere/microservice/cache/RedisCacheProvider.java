@@ -86,13 +86,13 @@ public abstract class RedisCacheProvider<K, V> implements ICacheProvider<K, V> {
     @Override
     public void setCacheEntry(String tenantId, K key, V value) throws SiteWhereException {
 	String cacheKey = getCacheKey(tenantId, convertKey(key));
-	LOGGER.debug("Caching value for '" + cacheKey + "'.");
+	LOGGER.info("Caching value for '" + cacheKey + "'.");
 	if ((value != null) && (getCacheConfiguration().isEnabled())) {
-	    getMicroservice().getRedisConnection().sync().set(cacheKey.getBytes(), serialize(value));
-	    getMicroservice().getRedisConnection().sync().expire(cacheKey.getBytes(),
+	    getMicroservice().getRedisCacheConnection().sync().set(cacheKey, serialize(value));
+	    getMicroservice().getRedisCacheConnection().sync().expire(cacheKey,
 		    getCacheConfiguration().getTtlInSeconds());
 	} else {
-	    getMicroservice().getRedisConnection().sync().del(cacheKey.getBytes());
+	    getMicroservice().getRedisCacheConnection().sync().del(cacheKey);
 	}
     }
 
@@ -104,10 +104,10 @@ public abstract class RedisCacheProvider<K, V> implements ICacheProvider<K, V> {
     @Override
     public V getCacheEntry(String tenantId, K key) throws SiteWhereException {
 	String cacheKey = getCacheKey(tenantId, convertKey(key));
-	byte[] result = getMicroservice().getRedisConnection().sync().get(cacheKey.getBytes());
+	byte[] result = getMicroservice().getRedisCacheConnection().sync().get(cacheKey);
 	if (result != null) {
 	    V converted = deserialize(result);
-	    LOGGER.debug("Found cached value for '" + cacheKey + "'.");
+	    LOGGER.info("Found cached value for '" + cacheKey + "'.");
 	    return converted;
 	}
 	return null;
@@ -121,7 +121,7 @@ public abstract class RedisCacheProvider<K, V> implements ICacheProvider<K, V> {
     @Override
     public void removeCacheEntry(String tenantId, K key) throws SiteWhereException {
 	String cacheKey = getCacheKey(tenantId, convertKey(key));
-	getMicroservice().getRedisConnection().sync().del(cacheKey.getBytes());
+	getMicroservice().getRedisCacheConnection().sync().del(cacheKey);
     }
 
     /**

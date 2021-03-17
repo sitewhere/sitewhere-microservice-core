@@ -51,7 +51,6 @@ import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstanceSpec;
 import io.sitewhere.k8s.crd.microservice.MicroserviceLoggingEntry;
 import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
-import io.sitewhere.k8s.crd.microservice.SiteWhereMicroserviceSpec;
 
 /**
  * Base class for microservices that monitor the configuration folder for
@@ -321,13 +320,20 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     /*
      * @see com.sitewhere.spi.microservice.configuration.
      * IMicroserviceConfigurationListener#onMicroserviceSpecificationUpdated(io.
-     * sitewhere.k8s.crd.microservice.SiteWhereMicroserviceSpec)
+     * sitewhere.k8s.crd.microservice.SiteWhereMicroservice)
      */
     @Override
-    public void onMicroserviceSpecificationUpdated(SiteWhereMicroserviceSpec specification) {
+    public void onMicroserviceSpecificationUpdated(SiteWhereMicroservice microservice) {
 	try {
 	    getLogger().info("Configuration monitor detected microservice configuration update...");
-	    handleMicroserviceUpdated(getMicroserviceConfigurationMonitor().getResource());
+
+	    // Warn and skip if attempting to load using a null configuration.
+	    if (microservice.getSpec().getConfiguration() == null) {
+		getLogger().warn(String.format("Skipping load of microservice resource with null configuration."));
+		return;
+	    }
+
+	    handleMicroserviceUpdated(microservice);
 	    onConfigurationUpdated();
 	} catch (SiteWhereException e) {
 	    getLogger().warn("Exception handling microservice configuration update.", e);
@@ -350,25 +356,37 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 			    microservice.getSpec().getFunctionalArea()));
 	}
 
-	getLogger().info(String.format("Microservice will use configuration:\n%s\n\n",
-		MarshalUtils.marshalJsonAsPrettyString(microservice.getSpec().getConfiguration())));
+	// Unmarshal configuration from JSON or create placeholder class.
+	C configuration = null;
+	if (microservice.getSpec().getConfiguration() != null) {
+	    getLogger().info(String.format("Microservice will use configuration:\n%s\n\n",
+		    MarshalUtils.marshalJsonAsPrettyString(microservice.getSpec().getConfiguration())));
+	    try {
+		configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
+			getConfigurationClass());
+	    } catch (JsonProcessingException e) {
+		throw new SiteWhereException("Unable to unmarshal microservice configuration.", e);
+	    }
+	} else {
+	    getLogger().info(String.format("Microservice does not have any configuration specified."));
+	    try {
+		configuration = getConfigurationClass().newInstance();
+	    } catch (InstantiationException e) {
+		throw new SiteWhereException("Unable to create instance of configuration class.", e);
+	    } catch (IllegalAccessException e) {
+		throw new SiteWhereException("Unauthorized to create instance of configuration class.", e);
+	    }
+	}
 
 	// Check for logging updates and process them.
 	handleLoggingConfigurationUpdates(microservice);
 
 	// Save updated resource and parse configuration.
 	this.microserviceResource = microservice;
-	try {
-	    C configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
-		    getConfigurationClass());
-	    this.microserviceConfiguration = configuration;
-	    this.microserviceConfigurationModule = createConfigurationModule();
-	    getLogger().debug(String.format("Successfully handled microservice configuration update for '%s'.",
-		    microservice.getMetadata().getName()));
-	} catch (JsonProcessingException e) {
-	    throw new SiteWhereException(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
-		    e.getMessage(), microservice.getSpec().getConfiguration()));
-	}
+	this.microserviceConfiguration = configuration;
+	this.microserviceConfigurationModule = createConfigurationModule();
+	getLogger().debug(String.format("Successfully handled microservice configuration update for '%s'.",
+		microservice.getMetadata().getName()));
     }
 
     /**

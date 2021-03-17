@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sitewhere.spi.microservice.configuration;
+package com.sitewhere.microservice.configuration.model.instance.debugging;
 
-import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 /**
- * Listens for changes in microservice configuration.
+ * Debugging support for event pipeline.
  */
-public interface IMicroserviceConfigurationListener {
+@RegisterForReflection
+public class EventPipeline {
 
-    /**
-     * Called when microservice specification is updated.
-     * 
-     * @param microservice
-     */
-    void onMicroserviceSpecificationUpdated(SiteWhereMicroservice microservice);
+    /** Debug level */
+    private String debugLevel;
+
+    public String getDebugLevel() {
+	return debugLevel;
+    }
+
+    public void setDebugLevel(String debugLevel) {
+	this.debugLevel = debugLevel;
+    }
 }

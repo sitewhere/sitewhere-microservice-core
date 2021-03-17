@@ -16,6 +16,8 @@
 package com.sitewhere.microservice.configuration.json;
 
 import org.apache.commons.text.StringSubstitutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.sitewhere.spi.SiteWhereException;
@@ -26,7 +28,10 @@ import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
  * Supports parameter substitution so that environment variable and other data
  * may be injected.
  */
-public class JsonConfiguration {
+public abstract class JsonConfiguration {
+
+    /** Static logger instance */
+    private static Logger LOGGER = LoggerFactory.getLogger(JsonConfiguration.class);
 
     /** Component for resolving variable references */
     private ITenantEngineLifecycleComponent component;
@@ -57,11 +62,16 @@ public class JsonConfiguration {
     public int configurableInt(String fieldName, JsonNode json, int defaultValue) throws SiteWhereException {
 	JsonNode field = json.get(fieldName);
 	if (field == null) {
+	    LOGGER.info(String.format("Using defaulted value '%s' for field '%s'", String.valueOf(defaultValue),
+		    fieldName));
 	    return defaultValue;
 	}
 	StringSubstitutor sub = createStringSubstitutor(getComponent());
 	try {
-	    return field.isTextual() ? Integer.parseInt(sub.replace(field.textValue())) : field.asInt();
+	    int configured = field.isTextual() ? Integer.parseInt(sub.replace(field.textValue())) : field.asInt();
+	    LOGGER.info(
+		    String.format("Using configured value '%s' for field '%s'", String.valueOf(configured), fieldName));
+	    return configured;
 	} catch (NumberFormatException e) {
 	    throw new SiteWhereException(
 		    String.format("Unable to parse integer configuration parameter '%s' with value of '%s'.", fieldName,
@@ -80,11 +90,15 @@ public class JsonConfiguration {
      */
     public String configurableString(String fieldName, JsonNode json, String defaultValue) throws SiteWhereException {
 	JsonNode field = json.get(fieldName);
+	StringSubstitutor sub = createStringSubstitutor(getComponent());
 	if (field == null) {
+	    String defaulted = sub.replace(defaultValue);
+	    LOGGER.info(String.format("Using defaulted value '%s' for field '%s'", defaulted, fieldName));
 	    return defaultValue;
 	}
-	StringSubstitutor sub = createStringSubstitutor(getComponent());
-	return sub.replace(field.textValue());
+	String configured = sub.replace(field.textValue());
+	LOGGER.info(String.format("Using configured value '%s' for field '%s'", configured, fieldName));
+	return configured;
     }
 
     /**
@@ -100,11 +114,17 @@ public class JsonConfiguration {
 	    throws SiteWhereException {
 	JsonNode field = json.get(fieldName);
 	if (field == null) {
+	    LOGGER.info(String.format("Using defaulted value '%s' for field '%s'", String.valueOf(defaultValue),
+		    fieldName));
 	    return defaultValue;
 	}
 	StringSubstitutor sub = createStringSubstitutor(getComponent());
 	try {
-	    return field.isBoolean() ? field.asBoolean() : Boolean.parseBoolean(sub.replace(field.textValue()));
+	    boolean configured = field.isBoolean() ? field.asBoolean()
+		    : Boolean.parseBoolean(sub.replace(field.textValue()));
+	    LOGGER.info(
+		    String.format("Using configured value '%s' for field '%s'", String.valueOf(configured), fieldName));
+	    return configured;
 	} catch (NumberFormatException e) {
 	    throw new SiteWhereException(
 		    String.format("Unable to parse boolean configuration parameter '%s' with value of '%s'.", fieldName,

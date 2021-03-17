@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sitewhere.spi.microservice.configuration;
+package com.sitewhere.microservice.api.instance;
 
-import io.sitewhere.k8s.crd.microservice.SiteWhereMicroservice;
+import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 
 /**
- * Listens for changes in microservice configuration.
+ * Instance management interface implemented by datastores that can store
+ * instance metadata.
  */
-public interface IMicroserviceConfigurationListener {
-
-    /**
-     * Called when microservice specification is updated.
-     * 
-     * @param microservice
-     */
-    void onMicroserviceSpecificationUpdated(SiteWhereMicroservice microservice);
+public interface IInstanceManagement extends ITenantEngineLifecycleComponent {
 }

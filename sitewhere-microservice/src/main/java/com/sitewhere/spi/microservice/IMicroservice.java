@@ -214,11 +214,18 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
     RedisClient getRedisClient();
 
     /**
-     * Get stateful Redis connect for current client.
+     * Get stateful Redis connection for cache interactions.
      * 
      * @return
      */
-    StatefulRedisConnection<byte[], byte[]> getRedisConnection();
+    StatefulRedisConnection<String, byte[]> getRedisCacheConnection();
+
+    /**
+     * Get stateful Redis connection for stream interactions.
+     * 
+     * @return
+     */
+    StatefulRedisConnection<String, byte[]> getRedisStreamConnection();
 
     /**
      * Get metrics server.
