@@ -15,6 +15,8 @@
  */
 package com.sitewhere.microservice.lifecycle;
 
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.instance.EventPipelineLogLevel;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 
@@ -23,6 +25,34 @@ public class TenantEngineLifecycleComponentDecorator<T extends ITenantEngineLife
 
     public TenantEngineLifecycleComponentDecorator(T delegate) {
 	super(delegate);
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent#
+     * logPipelineEvent(java.lang.String, java.lang.String,
+     * com.sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
+     * java.lang.String,
+     * com.sitewhere.spi.microservice.instance.EventPipelineLogLevel)
+     */
+    @Override
+    public void logPipelineEvent(String source, String deviceToken, IFunctionIdentifier microservice, String message,
+	    String detail, EventPipelineLogLevel level) {
+	getDelegate().logPipelineEvent(source, deviceToken, microservice, message, detail, level);
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent#
+     * logPipelineEvent(java.lang.String, java.lang.String,
+     * com.sitewhere.spi.microservice.IFunctionIdentifier, java.lang.String,
+     * java.lang.Throwable,
+     * com.sitewhere.spi.microservice.instance.EventPipelineLogLevel)
+     */
+    @Override
+    public void logPipelineException(String source, String deviceToken, IFunctionIdentifier microservice,
+	    String message, Throwable throwable, EventPipelineLogLevel level) {
+	getDelegate().logPipelineException(source, deviceToken, microservice, message, throwable, level);
     }
 
     /*

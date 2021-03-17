@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
+import com.sitewhere.microservice.cache.StringByteArrayCodec;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.microservice.metrics.MetricsServer;
@@ -53,7 +54,6 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.codec.ByteArrayCodec;
 import io.sitewhere.k8s.SiteWhereKubernetesClient;
 import io.sitewhere.k8s.api.ISiteWhereKubernetesClient;
 import io.sitewhere.k8s.crd.instance.SiteWhereInstance;
@@ -95,8 +95,11 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     /** Lettuce Redis client */
     private RedisClient redisClient;
 
-    /** Current Redis connection */
-    private StatefulRedisConnection<byte[], byte[]> redisConnection;
+    /** Current Redis cache connection */
+    private StatefulRedisConnection<String, byte[]> redisCacheConnection;
+
+    /** Current Redis cache connection */
+    private StatefulRedisConnection<String, byte[]> redisStreamConnection;
 
     /** Shared informer factory for k8s resources */
     private SharedInformerFactory sharedInformerFactory;
@@ -244,7 +247,8 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 			String.valueOf(settings.getRedisPort()));
 		getLogger().info(String.format("Connecting to Redis server using address: %s", redisAddress));
 		this.redisClient = RedisClient.create(redisAddress);
-		this.redisConnection = getRedisClient().connect(new ByteArrayCodec());
+		this.redisCacheConnection = getRedisClient().connect(StringByteArrayCodec.INSTANCE);
+		this.redisStreamConnection = getRedisClient().connect(StringByteArrayCodec.INSTANCE);
 		break;
 	    } catch (Throwable t) {
 		getLogger().warn("Unable to establish Redis connection.", t);
@@ -361,11 +365,19 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     }
 
     /*
-     * @see com.sitewhere.spi.microservice.IMicroservice#getRedisConnection()
+     * @see com.sitewhere.spi.microservice.IMicroservice#getRedisCacheConnection()
      */
     @Override
-    public StatefulRedisConnection<byte[], byte[]> getRedisConnection() {
-	return redisConnection;
+    public StatefulRedisConnection<String, byte[]> getRedisCacheConnection() {
+	return redisCacheConnection;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#getRedisStreamConnection()
+     */
+    @Override
+    public StatefulRedisConnection<String, byte[]> getRedisStreamConnection() {
+	return redisStreamConnection;
     }
 
     /*

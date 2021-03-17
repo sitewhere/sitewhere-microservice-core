@@ -347,11 +347,6 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
      * @throws SiteWhereException
      */
     protected void handleMicroserviceUpdated(SiteWhereMicroservice microservice) throws SiteWhereException {
-	// Warn and skip if attempting to load using a null configuration.
-	if (microservice.getSpec().getConfiguration() == null) {
-	    getLogger().warn(String.format("Skipping update of microservice resource with null configuration."));
-	    return;
-	}
 	getLogger().info("Processing microservice configuration update...");
 
 	// Validate that functional area in k8s metadata matches expected value.
@@ -361,25 +356,37 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 			    microservice.getSpec().getFunctionalArea()));
 	}
 
-	getLogger().info(String.format("Microservice will use configuration:\n%s\n\n",
-		MarshalUtils.marshalJsonAsPrettyString(microservice.getSpec().getConfiguration())));
+	// Unmarshal configuration from JSON or create placeholder class.
+	C configuration = null;
+	if (microservice.getSpec().getConfiguration() != null) {
+	    getLogger().info(String.format("Microservice will use configuration:\n%s\n\n",
+		    MarshalUtils.marshalJsonAsPrettyString(microservice.getSpec().getConfiguration())));
+	    try {
+		configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
+			getConfigurationClass());
+	    } catch (JsonProcessingException e) {
+		throw new SiteWhereException("Unable to unmarshal microservice configuration.", e);
+	    }
+	} else {
+	    getLogger().info(String.format("Microservice does not have any configuration specified."));
+	    try {
+		configuration = getConfigurationClass().newInstance();
+	    } catch (InstantiationException e) {
+		throw new SiteWhereException("Unable to create instance of configuration class.", e);
+	    } catch (IllegalAccessException e) {
+		throw new SiteWhereException("Unauthorized to create instance of configuration class.", e);
+	    }
+	}
 
 	// Check for logging updates and process them.
 	handleLoggingConfigurationUpdates(microservice);
 
 	// Save updated resource and parse configuration.
 	this.microserviceResource = microservice;
-	try {
-	    C configuration = MarshalUtils.unmarshalJsonNode(microservice.getSpec().getConfiguration(),
-		    getConfigurationClass());
-	    this.microserviceConfiguration = configuration;
-	    this.microserviceConfigurationModule = createConfigurationModule();
-	    getLogger().debug(String.format("Successfully handled microservice configuration update for '%s'.",
-		    microservice.getMetadata().getName()));
-	} catch (JsonProcessingException e) {
-	    throw new SiteWhereException(String.format("Invalid microservice configuration (%s). Content is: \n\n%s\n",
-		    e.getMessage(), microservice.getSpec().getConfiguration()));
-	}
+	this.microserviceConfiguration = configuration;
+	this.microserviceConfigurationModule = createConfigurationModule();
+	getLogger().debug(String.format("Successfully handled microservice configuration update for '%s'.",
+		microservice.getMetadata().getName()));
     }
 
     /**

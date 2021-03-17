@@ -15,12 +15,40 @@
  */
 package com.sitewhere.spi.microservice.lifecycle;
 
+import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.instance.EventPipelineLogLevel;
 import com.sitewhere.spi.microservice.multitenant.IMicroserviceTenantEngine;
 
 /**
  * Extends {@link ILifecycleComponent} with ability to access tenant engine.
  */
 public interface ITenantEngineLifecycleComponent extends ILifecycleComponent {
+
+    /**
+     * Log an entry for event pipeline if level condition is satisfied.
+     * 
+     * @param source
+     * @param deviceToken
+     * @param microservice
+     * @param message
+     * @param detail
+     * @param level
+     */
+    void logPipelineEvent(String source, String deviceToken, IFunctionIdentifier microservice, String message,
+	    String detail, EventPipelineLogLevel level);
+
+    /**
+     * Log an exception for event pipeline if level condition is satisfied.
+     * 
+     * @param source
+     * @param deviceToken
+     * @param microservice
+     * @param message
+     * @param throwable
+     * @param level
+     */
+    void logPipelineException(String source, String deviceToken, IFunctionIdentifier microservice, String message,
+	    Throwable throwable, EventPipelineLogLevel level);
 
     /**
      * Build microservice/tenant-specific labels.

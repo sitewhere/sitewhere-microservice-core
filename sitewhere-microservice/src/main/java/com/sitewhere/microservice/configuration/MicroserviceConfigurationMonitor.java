@@ -121,7 +121,7 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
 	    return;
 	}
 
-	LOGGER.info(String.format("Detected %s resource change in microservice %s.", type.name(),
+	LOGGER.debug(String.format("Detected %s resource change in microservice %s.", type.name(),
 		microservice.getMetadata().getName()));
 	this.microserviceResource = microservice;
 

@@ -121,7 +121,7 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
 	    return;
 	}
 
-	LOGGER.info(String.format("Detected %s resource change in instance %s.", type.name(),
+	LOGGER.debug(String.format("Detected %s resource change in instance %s.", type.name(),
 		instance.getMetadata().getName()));
 	this.instanceResource = instance;
 
