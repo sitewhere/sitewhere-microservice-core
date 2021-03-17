@@ -27,7 +27,6 @@ import com.sitewhere.spi.microservice.IFunctionIdentifier;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
-import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponentParameter;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleConstraints;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
@@ -125,14 +124,6 @@ public class LifecycleComponentDecorator<T extends ILifecycleComponent> implemen
     @Override
     public Date getCreatedDate() {
 	return getDelegate().getCreatedDate();
-    }
-
-    /*
-     * @see com.sitewhere.spi.server.lifecycle.ILifecycleComponent#getParameters()
-     */
-    @Override
-    public List<ILifecycleComponentParameter<?>> getParameters() {
-	return getDelegate().getParameters();
     }
 
     /*

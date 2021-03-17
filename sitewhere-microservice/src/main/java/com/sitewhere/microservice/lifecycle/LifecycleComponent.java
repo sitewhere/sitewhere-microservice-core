@@ -35,7 +35,6 @@ import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.ServerStartupException;
 import com.sitewhere.spi.microservice.lifecycle.IAsyncStartLifecycleComponent;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponent;
-import com.sitewhere.spi.microservice.lifecycle.ILifecycleComponentParameter;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleConstraints;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleHierarchyRoot;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
@@ -76,9 +75,6 @@ public class LifecycleComponent implements ILifecycleComponent {
 
     /** Last error encountered in lifecycle operations */
     private SiteWhereException lifecycleError;
-
-    /** List of parameters associated with the component */
-    private List<ILifecycleComponentParameter<?>> parameters = new ArrayList<>();
 
     /** Map of contained lifecycle components */
     private Map<UUID, ILifecycleComponent> lifecycleComponents = new HashMap<>();
@@ -146,21 +142,6 @@ public class LifecycleComponent implements ILifecycleComponent {
     public void initializeParameters() throws SiteWhereException {
     }
 
-    /**
-     * Perform validations on configured parameters.
-     * 
-     * @throws SiteWhereException
-     */
-    protected void validateParameters() throws SiteWhereException {
-	for (ILifecycleComponentParameter<?> parameter : getParameters()) {
-	    // Validate that required parameters were provided.
-	    if ((parameter.isRequired()) && (parameter.getValue() == null)) {
-		throw new SiteWhereException("No value provided for required parameter '" + parameter.getName()
-			+ "'. Unable to initialize component.");
-	    }
-	}
-    }
-
     /*
      * @see
      * com.sitewhere.spi.server.lifecycle.ILifecycleComponent#lifecycleProvision(com
@@ -192,10 +173,6 @@ public class LifecycleComponent implements ILifecycleComponent {
     @Override
     public void lifecycleInitialize(ILifecycleProgressMonitor monitor) {
 	try {
-	    // Initialize parameters before component initialization.
-	    initializeParameters();
-	    validateParameters();
-
 	    // Verify that component can be initialized.
 	    if (!canInitialize()) {
 		return;
@@ -718,18 +695,6 @@ public class LifecycleComponent implements ILifecycleComponent {
 
     public void setLifecycleError(SiteWhereException lifecycleError) {
 	this.lifecycleError = lifecycleError;
-    }
-
-    /*
-     * @see com.sitewhere.spi.server.lifecycle.ILifecycleComponent#getParameters()
-     */
-    @Override
-    public List<ILifecycleComponentParameter<?>> getParameters() {
-	return parameters;
-    }
-
-    public void setParameters(List<ILifecycleComponentParameter<?>> parameters) {
-	this.parameters = parameters;
     }
 
     /*

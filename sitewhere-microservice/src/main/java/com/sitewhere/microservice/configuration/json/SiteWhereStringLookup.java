@@ -33,6 +33,9 @@ public class SiteWhereStringLookup implements StringLookup {
     private static final String INSTANCE_ID = "instance.id";
 
     /** Replace with token of current tenant */
+    private static final String TENANT_ID = "tenant.id";
+
+    /** Replace with token of current tenant */
     private static final String TENANT_TOKEN = "tenant.token";
 
     /** Component to resolve against */
@@ -64,9 +67,11 @@ public class SiteWhereStringLookup implements StringLookup {
 		return getComponent().getMicroservice().getInstanceSettings().getKubernetesNamespace();
 	    }
 	    // Handle replacement for tenant token.
-	    else if (TENANT_TOKEN.equals(key)) {
+	    else if (TENANT_TOKEN.equals(key) || TENANT_ID.equals(key)) {
 		return getComponent().getTenantEngine().getTenantResource().getMetadata().getName();
 	    }
+	} else {
+	    LOGGER.warn("Skipping string resolution because tenant engine lifecycle component is not set.");
 	}
 	return key;
     }

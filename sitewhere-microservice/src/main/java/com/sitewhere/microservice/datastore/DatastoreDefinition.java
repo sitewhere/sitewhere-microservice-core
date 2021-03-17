@@ -15,12 +15,15 @@
  */
 package com.sitewhere.microservice.datastore;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Holds information about a datastore using either a reference or a nested
  * configuration.
  */
+@JsonInclude(Include.NON_NULL)
 public class DatastoreDefinition {
 
     /** Datastore type */
