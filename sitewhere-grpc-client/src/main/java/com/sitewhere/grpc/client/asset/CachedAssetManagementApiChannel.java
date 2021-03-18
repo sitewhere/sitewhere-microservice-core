@@ -102,6 +102,45 @@ public class CachedAssetManagementApiChannel extends TenantEngineLifecycleCompon
 
     /*
      * @see
+     * com.sitewhere.spi.asset.IAssetManagement#createAsset(com.sitewhere.spi.asset.
+     * request.IAssetCreateRequest)
+     */
+    @Override
+    public IAsset createAsset(IAssetCreateRequest request) throws SiteWhereException {
+	IAsset created = getWrapped().createAsset(request);
+	String tenantId = UserContext.getCurrentTenantId();
+	getAssetCache().setCacheEntry(tenantId, created.getToken(), created);
+	getAssetByIdCache().setCacheEntry(tenantId, created.getId(), created);
+	return created;
+    }
+
+    /*
+     * @see com.sitewhere.spi.asset.IAssetManagement#updateAsset(java.util.UUID,
+     * com.sitewhere.spi.asset.request.IAssetCreateRequest)
+     */
+    @Override
+    public IAsset updateAsset(UUID assetId, IAssetCreateRequest request) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IAsset updated = getWrapped().updateAsset(assetId, request);
+	getAssetCache().setCacheEntry(tenantId, updated.getToken(), updated);
+	getAssetByIdCache().setCacheEntry(tenantId, updated.getId(), updated);
+	return updated;
+    }
+
+    /*
+     * @see com.sitewhere.spi.asset.IAssetManagement#deleteAsset(java.util.UUID)
+     */
+    @Override
+    public IAsset deleteAsset(UUID assetId) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IAsset deleted = getWrapped().deleteAsset(assetId);
+	getAssetCache().removeCacheEntry(tenantId, deleted.getToken());
+	getAssetByIdCache().removeCacheEntry(tenantId, deleted.getId());
+	return deleted;
+    }
+
+    /*
+     * @see
      * com.sitewhere.grpc.client.asset.AssetManagementApiChannel#getAsset(java.util.
      * UUID)
      */
@@ -129,6 +168,45 @@ public class CachedAssetManagementApiChannel extends TenantEngineLifecycleCompon
 	    getAssetCache().setCacheEntry(tenantId, token, asset);
 	}
 	return asset;
+    }
+
+    /*
+     * @see
+     * com.sitewhere.spi.asset.IAssetManagement#createAssetType(com.sitewhere.spi.
+     * asset.request.IAssetTypeCreateRequest)
+     */
+    @Override
+    public IAssetType createAssetType(IAssetTypeCreateRequest request) throws SiteWhereException {
+	IAssetType created = getWrapped().createAssetType(request);
+	String tenantId = UserContext.getCurrentTenantId();
+	getAssetTypeCache().setCacheEntry(tenantId, created.getToken(), created);
+	getAssetTypeByIdCache().setCacheEntry(tenantId, created.getId(), created);
+	return created;
+    }
+
+    /*
+     * @see com.sitewhere.spi.asset.IAssetManagement#updateAssetType(java.util.UUID,
+     * com.sitewhere.spi.asset.request.IAssetTypeCreateRequest)
+     */
+    @Override
+    public IAssetType updateAssetType(UUID assetTypeId, IAssetTypeCreateRequest request) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IAssetType updated = getWrapped().updateAssetType(assetTypeId, request);
+	getAssetTypeCache().setCacheEntry(tenantId, updated.getToken(), updated);
+	getAssetTypeByIdCache().setCacheEntry(tenantId, updated.getId(), updated);
+	return updated;
+    }
+
+    /*
+     * @see com.sitewhere.spi.asset.IAssetManagement#deleteAssetType(java.util.UUID)
+     */
+    @Override
+    public IAssetType deleteAssetType(UUID assetTypeId) throws SiteWhereException {
+	String tenantId = UserContext.getCurrentTenantId();
+	IAssetType deleted = getWrapped().deleteAssetType(assetTypeId);
+	getAssetTypeCache().removeCacheEntry(tenantId, deleted.getToken());
+	getAssetTypeByIdCache().removeCacheEntry(tenantId, deleted.getId());
+	return deleted;
     }
 
     /*
@@ -165,66 +243,12 @@ public class CachedAssetManagementApiChannel extends TenantEngineLifecycleCompon
 
     /*
      * @see
-     * com.sitewhere.spi.asset.IAssetManagement#createAsset(com.sitewhere.spi.asset.
-     * request.IAssetCreateRequest)
-     */
-    @Override
-    public IAsset createAsset(IAssetCreateRequest request) throws SiteWhereException {
-	return getWrapped().createAsset(request);
-    }
-
-    /*
-     * @see com.sitewhere.spi.asset.IAssetManagement#updateAsset(java.util.UUID,
-     * com.sitewhere.spi.asset.request.IAssetCreateRequest)
-     */
-    @Override
-    public IAsset updateAsset(UUID assetId, IAssetCreateRequest request) throws SiteWhereException {
-	return getWrapped().updateAsset(assetId, request);
-    }
-
-    /*
-     * @see com.sitewhere.spi.asset.IAssetManagement#deleteAsset(java.util.UUID)
-     */
-    @Override
-    public IAsset deleteAsset(UUID assetId) throws SiteWhereException {
-	return getWrapped().deleteAsset(assetId);
-    }
-
-    /*
-     * @see
      * com.sitewhere.spi.asset.IAssetManagement#listAssets(com.sitewhere.spi.search.
      * asset.IAssetSearchCriteria)
      */
     @Override
     public ISearchResults<? extends IAsset> listAssets(IAssetSearchCriteria criteria) throws SiteWhereException {
 	return getWrapped().listAssets(criteria);
-    }
-
-    /*
-     * @see
-     * com.sitewhere.spi.asset.IAssetManagement#createAssetType(com.sitewhere.spi.
-     * asset.request.IAssetTypeCreateRequest)
-     */
-    @Override
-    public IAssetType createAssetType(IAssetTypeCreateRequest request) throws SiteWhereException {
-	return getWrapped().createAssetType(request);
-    }
-
-    /*
-     * @see com.sitewhere.spi.asset.IAssetManagement#updateAssetType(java.util.UUID,
-     * com.sitewhere.spi.asset.request.IAssetTypeCreateRequest)
-     */
-    @Override
-    public IAssetType updateAssetType(UUID assetTypeId, IAssetTypeCreateRequest request) throws SiteWhereException {
-	return getWrapped().updateAssetType(assetTypeId, request);
-    }
-
-    /*
-     * @see com.sitewhere.spi.asset.IAssetManagement#deleteAssetType(java.util.UUID)
-     */
-    @Override
-    public IAssetType deleteAssetType(UUID assetTypeId) throws SiteWhereException {
-	return getWrapped().deleteAssetType(assetTypeId);
     }
 
     /*
