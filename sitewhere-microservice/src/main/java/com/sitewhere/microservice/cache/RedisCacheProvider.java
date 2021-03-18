@@ -86,7 +86,7 @@ public abstract class RedisCacheProvider<K, V> implements ICacheProvider<K, V> {
     @Override
     public void setCacheEntry(String tenantId, K key, V value) throws SiteWhereException {
 	String cacheKey = getCacheKey(tenantId, convertKey(key));
-	LOGGER.info("Caching value for '" + cacheKey + "'.");
+	LOGGER.debug("Caching value for '" + cacheKey + "'.");
 	if ((value != null) && (getCacheConfiguration().isEnabled())) {
 	    getMicroservice().getRedisCacheConnection().sync().set(cacheKey, serialize(value));
 	    getMicroservice().getRedisCacheConnection().sync().expire(cacheKey,
@@ -107,7 +107,7 @@ public abstract class RedisCacheProvider<K, V> implements ICacheProvider<K, V> {
 	byte[] result = getMicroservice().getRedisCacheConnection().sync().get(cacheKey);
 	if (result != null) {
 	    V converted = deserialize(result);
-	    LOGGER.info("Found cached value for '" + cacheKey + "'.");
+	    LOGGER.debug("Found cached value for '" + cacheKey + "'.");
 	    return converted;
 	}
 	return null;
