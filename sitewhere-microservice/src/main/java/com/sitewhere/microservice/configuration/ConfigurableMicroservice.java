@@ -17,7 +17,7 @@ package com.sitewhere.microservice.configuration;
 
 import java.util.logging.Level;
 
-import org.jboss.logmanager.LogManager;
+import org.jboss.logmanager.LogContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.CreationException;
@@ -404,7 +404,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	    for (MicroserviceLoggingEntry entry : updated.getSpec().getLogging().getOverrides()) {
 		try {
 		    Level level = Level.parse(entry.getLevel().toUpperCase());
-		    LogManager.getLogManager().getLogger(entry.getLogger()).setLevel(level);
+		    LogContext.getInstance().getLogger(entry.getLogger()).setLevel(level);
 		    getLogger().info(String.format("Set log level for '%s' to %s", entry.getLogger(), level.getName()));
 		} catch (IllegalArgumentException e) {
 		    getLogger().warn(String.format("Invalid log level specifed for '%s': %s", entry.getLogger(),
