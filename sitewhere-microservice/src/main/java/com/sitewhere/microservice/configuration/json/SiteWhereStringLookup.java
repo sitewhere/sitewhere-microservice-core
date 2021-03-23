@@ -73,7 +73,7 @@ public class SiteWhereStringLookup implements StringLookup {
 	} else {
 	    LOGGER.warn("Skipping string resolution because tenant engine lifecycle component is not set.");
 	}
-	return key;
+	return null;
     }
 
     protected ITenantEngineLifecycleComponent getComponent() {
