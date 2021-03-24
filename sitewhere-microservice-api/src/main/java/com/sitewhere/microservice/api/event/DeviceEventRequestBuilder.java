@@ -18,6 +18,7 @@ package com.sitewhere.microservice.api.event;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.sitewhere.microservice.api.device.IDeviceManagement;
 import com.sitewhere.rest.model.device.event.DeviceEventContext;
@@ -100,19 +101,28 @@ public class DeviceEventRequestBuilder {
 	}
     }
 
+    /**
+     * Source id passed in events generated as side-effect of REST calls.
+     * 
+     * @return
+     */
+    public static String createBuilderSourceId() {
+	return "BUILDER:" + UUID.randomUUID().toString();
+    }
+
     public AssignmentScope forSameAssignmentAs(DeviceEventSupport support) throws SiteWhereException {
 	return new AssignmentScope(getEventManagement(),
-		getContextForAssignment(getDeviceManagement(), support.getDeviceAssignment()));
+		getContextForAssignment(createBuilderSourceId(), getDeviceManagement(), support.getDeviceAssignment()));
     }
 
     public AssignmentScope forSameAssignmentAs(IDeviceEvent event) throws SiteWhereException {
-	return new AssignmentScope(getEventManagement(), getContextForAssignment(getDeviceManagement(),
-		getDeviceManagement().getDeviceAssignment(event.getDeviceAssignmentId())));
+	return new AssignmentScope(getEventManagement(), getContextForAssignment(createBuilderSourceId(),
+		getDeviceManagement(), getDeviceManagement().getDeviceAssignment(event.getDeviceAssignmentId())));
     }
 
     public AssignmentScope forAssignment(String assignmentToken) throws SiteWhereException {
-	return new AssignmentScope(getEventManagement(), getContextForAssignment(getDeviceManagement(),
-		getDeviceManagement().getDeviceAssignmentByToken(assignmentToken)));
+	return new AssignmentScope(getEventManagement(), getContextForAssignment(createBuilderSourceId(),
+		getDeviceManagement(), getDeviceManagement().getDeviceAssignmentByToken(assignmentToken)));
     }
 
     public IDeviceManagement getDeviceManagement() {
@@ -131,7 +141,7 @@ public class DeviceEventRequestBuilder {
      * @return
      * @throws SiteWhereException
      */
-    public static IDeviceEventContext getContextForAssignment(IDeviceManagement deviceManagement,
+    public static IDeviceEventContext getContextForAssignment(String sourceId, IDeviceManagement deviceManagement,
 	    IDeviceAssignment assignment) throws SiteWhereException {
 	IDevice device = deviceManagement.getDevice(assignment.getDeviceId());
 	if (device == null) {
@@ -139,6 +149,7 @@ public class DeviceEventRequestBuilder {
 	}
 
 	DeviceEventContext context = new DeviceEventContext();
+	context.setSourceId(sourceId);
 	context.setDeviceToken(device.getToken());
 	context.setDeviceId(device.getId());
 	context.setDeviceTypeId(device.getDeviceTypeId());
