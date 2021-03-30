@@ -34,6 +34,7 @@ import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 public abstract class SystemUserCallable<V> implements Callable<V> {
 
     /** Static logger instance */
+    @SuppressWarnings("unused")
     private static Log LOGGER = LogFactory.getLog(SystemUserCallable.class);
 
     /** Tenant component executing runnable */
@@ -55,7 +56,7 @@ public abstract class SystemUserCallable<V> implements Callable<V> {
      * @see java.util.concurrent.Callable#call()
      */
     @Override
-    public V call() throws Exception {
+    public V call() throws SiteWhereException {
 	SiteWhereAuthentication previous = UserContext.getCurrentUser();
 	IMicroservice<?, ?> microservice = getComponent().getMicroservice();
 	SiteWhereTenant tenant = getComponent().getTenantEngine().getTenantResource();
@@ -68,9 +69,6 @@ public abstract class SystemUserCallable<V> implements Callable<V> {
 		UserContext.setContext(system);
 	    }
 	    return runAsSystemUser();
-	} catch (Throwable e) {
-	    LOGGER.error("Unhandled exception.", e);
-	    throw e;
 	} finally {
 	    UserContext.setContext(previous);
 	}
