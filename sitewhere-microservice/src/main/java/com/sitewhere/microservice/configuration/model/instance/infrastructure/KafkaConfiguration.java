@@ -15,12 +15,9 @@
  */
 package com.sitewhere.microservice.configuration.model.instance.infrastructure;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
-
 /**
  * Configuration for Kafka connectivity.
  */
-@RegisterForReflection
 public class KafkaConfiguration {
 
     /** Hostname */

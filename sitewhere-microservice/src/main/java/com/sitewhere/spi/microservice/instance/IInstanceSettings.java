@@ -15,61 +15,75 @@
  */
 package com.sitewhere.spi.microservice.instance;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
-import io.quarkus.arc.config.ConfigProperties;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * Common settings used in a SiteWhere instance.
  */
-@ConfigProperties(prefix = "sitewhere.config")
+@Configuration
+@ConfigurationProperties(prefix = "sitewhere.config")
 public interface IInstanceSettings {
 
-    @ConfigProperty(name = "k8s.name")
-    public String getKubernetesName();
+    /** Kubernetes name */
+    public String getK8sName();
 
-    @ConfigProperty(name = "k8s.namespace")
-    public String getKubernetesNamespace();
+    /** Kubernetes namespace */
+    public String getK8sNamespace();
 
-    @ConfigProperty(name = "k8s.pod.ip")
-    public String getKubernetesPodAddress();
+    /** Kubernetes pod ip */
+    public String getK8sPodIp();
 
-    @ConfigProperty(name = "product.id", defaultValue = "sitewhere")
+    /** Product id */
+    @Value("sitewhere")
     String getProductId();
 
-    @ConfigProperty(name = "keycloak.service.name", defaultValue = "sitewhere-keycloak-http")
+    /** Keycloak service name */
+    @Value("sitewhere-keycloak-http")
     String getKeycloakServiceName();
 
-    @ConfigProperty(name = "keycloak.api.port", defaultValue = "80")
+    /** Keycloak API port */
+    @Value("80")
     int getKeycloakApiPort();
 
-    @ConfigProperty(name = "keycloak.realm", defaultValue = "sitewhere")
+    /** Keycloak realm */
+    @Value("sitewhere")
     String getKeycloakRealm();
 
-    @ConfigProperty(name = "keycloak.master.realm", defaultValue = "master")
+    /** Keycloak master realm */
+    @Value("master")
     String getKeycloakMasterRealm();
 
-    @ConfigProperty(name = "keycloak.master.username", defaultValue = "sitewhere")
+    /** Keycloak master username */
+    @Value("sitewhere")
     String getKeycloakMasterUsername();
 
-    @ConfigProperty(name = "keycloak.master.password", defaultValue = "sitewhere")
+    /** Keycloak master password */
+    @Value("sitewhere")
     String getKeycloakMasterPassword();
 
-    @ConfigProperty(name = "keycloak.oidc.secret", defaultValue = "this-should-be-set-via-environment")
+    /** Keycloak OIDC secret */
+    @Value("this-should-be-set-via-environment")
     String getKeycloakOidcSecret();
 
-    @ConfigProperty(name = "keycloak.system.username", defaultValue = "system")
+    /** Keycloak system username */
+    @Value("system")
     String getKeycloakSystemUsername();
 
-    @ConfigProperty(name = "keycloak.system.password", defaultValue = "system")
+    /** Keycloak system password */
+    @Value("system")
     String getKeycloakSystemPassword();
 
-    @ConfigProperty(name = "redis.service.name", defaultValue = "sitewhere-redis-headless")
+    /** Redis service name */
+    @Value("sitewhere-redis-headless")
     String getRedisServiceName();
 
-    @ConfigProperty(name = "redis.port", defaultValue = "6379")
+    /** Redis service port */
+    @Value("6379")
     int getRedisPort();
 
-    @ConfigProperty(name = "redis.password", defaultValue = "sitewhere")
+    /** Redis password */
+    @Value("sitewhere")
     String getRedisPassword();
 }

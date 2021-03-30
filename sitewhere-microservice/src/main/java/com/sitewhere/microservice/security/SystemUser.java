@@ -15,8 +15,9 @@
  */
 package com.sitewhere.microservice.security;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
+import org.springframework.stereotype.Component;
 
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
@@ -29,7 +30,7 @@ import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
  * Provides a system "superuser" that allows microservices to authenticate with
  * other microservices via JWT.
  */
-@ApplicationScoped
+@Component
 public class SystemUser implements ISystemUser {
 
     /** Number of seconds between renewing JWT */

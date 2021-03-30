@@ -17,8 +17,6 @@ package com.sitewhere.microservice.configuration;
 
 import java.util.logging.Level;
 
-import org.jboss.logmanager.LogContext;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.CreationException;
 import com.google.inject.Guice;
@@ -244,21 +242,21 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     protected void loadConfigurationFromK8s() throws SiteWhereException {
 	getLogger().info("Loading instance information from Kubernetes...");
 	SiteWhereInstance instance = getSiteWhereKubernetesClient().getInstances()
-		.withName(getInstanceSettings().getKubernetesNamespace()).get();
+		.withName(getInstanceSettings().getK8sNamespace()).get();
 	if (instance == null) {
 	    throw new SiteWhereException(String.format("No instance found with name '%s'. Aborting startup.",
-		    getInstanceSettings().getKubernetesNamespace()));
+		    getInstanceSettings().getK8sNamespace()));
 	}
 	handleInstanceUpdated(instance);
 	getLogger().info("Instance information loaded successfully.");
 
 	getLogger().info("Loading microservice information from Kubernetes...");
 	SiteWhereMicroservice microservice = getSiteWhereKubernetesClient().getMicroservices()
-		.inNamespace(getInstanceSettings().getKubernetesNamespace()).withName(getIdentifier().getPath()).get();
+		.inNamespace(getInstanceSettings().getK8sNamespace()).withName(getIdentifier().getPath()).get();
 	if (microservice == null) {
 	    throw new SiteWhereException(
 		    String.format("No microservice found in namespace '%s' with name '%s'. Aborting startup.",
-			    getInstanceSettings().getKubernetesNamespace(), getIdentifier().getPath()));
+			    getInstanceSettings().getK8sNamespace(), getIdentifier().getPath()));
 	}
 	handleMicroserviceUpdated(microservice);
 	getLogger().info("Microservice information loaded successfully.");
@@ -404,7 +402,7 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 	    for (MicroserviceLoggingEntry entry : updated.getSpec().getLogging().getOverrides()) {
 		try {
 		    Level level = Level.parse(entry.getLevel().toUpperCase());
-		    LogContext.getInstance().getLogger(entry.getLogger()).setLevel(level);
+//		    LoggerFactory.getLogger(entry.getLogger()).setLevel(level); TODO: Fix log level.
 		    getLogger().info(String.format("Set log level for '%s' to %s", entry.getLogger(), level.getName()));
 		} catch (IllegalArgumentException e) {
 		    getLogger().warn(String.format("Invalid log level specifed for '%s': %s", entry.getLogger(),

@@ -33,22 +33,16 @@ import com.sitewhere.spi.microservice.configuration.IScriptConfigurationMonitor;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
-import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.sitewhere.k8s.crd.ResourceContexts;
 import io.sitewhere.k8s.crd.ResourceLabels;
 import io.sitewhere.k8s.crd.controller.ResourceChangeType;
 import io.sitewhere.k8s.crd.controller.SiteWhereResourceController;
-import io.sitewhere.k8s.crd.tenant.scripting.DoneableSiteWhereScript;
 import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScript;
 import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScriptList;
-import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScriptSpec;
-import io.sitewhere.k8s.crd.tenant.scripting.SiteWhereScriptStatus;
 
 /**
  * Monitors script resources for changes.
  */
-@RegisterForReflection(targets = { SiteWhereScript.class, SiteWhereScriptList.class, SiteWhereScriptSpec.class,
-	SiteWhereScriptStatus.class, DoneableSiteWhereScript.class })
 public class ScriptConfigurationMonitor extends SiteWhereResourceController<SiteWhereScript>
 	implements IScriptConfigurationMonitor {
 

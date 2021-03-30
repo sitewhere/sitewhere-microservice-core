@@ -15,8 +15,8 @@
  */
 package com.sitewhere.microservice.kafka;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
@@ -26,10 +26,10 @@ import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 /**
  * Class for locating SiteWhere Kafka topics.
  */
-@ApplicationScoped
+@Component
 public class KafkaTopicNaming implements IKafkaTopicNaming {
 
-    @Inject
+    @Autowired
     IInstanceSettings instanceSettings;
 
     /** Separator used to partition topic name */
@@ -97,7 +97,7 @@ public class KafkaTopicNaming implements IKafkaTopicNaming {
      */
     @Override
     public String getInstancePrefix() {
-	return getInstanceSettings().getProductId() + SEPARATOR + getInstanceSettings().getKubernetesNamespace();
+	return getInstanceSettings().getProductId() + SEPARATOR + getInstanceSettings().getK8sNamespace();
     }
 
     /*

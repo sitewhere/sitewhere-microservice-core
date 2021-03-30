@@ -1,8 +1,9 @@
 plugins {
-	id 'java'
-	id 'distribution'
+    id 'org.springframework.boot' version '2.4.4' apply false
 	id 'com.github.hierynomus.license' version '0.15.0' 
 	id 'org.ajoberstar.grgit' version '2.2.1' 
+    id 'java'
+    id 'distribution'
 }
 
 ext {
@@ -12,15 +13,14 @@ ext {
 ext['git.revision'] = ext.git.head().id
 ext['git.revision.abbrev'] = ext.git.head().abbreviatedId
 
-ext['sitewhere.k8s.api.version'] = '3.0.1'
-ext['sitewhere.grpc.api.version'] = '3.0.0'
-ext['jackson.version'] = '2.9.10'
+ext['sitewhere.k8s.api.version'] = '3.1.0'
+ext['sitewhere.grpc.api.version'] = '3.1.0'
 
 apply plugin: 'distribution'
 	
 allprojects {
 	group = 'com.sitewhere'
-	version = '3.0.13'
+	version = '3.1.0'
 	
 	repositories {
 		maven { url "https://repo.maven.apache.org/maven2" }
@@ -42,7 +42,8 @@ subprojects {
 	
 	// Common dependencies used for all projects.
 	dependencies {
-		compile platform('io.quarkus:quarkus-bom:1.7.2.Final')
+        // Sping dependency managment.
+        implementation platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
 		
 		compile group: 'org.graalvm.nativeimage', name: 'svm', version: '20.2.0'
 		

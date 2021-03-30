@@ -104,7 +104,7 @@ public class MicroserviceConfigurationMonitor extends SiteWhereResourceControlle
     public void reconcileResourceChange(ResourceChangeType type, SiteWhereMicroservice microservice) {
 	// Skip changes for other microservices or that don't affect specification.
 	boolean sameInstance = microservice.getMetadata().getNamespace()
-		.equals(getMicroservice().getInstanceSettings().getKubernetesNamespace());
+		.equals(getMicroservice().getInstanceSettings().getK8sNamespace());
 	boolean sameMicroservice = sameInstance
 		&& microservice.getSpec().getFunctionalArea().equals(getMicroservice().getIdentifier().getPath());
 	boolean differentGeneration = getResource() == null ? true

@@ -15,12 +15,9 @@
  */
 package com.sitewhere.microservice.configuration.model.instance.infrastructure;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
-
 /**
  * Configuration for infrastructure connectivity.
  */
-@RegisterForReflection
 public class InfrastructureConfiguration {
 
     /** System namespace */

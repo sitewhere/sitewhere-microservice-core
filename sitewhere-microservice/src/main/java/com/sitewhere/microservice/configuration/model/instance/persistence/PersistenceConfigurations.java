@@ -18,12 +18,9 @@ package com.sitewhere.microservice.configuration.model.instance.persistence;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
-
 /**
  * Instance-level configuration for persistence implementations.
  */
-@RegisterForReflection
 public class PersistenceConfigurations {
 
     /** Relational database configurations indexed by id */

@@ -106,13 +106,13 @@ public class InstanceConfigurationMonitor extends SiteWhereResourceController<Si
     public void reconcileResourceChange(ResourceChangeType type, SiteWhereInstance instance) {
 	// Skip changes for other instances or that don't affect specification.
 	boolean sameInstance = instance.getMetadata().getName()
-		.equals(getMicroservice().getInstanceSettings().getKubernetesNamespace());
+		.equals(getMicroservice().getInstanceSettings().getK8sNamespace());
 	boolean differentGeneration = getResource() == null ? true
 		: getResource().getMetadata().getGeneration() != instance.getMetadata().getGeneration();
 	if (!sameInstance) {
 	    LOGGER.debug(String.format("Skipping %s resource change in instance %s due to wrong instance (%s).",
 		    type.name(), instance.getMetadata().getName(),
-		    getMicroservice().getInstanceSettings().getKubernetesNamespace()));
+		    getMicroservice().getInstanceSettings().getK8sNamespace()));
 	    return;
 	}
 	if (!differentGeneration) {

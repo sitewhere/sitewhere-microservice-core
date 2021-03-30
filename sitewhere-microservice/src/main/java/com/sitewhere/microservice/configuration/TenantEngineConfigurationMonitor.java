@@ -34,22 +34,17 @@ import com.sitewhere.spi.microservice.configuration.ITenantEngineConfigurationMo
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
-import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.sitewhere.k8s.crd.ResourceContexts;
 import io.sitewhere.k8s.crd.ResourceLabels;
 import io.sitewhere.k8s.crd.controller.ResourceChangeType;
 import io.sitewhere.k8s.crd.controller.SiteWhereResourceController;
-import io.sitewhere.k8s.crd.tenant.engine.DoneableSiteWhereTenantEngine;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngine;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineList;
 import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineSpec;
-import io.sitewhere.k8s.crd.tenant.engine.SiteWhereTenantEngineStatus;
 
 /**
  * Monitors tenant engines for changes.
  */
-@RegisterForReflection(targets = { SiteWhereTenantEngine.class, SiteWhereTenantEngineList.class,
-	SiteWhereTenantEngineSpec.class, SiteWhereTenantEngineStatus.class, DoneableSiteWhereTenantEngine.class })
 public class TenantEngineConfigurationMonitor extends SiteWhereResourceController<SiteWhereTenantEngine>
 	implements ITenantEngineConfigurationMonitor {
 

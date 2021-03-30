@@ -85,7 +85,7 @@ public class ScriptManager extends TenantEngineLifecycleComponent implements ISc
     @Override
     public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
 	String functionalArea = getMicroservice().getIdentifier().getPath();
-	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
 	SiteWhereScriptList scripts = getMicroservice().getSiteWhereKubernetesClient().getScripts()
 		.inNamespace(namespace).withLabel(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, functionalArea)
 		.list();

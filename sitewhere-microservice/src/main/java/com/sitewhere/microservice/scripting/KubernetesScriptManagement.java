@@ -63,7 +63,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
     @Override
     public List<IScriptMetadata> getScriptMetadataList(IFunctionIdentifier identifier, String tenantId)
 	    throws SiteWhereException {
-	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
 	Map<String, String> labels = new HashMap<>();
 	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, identifier.getPath());
 	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, tenantId);
@@ -86,7 +86,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
     @Override
     public List<IScriptMetadata> getScriptMetadataListForCategory(IFunctionIdentifier identifier, String tenantId,
 	    String category) throws SiteWhereException {
-	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
 	Map<String, String> labels = new HashMap<>();
 	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, identifier.getPath());
 	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, tenantId);
@@ -124,7 +124,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
     @Override
     public IScriptMetadata createScript(IFunctionIdentifier identifier, String tenantId, IScriptCreateRequest request)
 	    throws SiteWhereException {
-	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
 	SiteWhereScript existing = getK8sScript(identifier, tenantId, request.getId());
 	if (existing != null) {
 	    throw new SiteWhereException("A script with that id already exists.");
@@ -155,7 +155,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
     @Override
     public byte[] getScriptContent(IFunctionIdentifier identifier, String tenantId, String scriptId, String versionId)
 	    throws SiteWhereException {
-	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
 	SiteWhereScriptVersion version = getMicroservice().getSiteWhereKubernetesClient().getScriptsVersions()
 		.inNamespace(namespace).withName(versionId).get();
 	return version != null ? version.getSpec().getContent().getBytes() : null;
@@ -171,7 +171,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
     @Override
     public IScriptMetadata updateScript(IFunctionIdentifier identifier, String tenantId, String scriptId,
 	    String versionId, IScriptCreateRequest request) throws SiteWhereException {
-	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
 	SiteWhereScript match = getK8sScript(identifier, tenantId, scriptId);
 	if (match == null) {
 	    throw new SiteWhereSystemException(ErrorCode.Error, ErrorLevel.ERROR);
@@ -205,7 +205,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
     @Override
     public IScriptVersion cloneScript(IFunctionIdentifier identifier, String tenantId, String scriptId,
 	    String versionId, String comment) throws SiteWhereException {
-	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
 	SiteWhereScript match = getK8sScript(identifier, tenantId, scriptId);
 	if (match == null) {
 	    throw new SiteWhereSystemException(ErrorCode.Error, ErrorLevel.ERROR);
@@ -234,7 +234,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
     @Override
     public IScriptMetadata activateScript(IFunctionIdentifier identifier, String tenantId, String scriptId,
 	    String versionId) throws SiteWhereException {
-	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
 	SiteWhereScript match = getK8sScript(identifier, tenantId, scriptId);
 	if (match == null) {
 	    throw new SiteWhereSystemException(ErrorCode.Error, ErrorLevel.ERROR);
@@ -261,7 +261,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
     @Override
     public IScriptMetadata deleteScript(IFunctionIdentifier identifier, String tenantId, String scriptId)
 	    throws SiteWhereException {
-	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
 	SiteWhereScript match = getK8sScript(identifier, tenantId, scriptId);
 	if (match == null) {
 	    throw new SiteWhereSystemException(ErrorCode.Error, ErrorLevel.ERROR);
@@ -282,7 +282,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
      */
     protected SiteWhereScript getK8sScript(IFunctionIdentifier identifier, String tenantId, String scriptId)
 	    throws SiteWhereException {
-	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
 	Map<String, String> labels = new HashMap<>();
 	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, identifier.getPath());
 	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, tenantId);
@@ -314,7 +314,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
 	String name = String.format("%s-%s-%s", identifier.getPath(), request.getId(),
 		String.valueOf(System.currentTimeMillis()));
 	meta.setName(name);
-	meta.setNamespace(getMicroservice().getInstanceSettings().getKubernetesNamespace());
+	meta.setNamespace(getMicroservice().getInstanceSettings().getK8sNamespace());
 	Map<String, String> labels = new HashMap<>();
 	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, tenantId);
 	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, identifier.getPath());
@@ -350,7 +350,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
 	String name = String.format("%s-v%s", script.getMetadata().getName(),
 		String.valueOf(System.currentTimeMillis()));
 	meta.setName(name);
-	meta.setNamespace(getMicroservice().getInstanceSettings().getKubernetesNamespace());
+	meta.setNamespace(getMicroservice().getInstanceSettings().getK8sNamespace());
 	Map<String, String> labels = new HashMap<>();
 	labels.put(ResourceLabels.LABEL_SITEWHERE_TENANT, scriptLabels.get(ResourceLabels.LABEL_SITEWHERE_TENANT));
 	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA,
@@ -427,7 +427,7 @@ public class KubernetesScriptManagement extends LifecycleComponent implements IS
 	String tenantId = script.getMetadata().getLabels().get(ResourceLabels.LABEL_SITEWHERE_TENANT);
 	String functionalArea = script.getMetadata().getLabels().get(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA);
 	String scriptId = script.getSpec().getScriptId();
-	String namespace = getMicroservice().getInstanceSettings().getKubernetesNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
 	Map<String, String> labels = new HashMap<>();
 	labels.put(ResourceLabels.LABEL_SCRIPTING_SCRIPT_ID, scriptId);
 	labels.put(ResourceLabels.LABEL_SITEWHERE_FUNCTIONAL_AREA, functionalArea);

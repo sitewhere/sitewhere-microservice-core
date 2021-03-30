@@ -28,7 +28,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
-import javax.enterprise.event.Observes;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 import com.sitewhere.microservice.lifecycle.LifecycleProgressContext;
 import com.sitewhere.microservice.lifecycle.LifecycleProgressMonitor;
@@ -40,22 +41,20 @@ import com.sitewhere.spi.microservice.IMicroserviceApplication;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 
-import io.quarkus.runtime.ShutdownEvent;
-import io.quarkus.runtime.StartupEvent;
-
 /**
  * Base class for SiteWhere microservice application lifecycle.
  */
 public abstract class MicroserviceApplication<T extends IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration>>
-	implements IMicroserviceApplication<T> {
+	implements IMicroserviceApplication<T>, InitializingBean, DisposableBean {
 
     /** Executor for background thread */
     private ExecutorService executor = Executors.newSingleThreadExecutor(new MicroserviceThreadFactory());
 
-    /**
-     * Called to initialize and start microservice components.
+    /*
+     * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet()
      */
-    void onStart(@Observes StartupEvent ev) {
+    @Override
+    public void afterPropertiesSet() throws Exception {
 	getMicroservice().getLogger().info("Starting microservice...");
 	try {
 	    // Set up resources outside of normal lifecycle.
@@ -73,10 +72,11 @@ public abstract class MicroserviceApplication<T extends IMicroservice<? extends 
 	}
     }
 
-    /**
-     * Called to shutdown and terminate microservice components.
+    /*
+     * @see org.springframework.beans.factory.DisposableBean#destroy()
      */
-    void onStop(@Observes ShutdownEvent ev) {
+    @Override
+    public void destroy() throws Exception {
 	getMicroservice().getLogger().info("Shutdown signal received. Stopping microservice...");
 	Future<Void> stopping = executor.submit(new StopMicroservice());
 	try {

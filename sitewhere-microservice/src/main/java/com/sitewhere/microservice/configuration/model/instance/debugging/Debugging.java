@@ -15,12 +15,9 @@
  */
 package com.sitewhere.microservice.configuration.model.instance.debugging;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
-
 /**
  * Instance-level configuration for debugging.
  */
-@RegisterForReflection
 public class Debugging {
 
     /** Event pipeline debugging */

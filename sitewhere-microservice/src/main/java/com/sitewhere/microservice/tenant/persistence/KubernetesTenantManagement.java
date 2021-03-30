@@ -59,7 +59,7 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
     public ITenant createTenant(ITenantCreateRequest request) throws SiteWhereException {
 	SiteWhereTenant tenant = fromApiRequest(request, getMicroservice().getInstanceSettings());
 	tenant = getMicroservice().getSiteWhereKubernetesClient().getTenants()
-		.inNamespace(getMicroservice().getInstanceSettings().getKubernetesNamespace()).create(tenant);
+		.inNamespace(getMicroservice().getInstanceSettings().getK8sNamespace()).create(tenant);
 	return K8sModelConverter.convert(tenant);
     }
 
@@ -76,7 +76,7 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
 	}
 	updateSpecification(tenant, request);
 	tenant = getMicroservice().getSiteWhereKubernetesClient().getTenants()
-		.inNamespace(getMicroservice().getInstanceSettings().getKubernetesNamespace())
+		.inNamespace(getMicroservice().getInstanceSettings().getK8sNamespace())
 		.withName(tenant.getMetadata().getName()).replace(tenant);
 	return K8sModelConverter.convert(tenant);
     }
@@ -99,7 +99,7 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
     @Override
     public ISearchResults<ITenant> listTenants(ITenantSearchCriteria criteria) throws SiteWhereException {
 	SiteWhereTenantList list = getMicroservice().getSiteWhereKubernetesClient().getTenants()
-		.inNamespace(getMicroservice().getInstanceSettings().getKubernetesNamespace()).list();
+		.inNamespace(getMicroservice().getInstanceSettings().getK8sNamespace()).list();
 	Pager<ITenant> pager = new Pager<ITenant>(criteria);
 	for (SiteWhereTenant tenant : list.getItems()) {
 	    pager.process(K8sModelConverter.convert(tenant));
@@ -117,7 +117,7 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
 	SiteWhereTenant tenant = getTenantResource(token);
 	if (tenant != null) {
 	    if (!getMicroservice().getSiteWhereKubernetesClient().getTenants()
-		    .inNamespace(getMicroservice().getInstanceSettings().getKubernetesNamespace())
+		    .inNamespace(getMicroservice().getInstanceSettings().getK8sNamespace())
 		    .withName(tenant.getMetadata().getName()).delete()) {
 		throw new SiteWhereException(String.format("Unable to delete tenant '%s'.", token));
 	    }
@@ -133,7 +133,7 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
      */
     protected SiteWhereTenant getTenantResource(String token) {
 	return getMicroservice().getSiteWhereKubernetesClient().getTenants()
-		.inNamespace(getMicroservice().getInstanceSettings().getKubernetesNamespace()).withName(token).get();
+		.inNamespace(getMicroservice().getInstanceSettings().getK8sNamespace()).withName(token).get();
     }
 
     /**
@@ -152,7 +152,7 @@ public class KubernetesTenantManagement extends LifecycleComponent implements IT
 	tenant.setApiVersion(fullVersion);
 	tenant.setKind(SiteWhereTenant.class.getSimpleName());
 
-	String namespace = settings.getKubernetesNamespace();
+	String namespace = settings.getK8sNamespace();
 
 	// Configure initial metadata.
 	tenant.setMetadata(new ObjectMeta());

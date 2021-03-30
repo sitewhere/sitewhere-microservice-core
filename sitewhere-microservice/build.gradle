@@ -1,9 +1,9 @@
 description = 'SiteWhere Common Microservice Library'
 
-dependencies {
-	// Quarkus dependencies.
-    compile 'io.quarkus:quarkus-kubernetes-client'
-     
+dependencies {    
+    // Spring Boot starter dependencies.
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter'
+
 	// SiteWhere model/API.
 	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: "${rootProject.ext['sitewhere.k8s.api.version']}"
     compile group: 'com.sitewhere', name: 'sitewhere-grpc-kafka', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
@@ -42,11 +42,9 @@ dependencies {
     compile group: 'joda-time', name: 'joda-time', version:'2.9.1'
 	
 	// Jackson JSON processing.
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: "${rootProject.ext['jackson.version']}"
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: "${rootProject.ext['jackson.version']}"
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: "${rootProject.ext['jackson.version']}"
-    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-cbor', version: "${rootProject.ext['jackson.version']}"
-          
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations'          
     // Metrics support
     compile group: 'io.prometheus', name: 'simpleclient', version:'0.6.0'
     compile group: 'io.prometheus', name: 'simpleclient_httpserver', version:'0.6.0'

@@ -19,12 +19,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
-
 /**
  * Common base class for datastore configuration.
  */
-@RegisterForReflection
 @JsonInclude(Include.NON_NULL)
 public class DatastoreConfiguration {
 

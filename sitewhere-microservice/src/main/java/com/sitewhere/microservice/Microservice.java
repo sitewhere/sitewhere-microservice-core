@@ -336,7 +336,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public String getHostname() {
-	return getInstanceSettings().getKubernetesPodAddress();
+	return getInstanceSettings().getK8sPodIp();
     }
 
     /*
@@ -385,7 +385,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public SiteWhereInstance loadInstanceResource() throws SiteWhereException {
-	String instanceId = getInstanceSettings().getKubernetesNamespace();
+	String instanceId = getInstanceSettings().getK8sNamespace();
 	if (instanceId == null) {
 	    throw new SiteWhereException("Instance id not set on microservice.");
 	}
@@ -422,7 +422,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public SiteWhereInstance updateInstanceResource(SiteWhereInstance instance) throws SiteWhereException {
-	String instanceId = getInstanceSettings().getKubernetesNamespace();
+	String instanceId = getInstanceSettings().getK8sNamespace();
 	if (!instanceId.equals(instance.getMetadata().getName())) {
 	    throw new SiteWhereException(
 		    String.format("Attempting to edit wrong instance: '%s'", instance.getMetadata().getName()));

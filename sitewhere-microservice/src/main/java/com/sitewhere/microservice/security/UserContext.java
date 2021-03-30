@@ -41,7 +41,7 @@ public class UserContext {
 	    return null;
 	}
 	return microservice.getSiteWhereKubernetesClient()
-		.getTenantForToken(microservice.getInstanceSettings().getKubernetesNamespace(), auth.getTenantToken());
+		.getTenantForToken(microservice.getInstanceSettings().getK8sNamespace(), auth.getTenantToken());
     }
 
     public static String getCurrentTenantId() {

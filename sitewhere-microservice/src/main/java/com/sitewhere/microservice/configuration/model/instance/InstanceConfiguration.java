@@ -19,12 +19,9 @@ import com.sitewhere.microservice.configuration.model.instance.debugging.Debuggi
 import com.sitewhere.microservice.configuration.model.instance.infrastructure.InfrastructureConfiguration;
 import com.sitewhere.microservice.configuration.model.instance.persistence.PersistenceConfigurations;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
-
 /**
  * Top level of instance configuration hierarchy.
  */
-@RegisterForReflection
 public class InstanceConfiguration {
 
     /** Infrastructure configuration */

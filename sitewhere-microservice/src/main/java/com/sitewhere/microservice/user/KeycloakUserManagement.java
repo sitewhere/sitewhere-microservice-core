@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
@@ -45,6 +44,7 @@ import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.info.SystemInfoRepresentation;
+import org.springframework.stereotype.Component;
 
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.microservice.util.MarshalUtils;
@@ -75,7 +75,7 @@ import io.sitewhere.k8s.api.ISiteWhereKubernetesClient;
  * Implementation of {@link IUserManagement} that interacts with an underlying
  * Keycloak instance.
  */
-@ApplicationScoped
+@Component
 public class KeycloakUserManagement extends LifecycleComponent implements IUserManagement {
 
     /** Client id for OpenID Connect support */

@@ -132,7 +132,7 @@ public abstract class RedisCacheProvider<K, V> implements ICacheProvider<K, V> {
      * @return
      */
     protected String getCacheKey(String tenantId, String key) {
-	return String.format("%s:%s:%s:%s", getMicroservice().getInstanceSettings().getKubernetesNamespace(),
+	return String.format("%s:%s:%s:%s", getMicroservice().getInstanceSettings().getK8sNamespace(),
 		tenantId == null ? "_global_" : tenantId, getCacheIdentifier(), key);
     }
 

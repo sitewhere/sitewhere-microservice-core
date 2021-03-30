@@ -15,9 +15,7 @@
  */
 package com.sitewhere.microservice.kubernetes;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
-import javax.inject.Singleton;
+import org.springframework.stereotype.Component;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
@@ -26,11 +24,9 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 /**
  * Provides singleton instance of k8s client.
  */
-@ApplicationScoped
+@Component
 public class KubernetesClientProvider {
 
-    @Produces
-    @Singleton
     DefaultKubernetesClient newClient() {
 	Config config = new ConfigBuilder().withNamespace(null).build();
 	return new DefaultKubernetesClient(config);
