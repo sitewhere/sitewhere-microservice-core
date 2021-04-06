@@ -1,8 +1,9 @@
 description = 'SiteWhere Common Microservice Library'
 
-dependencies {    
+dependencies {
     // Spring Boot starter dependencies.
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter'
+    compile 'org.springframework.boot:spring-boot-starter'
+    compile 'org.springframework.boot:spring-boot-starter-security'
 
 	// SiteWhere model/API.
 	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: "${rootProject.ext['sitewhere.k8s.api.version']}"

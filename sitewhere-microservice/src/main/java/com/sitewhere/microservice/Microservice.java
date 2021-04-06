@@ -21,7 +21,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.inject.Inject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 
 import com.sitewhere.microservice.cache.StringByteArrayCodec;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
@@ -62,32 +63,33 @@ import io.sitewhere.k8s.crd.instance.dataset.InstanceDatasetTemplate;
 /**
  * Common base class for all SiteWhere microservices.
  */
+@Import({ MicroserviceDependencies.class })
 public abstract class Microservice<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration>
 	extends LifecycleComponent implements IMicroservice<F, C> {
 
     /** Instance settings */
-    @Inject
+    @Autowired
     IInstanceSettings instanceSettings;
 
-    /** Kubernetes client */
-    @Inject
-    DefaultKubernetesClient kubernetesClient;
-
     /** Kafka topic naming */
-    @Inject
+    @Autowired
     private IKafkaTopicNaming kafkaTopicNaming;
 
-    /** System superuser */
-    @Inject
-    private ISystemUser systemUser;
+    /** User management */
+    @Autowired
+    private IUserManagement userManagement;
 
     /** JWT token management */
-    @Inject
+    @Autowired
     private ITokenManagement tokenManagement;
 
-    /** User management */
-    @Inject
-    private IUserManagement userManagement;
+    /** System superuser */
+    @Autowired
+    private ISystemUser systemUser;
+
+    /** Kubernetes client */
+    @Autowired
+    DefaultKubernetesClient kubernetesClient;
 
     /** SiteWhere Kubernetes client wrapper */
     private ISiteWhereKubernetesClient sitewhereKubernetesClient;
@@ -241,10 +243,10 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	while (true) {
 	    try {
 		IInstanceSettings settings = getMicroservice().getInstanceSettings();
-		String serviceName = settings.getRedisServiceName() + "."
+		String serviceName = settings.getRedis().getService().getName() + "."
 			+ ISiteWhereKubernetesClient.NS_SITEWHERE_SYSTEM;
-		String redisAddress = String.format("redis://%s@%s:%s", settings.getRedisPassword(), serviceName,
-			String.valueOf(settings.getRedisPort()));
+		String redisAddress = String.format("redis://%s@%s:%s", settings.getRedis().getPassword(), serviceName,
+			String.valueOf(settings.getRedis().getPort()));
 		getLogger().info(String.format("Connecting to Redis server using address: %s", redisAddress));
 		this.redisClient = RedisClient.create(redisAddress);
 		this.redisCacheConnection = getRedisClient().connect(StringByteArrayCodec.INSTANCE);
@@ -336,7 +338,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public String getHostname() {
-	return getInstanceSettings().getK8sPodIp();
+	return getInstanceSettings().getK8s().getPod().getIp();
     }
 
     /*
@@ -385,7 +387,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public SiteWhereInstance loadInstanceResource() throws SiteWhereException {
-	String instanceId = getInstanceSettings().getK8sNamespace();
+	String instanceId = getInstanceSettings().getK8s().getNamespace();
 	if (instanceId == null) {
 	    throw new SiteWhereException("Instance id not set on microservice.");
 	}
@@ -422,7 +424,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public SiteWhereInstance updateInstanceResource(SiteWhereInstance instance) throws SiteWhereException {
-	String instanceId = getInstanceSettings().getK8sNamespace();
+	String instanceId = getInstanceSettings().getK8s().getNamespace();
 	if (!instanceId.equals(instance.getMetadata().getName())) {
 	    throw new SiteWhereException(
 		    String.format("Attempting to edit wrong instance: '%s'", instance.getMetadata().getName()));

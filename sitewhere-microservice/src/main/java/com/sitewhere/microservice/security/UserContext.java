@@ -15,24 +15,27 @@
  */
 package com.sitewhere.microservice.security;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.sitewhere.spi.microservice.IMicroservice;
 
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
 
-/**
- * {@link ThreadLocal} which tracks the credentials for the authenticated user.
- */
 public class UserContext {
 
-    /** Thread local variable */
-    private static final ThreadLocal<SiteWhereAuthentication> CONTEXT = new ThreadLocal<>();
-
     public static void clearContext() {
-	CONTEXT.remove();
+	SecurityContextHolder.clearContext();
     }
 
     public static SiteWhereAuthentication getCurrentUser() {
-	return CONTEXT.get();
+	if (SecurityContextHolder.getContext().getAuthentication() == null) {
+	    return null;
+	}
+	if (SecurityContextHolder.getContext().getAuthentication() instanceof SiteWhereAuthentication) {
+	    return (SiteWhereAuthentication) SecurityContextHolder.getContext().getAuthentication();
+	}
+	throw new RuntimeException(String.format("Authentication not of expected type: %s",
+		SecurityContextHolder.getContext().getAuthentication().getClass().getName()));
     }
 
     public static SiteWhereTenant getCurrentTenant(IMicroservice<?, ?> microservice) {
@@ -41,7 +44,7 @@ public class UserContext {
 	    return null;
 	}
 	return microservice.getSiteWhereKubernetesClient()
-		.getTenantForToken(microservice.getInstanceSettings().getK8sNamespace(), auth.getTenantToken());
+		.getTenantForToken(microservice.getInstanceSettings().getK8s().getNamespace(), auth.getTenantToken());
     }
 
     public static String getCurrentTenantId() {
@@ -50,6 +53,6 @@ public class UserContext {
     }
 
     public static void setContext(SiteWhereAuthentication context) {
-	CONTEXT.set(context);
+	SecurityContextHolder.getContext().setAuthentication(context);
     }
 }

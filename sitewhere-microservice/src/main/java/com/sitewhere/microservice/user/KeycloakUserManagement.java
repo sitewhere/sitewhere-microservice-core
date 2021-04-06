@@ -44,7 +44,6 @@ import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.info.SystemInfoRepresentation;
-import org.springframework.stereotype.Component;
 
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.microservice.util.MarshalUtils;
@@ -75,7 +74,6 @@ import io.sitewhere.k8s.api.ISiteWhereKubernetesClient;
  * Implementation of {@link IUserManagement} that interacts with an underlying
  * Keycloak instance.
  */
-@Component
 public class KeycloakUserManagement extends LifecycleComponent implements IUserManagement {
 
     /** Client id for OpenID Connect support */
@@ -98,8 +96,9 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
      */
     protected String getServerUrl() {
 	IInstanceSettings settings = getMicroservice().getInstanceSettings();
-	String serviceName = settings.getKeycloakServiceName() + "." + ISiteWhereKubernetesClient.NS_SITEWHERE_SYSTEM;
-	return String.format("http://%s:%s/auth", serviceName, settings.getKeycloakApiPort());
+	String serviceName = settings.getKeycloak().getService().getName() + "."
+		+ ISiteWhereKubernetesClient.NS_SITEWHERE_SYSTEM;
+	return String.format("http://%s:%s/auth", serviceName, settings.getKeycloak().getApi().getPort());
     }
 
     /*
@@ -114,9 +113,9 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
 	// Create Keycloak API client and test it.
 	String url = getServerUrl();
 	getLogger().info(String.format("Connecting to Keycloak API at '%s'.", url));
-	this.keycloak = KeycloakBuilder.builder().serverUrl(url).realm(settings.getKeycloakMasterRealm())
-		.username(settings.getKeycloakMasterUsername()).password(settings.getKeycloakMasterPassword())
-		.clientId("admin-cli").build();
+	this.keycloak = KeycloakBuilder.builder().serverUrl(url).realm(settings.getKeycloak().getMaster().getRealm())
+		.username(settings.getKeycloak().getMaster().getUsername())
+		.password(settings.getKeycloak().getMaster().getPassword()).clientId("admin-cli").build();
 
 	// Wait for Keycloak connection to become available.
 	boolean connected = false;
@@ -159,7 +158,7 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
      * @throws SiteWhereException
      */
     protected void assureRealmExists() throws SiteWhereException {
-	String realmName = getMicroservice().getInstanceSettings().getKeycloakRealm();
+	String realmName = getMicroservice().getInstanceSettings().getKeycloak().getRealm();
 	try {
 	    getRealmResource().toRepresentation();
 	    getLogger().info(String.format("Realm for instance was found (%s).", realmName));
@@ -206,7 +205,7 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
 		newClient.setProtocol("openid-connect");
 		newClient.setPublicClient(false);
 		newClient.setRedirectUris(Collections.singletonList("http://*"));
-		newClient.setSecret(getMicroservice().getInstanceSettings().getKeycloakOidcSecret());
+		newClient.setSecret(getMicroservice().getInstanceSettings().getKeycloak().getOidc().getSecret());
 		newClient.setEnabled(true);
 		Response result = getRealmResource().clients().create(newClient);
 		if (result.getStatus() == HttpStatus.SC_CONFLICT) {
@@ -232,7 +231,7 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
      * @throws SiteWhereException
      */
     protected RealmResource getRealmResource() throws SiteWhereException {
-	String realmName = getMicroservice().getInstanceSettings().getKeycloakRealm();
+	String realmName = getMicroservice().getInstanceSettings().getKeycloak().getRealm();
 	return getKeycloak().realm(realmName);
     }
 
@@ -383,7 +382,7 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
     @Override
     public String getAccessToken(String username, String password) throws SiteWhereException {
 	IInstanceSettings settings = getMicroservice().getInstanceSettings();
-	Keycloak instance = Keycloak.getInstance(getServerUrl(), settings.getKeycloakRealm(), username, password,
+	Keycloak instance = Keycloak.getInstance(getServerUrl(), settings.getKeycloak().getRealm(), username, password,
 		CLIENT_ID_OPENID_CONNECT, getClientSecret());
 	TokenManager tokenManager = instance.tokenManager();
 	AccessTokenResponse accessToken = tokenManager.getAccessToken();

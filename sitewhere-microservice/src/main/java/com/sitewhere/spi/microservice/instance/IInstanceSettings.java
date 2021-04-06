@@ -15,75 +15,210 @@
  */
 package com.sitewhere.spi.microservice.instance;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-
 /**
  * Common settings used in a SiteWhere instance.
  */
-@Configuration
-@ConfigurationProperties(prefix = "sitewhere.config")
 public interface IInstanceSettings {
 
-    /** Kubernetes name */
-    public String getK8sName();
-
-    /** Kubernetes namespace */
-    public String getK8sNamespace();
-
-    /** Kubernetes pod ip */
-    public String getK8sPodIp();
-
-    /** Product id */
-    @Value("sitewhere")
+    /**
+     * Product id
+     * 
+     * @return
+     */
     String getProductId();
 
-    /** Keycloak service name */
-    @Value("sitewhere-keycloak-http")
-    String getKeycloakServiceName();
+    /**
+     * Get Kubernetes settings.
+     * 
+     * @return
+     */
+    IKubernetesSettings getK8s();
 
-    /** Keycloak API port */
-    @Value("80")
-    int getKeycloakApiPort();
+    /**
+     * Get Keycloak settings.
+     * 
+     * @return
+     */
+    IKeycloakSettings getKeycloak();
 
-    /** Keycloak realm */
-    @Value("sitewhere")
-    String getKeycloakRealm();
+    /**
+     * Get Redis settings.
+     * 
+     * @return
+     */
+    IRedisSettings getRedis();
 
-    /** Keycloak master realm */
-    @Value("master")
-    String getKeycloakMasterRealm();
+    public interface IKubernetesSettings {
 
-    /** Keycloak master username */
-    @Value("sitewhere")
-    String getKeycloakMasterUsername();
+	/**
+	 * Kubernetes name
+	 * 
+	 * @return
+	 */
+	String getName();
 
-    /** Keycloak master password */
-    @Value("sitewhere")
-    String getKeycloakMasterPassword();
+	/**
+	 * Kubernetes namespace
+	 * 
+	 * @return
+	 */
+	String getNamespace();
 
-    /** Keycloak OIDC secret */
-    @Value("this-should-be-set-via-environment")
-    String getKeycloakOidcSecret();
+	/**
+	 * Kubernetes pod settings.
+	 * 
+	 * @return
+	 */
+	IKubernetesPodSettings getPod();
 
-    /** Keycloak system username */
-    @Value("system")
-    String getKeycloakSystemUsername();
+	public interface IKubernetesPodSettings {
 
-    /** Keycloak system password */
-    @Value("system")
-    String getKeycloakSystemPassword();
+	    String getIp();
+	}
+    }
 
-    /** Redis service name */
-    @Value("sitewhere-redis-headless")
-    String getRedisServiceName();
+    public interface IKeycloakSettings {
 
-    /** Redis service port */
-    @Value("6379")
-    int getRedisPort();
+	/**
+	 * Keycloak service settings.
+	 * 
+	 * @return
+	 */
+	IKeycloakServiceSettings getService();
 
-    /** Redis password */
-    @Value("sitewhere")
-    String getRedisPassword();
+	public interface IKeycloakServiceSettings {
+
+	    /**
+	     * Get service name.
+	     * 
+	     * @return
+	     */
+	    String getName();
+	}
+
+	/**
+	 * Keycloak API settings.
+	 * 
+	 * @return
+	 */
+	IKeycloakApiSettings getApi();
+
+	public interface IKeycloakApiSettings {
+
+	    /**
+	     * Get API port.
+	     * 
+	     * @return
+	     */
+	    int getPort();
+	}
+
+	/**
+	 * Keycloak realm
+	 * 
+	 * @return
+	 */
+	String getRealm();
+
+	/**
+	 * Get Keycloak master settings.
+	 * 
+	 * @return
+	 */
+	IKeycloakMasterSettings getMaster();
+
+	public interface IKeycloakMasterSettings {
+
+	    /**
+	     * Keycloak master realm
+	     * 
+	     * @return
+	     */
+	    String getRealm();
+
+	    /**
+	     * Keycloak master username
+	     * 
+	     * @return
+	     */
+	    String getUsername();
+
+	    /**
+	     * Keycloak master password
+	     * 
+	     * @return
+	     */
+	    String getPassword();
+	}
+
+	/**
+	 * Get Keycloak OIDC settings.
+	 * 
+	 * @return
+	 */
+	IKeycloakOidcSettings getOidc();
+
+	public interface IKeycloakOidcSettings {
+
+	    /**
+	     * Keycloak OIDC secret
+	     * 
+	     * @return
+	     */
+	    String getSecret();
+	}
+
+	/**
+	 * Get Keycloak system user settings.
+	 * 
+	 * @return
+	 */
+	IKeycloakSystemSettings getSystem();
+
+	public interface IKeycloakSystemSettings {
+
+	    /**
+	     * Keycloak system username
+	     * 
+	     * @return
+	     */
+	    String getUsername();
+
+	    /**
+	     * Keycloak system password
+	     * 
+	     * @return
+	     */
+	    String getPassword();
+	}
+    }
+
+    public interface IRedisSettings {
+
+	IRedisServiceSettings getService();
+
+	public interface IRedisServiceSettings {
+
+	    /**
+	     * Redis service name
+	     * 
+	     * @return
+	     */
+	    String getName();
+	}
+
+	/**
+	 * Redis service port
+	 * 
+	 * @return
+	 */
+	int getPort();
+
+	/**
+	 * Redis password
+	 * 
+	 * @return
+	 */
+	String getPassword();
+    }
 }

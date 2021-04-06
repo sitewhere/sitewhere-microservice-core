@@ -270,8 +270,8 @@ public class TenantEngineManager<F extends IFunctionIdentifier, C extends IMicro
 			// Load the latest tenant engine resource.
 			SiteWhereMicroservice k8sMicroservice = ((IMultitenantMicroservice<?, ?, ?>) getMicroservice())
 				.getLastMicroserviceResource();
-			SiteWhereTenant k8sTenant = getMicroservice().getSiteWhereKubernetesClient()
-				.getTenantForToken(getMicroservice().getInstanceSettings().getK8sNamespace(), token);
+			SiteWhereTenant k8sTenant = getMicroservice().getSiteWhereKubernetesClient().getTenantForToken(
+				getMicroservice().getInstanceSettings().getK8s().getNamespace(), token);
 			SiteWhereTenantEngine k8sTenantEngine = getMicroservice().getSiteWhereKubernetesClient()
 				.getTenantEngine(k8sMicroservice, k8sTenant);
 			startTenantEngine(k8sTenantEngine);

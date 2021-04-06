@@ -174,7 +174,7 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
 	if (tenantToken == null) {
 	    throw new SiteWhereException("Tenant engine does not have a tenant label. Unable to resolve.");
 	}
-	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8s().getNamespace();
 	SiteWhereTenant tenant = getMicroservice().getSiteWhereKubernetesClient().getTenants().inNamespace(namespace)
 		.withName(tenantToken).get();
 	if (tenant == null) {
@@ -192,7 +192,7 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     @Override
     public SiteWhereTenantEngine loadTenantEngineResource() throws SiteWhereException {
 	String engineName = getTenantEngineResource().getMetadata().getName();
-	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8s().getNamespace();
 	SiteWhereTenantEngine found = getMicroservice().getSiteWhereKubernetesClient().getTenantEngines()
 		.inNamespace(namespace).withName(engineName).get();
 	if (found == null) {
@@ -209,7 +209,7 @@ public abstract class MicroserviceTenantEngine<T extends ITenantEngineConfigurat
     @Override
     public SiteWhereTenantEngine updateTenantEngineResource(SiteWhereTenantEngine engine) throws SiteWhereException {
 	String engineName = getTenantEngineResource().getMetadata().getName();
-	String namespace = getMicroservice().getInstanceSettings().getK8sNamespace();
+	String namespace = getMicroservice().getInstanceSettings().getK8s().getNamespace();
 	return getMicroservice().getSiteWhereKubernetesClient().getTenantEngines().inNamespace(namespace)
 		.withName(engineName).createOrReplace(engine);
     }

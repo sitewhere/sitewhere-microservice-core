@@ -15,12 +15,19 @@
  */
 package com.sitewhere.microservice.security;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Context information for an authenticated user.
  */
-public class SiteWhereAuthentication {
+public class SiteWhereAuthentication extends AbstractAuthenticationToken {
+
+    /** Serial version UID */
+    private static final long serialVersionUID = -3932806611461422345L;
 
     /** Username */
     private String username;
@@ -35,9 +42,31 @@ public class SiteWhereAuthentication {
     private String tenantToken;
 
     public SiteWhereAuthentication(String username, List<String> grantedAuthorities, String jwt) {
+	super(Grant.from(grantedAuthorities));
 	this.username = username;
 	this.grantedAuthorities = grantedAuthorities;
 	this.jwt = jwt;
+	setAuthenticated(true);
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.springframework.security.core.Authentication#getCredentials()
+     */
+    @Override
+    public Object getCredentials() {
+	return jwt;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.springframework.security.core.Authentication#getPrincipal()
+     */
+    @Override
+    public Object getPrincipal() {
+	return username;
     }
 
     public String getUsername() {
@@ -58,5 +87,29 @@ public class SiteWhereAuthentication {
 
     public void setTenantToken(String tenantToken) {
 	this.tenantToken = tenantToken;
+    }
+
+    public static class Grant implements GrantedAuthority {
+
+	private static final long serialVersionUID = 2129674652225690114L;
+
+	private String authority;
+
+	public Grant(String authority) {
+	    this.authority = authority;
+	}
+
+	@Override
+	public String getAuthority() {
+	    return this.authority;
+	}
+
+	public static List<GrantedAuthority> from(List<String> values) {
+	    List<GrantedAuthority> gauths = new ArrayList<>();
+	    for (String auth : values) {
+		gauths.add(new Grant(auth));
+	    }
+	    return gauths;
+	}
     }
 }

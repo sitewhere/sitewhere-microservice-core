@@ -15,9 +15,7 @@
  */
 package com.sitewhere.microservice.security;
 
-import javax.inject.Inject;
-
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.instance.IInstanceSettings;
@@ -30,18 +28,17 @@ import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
  * Provides a system "superuser" that allows microservices to authenticate with
  * other microservices via JWT.
  */
-@Component
 public class SystemUser implements ISystemUser {
 
     /** Number of seconds between renewing JWT */
     private static final int RENEW_INTERVAL_SEC = 60 * 3;
 
     /** Instance settings */
-    @Inject
+    @Autowired
     IInstanceSettings instanceSettings;
 
     /** JWT token management */
-    @Inject
+    @Autowired
     ITokenManagement tokenManagement;
 
     /** Last authentication result */
@@ -56,8 +53,9 @@ public class SystemUser implements ISystemUser {
     @Override
     public SiteWhereAuthentication getAuthentication() throws SiteWhereException {
 	if ((System.currentTimeMillis() - lastGenerated) > (RENEW_INTERVAL_SEC * 1000)) {
-	    this.last = getTokenManagement().getAuthenticationForUser(getInstanceSettings().getKeycloakSystemUsername(),
-		    getInstanceSettings().getKeycloakSystemPassword());
+	    this.last = getTokenManagement().getAuthenticationForUser(
+		    getInstanceSettings().getKeycloak().getSystem().getUsername(),
+		    getInstanceSettings().getKeycloak().getSystem().getPassword());
 	    this.lastGenerated = System.currentTimeMillis();
 	}
 	return this.last;

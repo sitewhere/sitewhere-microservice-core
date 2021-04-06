@@ -242,21 +242,21 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
     protected void loadConfigurationFromK8s() throws SiteWhereException {
 	getLogger().info("Loading instance information from Kubernetes...");
 	SiteWhereInstance instance = getSiteWhereKubernetesClient().getInstances()
-		.withName(getInstanceSettings().getK8sNamespace()).get();
+		.withName(getInstanceSettings().getK8s().getNamespace()).get();
 	if (instance == null) {
 	    throw new SiteWhereException(String.format("No instance found with name '%s'. Aborting startup.",
-		    getInstanceSettings().getK8sNamespace()));
+		    getInstanceSettings().getK8s().getNamespace()));
 	}
 	handleInstanceUpdated(instance);
 	getLogger().info("Instance information loaded successfully.");
 
 	getLogger().info("Loading microservice information from Kubernetes...");
 	SiteWhereMicroservice microservice = getSiteWhereKubernetesClient().getMicroservices()
-		.inNamespace(getInstanceSettings().getK8sNamespace()).withName(getIdentifier().getPath()).get();
+		.inNamespace(getInstanceSettings().getK8s().getNamespace()).withName(getIdentifier().getPath()).get();
 	if (microservice == null) {
 	    throw new SiteWhereException(
 		    String.format("No microservice found in namespace '%s' with name '%s'. Aborting startup.",
-			    getInstanceSettings().getK8sNamespace(), getIdentifier().getPath()));
+			    getInstanceSettings().getK8s().getNamespace(), getIdentifier().getPath()));
 	}
 	handleMicroserviceUpdated(microservice);
 	getLogger().info("Microservice information loaded successfully.");

@@ -25,10 +25,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-
 import org.keycloak.representations.AccessTokenResponse;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
@@ -44,11 +42,10 @@ import io.jsonwebtoken.UnsupportedJwtException;
 /**
  * Manages validation of JWT tokens.
  */
-@Component
 public class TokenManagement implements ITokenManagement {
 
     /** User management */
-    @Inject
+    @Autowired
     private IUserManagement userManagement;
 
     /** Public key */

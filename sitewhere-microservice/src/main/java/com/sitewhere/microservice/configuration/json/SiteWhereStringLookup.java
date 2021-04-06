@@ -64,7 +64,7 @@ public class SiteWhereStringLookup implements StringLookup {
 	if (getComponent() != null) {
 	    // Handle replacement for instance id.
 	    if (INSTANCE_ID.equals(key)) {
-		return getComponent().getMicroservice().getInstanceSettings().getK8sNamespace();
+		return getComponent().getMicroservice().getInstanceSettings().getK8s().getNamespace();
 	    }
 	    // Handle replacement for tenant token.
 	    else if (TENANT_TOKEN.equals(key) || TENANT_ID.equals(key)) {
