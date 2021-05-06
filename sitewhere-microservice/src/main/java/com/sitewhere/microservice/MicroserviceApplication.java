@@ -30,11 +30,6 @@ import java.util.concurrent.ThreadFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 
 import com.sitewhere.microservice.lifecycle.LifecycleProgressContext;
 import com.sitewhere.microservice.lifecycle.LifecycleProgressMonitor;
@@ -49,8 +44,6 @@ import com.sitewhere.spi.microservice.lifecycle.LifecycleStatus;
 /**
  * Base class for SiteWhere microservice application lifecycle.
  */
-@SpringBootApplication(exclude = { FlywayAutoConfiguration.class, HibernateJpaAutoConfiguration.class,
-	DataSourceAutoConfiguration.class, DataSourceTransactionManagerAutoConfiguration.class })
 public abstract class MicroserviceApplication<T extends IMicroservice<? extends IFunctionIdentifier, ? extends IMicroserviceConfiguration>>
 	implements IMicroserviceApplication<T>, InitializingBean, DisposableBean {
 

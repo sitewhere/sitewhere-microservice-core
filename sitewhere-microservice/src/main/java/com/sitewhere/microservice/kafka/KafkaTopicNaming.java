@@ -15,9 +15,7 @@
  */
 package com.sitewhere.microservice.kafka;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
 
 import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
@@ -27,8 +25,12 @@ import io.sitewhere.k8s.crd.tenant.SiteWhereTenant;
  */
 public class KafkaTopicNaming implements IKafkaTopicNaming {
 
-    @Autowired
-    IInstanceSettings instanceSettings;
+    /** Instance settings */
+    private IInstanceSettings instanceSettings;
+
+    public KafkaTopicNaming(IInstanceSettings instanceSettings) {
+	this.instanceSettings = instanceSettings;
+    }
 
     /** Separator used to partition topic name */
     protected static final String SEPARATOR = ".";

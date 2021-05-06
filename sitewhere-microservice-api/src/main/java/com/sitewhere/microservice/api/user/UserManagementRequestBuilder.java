@@ -16,6 +16,8 @@
 package com.sitewhere.microservice.api.user;
 
 import com.sitewhere.rest.model.search.user.UserSearchCriteria;
+import com.sitewhere.rest.model.user.request.GrantedAuthorityCreateRequest;
+import com.sitewhere.rest.model.user.request.RoleCreateRequest;
 import com.sitewhere.rest.model.user.request.UserCreateRequest;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.user.IUserManagement;

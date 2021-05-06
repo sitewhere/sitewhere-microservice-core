@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.4.4' apply false
+    id 'org.springframework.boot' version '2.4.5' apply false
 	id 'com.github.hierynomus.license' version '0.15.0' 
 	id 'org.ajoberstar.grgit' version '2.2.1' 
     id 'java'
@@ -22,10 +22,11 @@ allprojects {
 	group = 'com.sitewhere'
 	version = '3.1.0'
 	
-	repositories {
-		maven { url "https://repo.maven.apache.org/maven2" }
-		mavenLocal()
-	}
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url 'https://repo.spring.io/release' }
+    }
 }
 
 subprojects {
@@ -36,7 +37,7 @@ subprojects {
 	}
 
 	// Choose Java settings.
-	apply plugin: 'java'
+	apply plugin: 'java-library'
 	sourceCompatibility = 1.8
 	targetCompatibility = 1.8
 	
@@ -44,8 +45,18 @@ subprojects {
 	dependencies {
         // Sping dependency managment.
         implementation platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
-		
-		compile group: 'org.graalvm.nativeimage', name: 'svm', version: '20.2.0'
+        
+        // Spring Boot dependencies.
+        api('org.springframework.boot:spring-boot-autoconfigure') {
+            exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        }
+        api 'org.springframework.experimental:spring-native:0.9.2'
+        api 'org.springframework.security:spring-security-web'
+        implementation 'ch.qos.logback:logback-classic'
+        implementation 'org.slf4j:jul-to-slf4j'
+
+        // Native image dependencies.
+		compileOnly group: 'org.graalvm.nativeimage', name: 'svm', version: '21.0.0.2'
 		
 		testCompile group: 'junit', name: 'junit', version: '4.12'
 	}

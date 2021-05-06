@@ -1,0 +1,19 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "META-INF/microservice-library.properties"
+      },
+      {
+        "pattern": "kafka/kafka-streams-version.properties"
+      },
+      {
+        "pattern": "kafka/kafka-version.properties"
+      },
+      {
+        "pattern": "org/joda/time/tz/data/.*"
+      }
+    ]
+  },
+  "bundles": []
+}

@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.keycloak.representations.AccessTokenResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
@@ -45,11 +44,14 @@ import io.jsonwebtoken.UnsupportedJwtException;
 public class TokenManagement implements ITokenManagement {
 
     /** User management */
-    @Autowired
     private IUserManagement userManagement;
 
     /** Public key */
     private PublicKey publicKey;
+
+    public TokenManagement(IUserManagement userManagement) {
+	this.userManagement = userManagement;
+    }
 
     /**
      * Get or parse public key.

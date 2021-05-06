@@ -28,6 +28,7 @@ import com.sitewhere.microservice.scripting.KubernetesScriptManagement;
 import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice;
 import com.sitewhere.spi.microservice.configuration.IInstanceConfigurationListener;
@@ -93,6 +94,10 @@ public abstract class ConfigurableMicroservice<F extends IFunctionIdentifier, C 
 
     /** Guice injector containing configured components */
     private Injector injector;
+
+    public ConfigurableMicroservice(IInstanceSettings instanceSettings) {
+	super(instanceSettings);
+    }
 
     /*
      * @see com.sitewhere.spi.microservice.configuration.IConfigurableMicroservice#

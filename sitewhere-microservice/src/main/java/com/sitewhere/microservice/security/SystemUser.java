@@ -15,10 +15,8 @@
  */
 package com.sitewhere.microservice.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.sitewhere.spi.SiteWhereException;
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 import com.sitewhere.spi.microservice.security.ISystemUser;
 import com.sitewhere.spi.microservice.security.ITokenManagement;
 
@@ -34,11 +32,9 @@ public class SystemUser implements ISystemUser {
     private static final int RENEW_INTERVAL_SEC = 60 * 3;
 
     /** Instance settings */
-    @Autowired
     IInstanceSettings instanceSettings;
 
     /** JWT token management */
-    @Autowired
     ITokenManagement tokenManagement;
 
     /** Last authentication result */
@@ -46,6 +42,11 @@ public class SystemUser implements ISystemUser {
 
     /** Last time JWT was generated */
     private long lastGenerated = 0;
+
+    public SystemUser(IInstanceSettings instanceSettings, ITokenManagement tokenManagement) {
+	this.instanceSettings = instanceSettings;
+	this.tokenManagement = tokenManagement;
+    }
 
     /*
      * @see com.sitewhere.spi.microservice.security.ISystemUser#getAuthentication()

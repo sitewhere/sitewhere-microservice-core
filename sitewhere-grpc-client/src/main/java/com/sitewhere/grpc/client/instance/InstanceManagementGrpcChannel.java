@@ -20,8 +20,8 @@ import com.sitewhere.grpc.service.InstanceManagementGrpc;
 import com.sitewhere.grpc.service.InstanceManagementGrpc.InstanceManagementBlockingStub;
 import com.sitewhere.grpc.service.InstanceManagementGrpc.InstanceManagementStub;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 import com.sitewhere.spi.microservice.grpc.IGrpcServiceIdentifier;
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 
 /**
  * Channel that allows for communication with a remote instance management GRPC

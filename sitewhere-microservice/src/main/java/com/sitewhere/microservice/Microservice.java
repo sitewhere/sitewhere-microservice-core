@@ -21,21 +21,39 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
+import org.jboss.resteasy.client.jaxrs.ResteasyClient;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.plugins.providers.ByteArrayProvider;
+import org.jboss.resteasy.plugins.providers.DefaultBooleanWriter;
+import org.jboss.resteasy.plugins.providers.DefaultNumberWriter;
+import org.jboss.resteasy.plugins.providers.DefaultTextPlain;
+import org.jboss.resteasy.plugins.providers.FormUrlEncodedProvider;
+import org.jboss.resteasy.plugins.providers.InputStreamProvider;
+import org.jboss.resteasy.plugins.providers.JaxrsFormProvider;
+import org.jboss.resteasy.plugins.providers.ReaderProvider;
+import org.jboss.resteasy.plugins.providers.StringTextStar;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.KeycloakBuilder;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import com.sitewhere.microservice.cache.StringByteArrayCodec;
+import com.sitewhere.microservice.kafka.KafkaTopicNaming;
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.microservice.lifecycle.LifecycleComponent;
 import com.sitewhere.microservice.metrics.MetricsServer;
 import com.sitewhere.microservice.scripting.ScriptManager;
 import com.sitewhere.microservice.scripting.ScriptTemplateManager;
+import com.sitewhere.microservice.security.SystemUser;
+import com.sitewhere.microservice.security.TokenManagement;
 import com.sitewhere.microservice.tenant.persistence.KubernetesTenantManagement;
+import com.sitewhere.microservice.user.KeycloakUserManagement;
+import com.sitewhere.microservice.util.MarshalUtils;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 import com.sitewhere.spi.microservice.IMicroservice;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.instance.IInstanceSpecUpdateOperation;
 import com.sitewhere.spi.microservice.instance.IInstanceStatusUpdateOperation;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
@@ -50,6 +68,8 @@ import com.sitewhere.spi.microservice.tenant.ITenantManagement;
 import com.sitewhere.spi.microservice.user.IUserManagement;
 import com.sitewhere.spi.system.IVersion;
 
+import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
@@ -63,33 +83,29 @@ import io.sitewhere.k8s.crd.instance.dataset.InstanceDatasetTemplate;
 /**
  * Common base class for all SiteWhere microservices.
  */
-@Import({ MicroserviceDependencies.class })
 public abstract class Microservice<F extends IFunctionIdentifier, C extends IMicroserviceConfiguration>
 	extends LifecycleComponent implements IMicroservice<F, C> {
 
     /** Instance settings */
-    @Autowired
-    IInstanceSettings instanceSettings;
+    private IInstanceSettings instanceSettings;
 
-    /** Kafka topic naming */
-    @Autowired
-    private IKafkaTopicNaming kafkaTopicNaming;
-
-    /** User management */
-    @Autowired
+    /** Keycloak user management */
     private IUserManagement userManagement;
 
-    /** JWT token management */
-    @Autowired
+    /** Token management */
     private ITokenManagement tokenManagement;
 
-    /** System superuser */
-    @Autowired
+    /** System user */
     private ISystemUser systemUser;
 
+    /** Keycloak client */
+    private Keycloak keycloak;
+
+    /** Kafka topic naming support */
+    private IKafkaTopicNaming kafkaTopicNaming;
+
     /** Kubernetes client */
-    @Autowired
-    DefaultKubernetesClient kubernetesClient;
+    private DefaultKubernetesClient k8sClient;
 
     /** SiteWhere Kubernetes client wrapper */
     private ISiteWhereKubernetesClient sitewhereKubernetesClient;
@@ -134,7 +150,12 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @SuppressWarnings("unused")
     private long startTime;
 
-    public Microservice() {
+    public Microservice(IInstanceSettings instanceSettings) {
+	this.instanceSettings = instanceSettings;
+	this.userManagement = new KeycloakUserManagement();
+	this.tokenManagement = new TokenManagement(getUserManagement());
+	this.systemUser = new SystemUser(getInstanceSettings(), getTokenManagement());
+	this.kafkaTopicNaming = new KafkaTopicNaming(getInstanceSettings());
 	this.microserviceOperationsService = Executors
 		.newSingleThreadExecutor(new MicroserviceOperationsThreadFactory());
     }
@@ -161,6 +182,10 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public void install() throws SiteWhereException {
+	// Display active configuration.
+	getLogger().debug(String.format("Active configuration:\n%s\n\n",
+		MarshalUtils.marshalJsonAsPrettyString(getInstanceSettings())));
+
 	// Initialize Kubernetes connectivity.
 	initializeK8sConnectivity();
     }
@@ -171,6 +196,9 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public void initialize(ILifecycleProgressMonitor monitor) throws SiteWhereException {
+	// Initialize Keycloak connectivity.
+	initializeKeycloakConnectivity();
+
 	// Initialize Redis connectivity.
 	initializeRedisConnectivity();
 
@@ -224,6 +252,9 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     protected void initializeK8sConnectivity() throws SiteWhereException {
 	getLogger().info("Initializing Kubernetes connectivity...");
+
+	Config config = new ConfigBuilder().withNamespace(null).build();
+	this.k8sClient = new DefaultKubernetesClient(config);
 	this.sitewhereKubernetesClient = new SiteWhereKubernetesClient(getKubernetesClient());
 	this.sharedInformerFactory = getKubernetesClient().informers();
 
@@ -231,6 +262,15 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
 	createKubernetesResourceControllers(getSharedInformerFactory());
 	getSharedInformerFactory().startAllRegisteredInformers();
 	getLogger().info("Kubernetes connectivity initialized.");
+    }
+
+    /**
+     * Initialize Keycloak connectivity.
+     * 
+     * @throws SiteWhereException
+     */
+    protected void initializeKeycloakConnectivity() throws SiteWhereException {
+	this.keycloak = createKeycloakClient();
     }
 
     /**
@@ -270,6 +310,43 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     protected void initializeManagementApis() {
 	this.tenantManagement = new KubernetesTenantManagement();
+    }
+
+    /**
+     * Create {@link ResteasyClient} configured to work with Spring Native.
+     * 
+     * @return
+     */
+    protected ResteasyClient createRestEasyClient() {
+	ResteasyClientBuilder builder = (ResteasyClientBuilder) ResteasyClientBuilder.newBuilder();
+	ResteasyProviderFactory factory = ResteasyProviderFactory.newInstance();
+	factory.setBuiltinsRegistered(false);
+	builder.providerFactory(factory);
+	ResteasyClient client = builder.build();
+	client.register(DefaultTextPlain.class);
+	client.register(DefaultNumberWriter.class);
+	client.register(DefaultBooleanWriter.class);
+	client.register(StringTextStar.class);
+	client.register(InputStreamProvider.class);
+	client.register(ReaderProvider.class);
+	client.register(ByteArrayProvider.class);
+	client.register(FormUrlEncodedProvider.class);
+	client.register(JaxrsFormProvider.class);
+	client.register(JacksonJsonProvider.class);
+	return client;
+    }
+
+    /**
+     * Create Keycloak client that will work in Spring Native mode.
+     * 
+     * @return
+     */
+    public Keycloak createKeycloakClient() {
+	return KeycloakBuilder.builder().serverUrl(getKeycloakServerUrl())
+		.realm(getInstanceSettings().getKeycloak().getMaster().getRealm())
+		.username(getInstanceSettings().getKeycloak().getMaster().getUsername())
+		.password(getInstanceSettings().getKeycloak().getMaster().getPassword()).clientId("admin-cli")
+		.resteasyClient(createRestEasyClient()).build();
     }
 
     /*
@@ -346,7 +423,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public DefaultKubernetesClient getKubernetesClient() {
-	return this.kubernetesClient;
+	return k8sClient;
     }
 
     /*
@@ -364,6 +441,24 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
     @Override
     public RedisClient getRedisClient() {
 	return redisClient;
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#getKeycloakServerUrl()
+     */
+    @Override
+    public String getKeycloakServerUrl() {
+	String serviceName = getInstanceSettings().getKeycloak().getService().getName() + "."
+		+ ISiteWhereKubernetesClient.NS_SITEWHERE_SYSTEM;
+	return String.format("http://%s:%s/auth", serviceName, getInstanceSettings().getKeycloak().getApi().getPort());
+    }
+
+    /*
+     * @see com.sitewhere.spi.microservice.IMicroservice#getKeycloakClient()
+     */
+    @Override
+    public Keycloak getKeycloakClient() {
+	return keycloak;
     }
 
     /*
@@ -501,7 +596,7 @@ public abstract class Microservice<F extends IFunctionIdentifier, C extends IMic
      */
     @Override
     public IUserManagement getUserManagement() {
-	return this.userManagement;
+	return userManagement;
     }
 
     /*

@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sitewhere.microservice.instance;
+package com.sitewhere.microservice;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
-
-@ConfigurationProperties(prefix = "sitewhere.config")
 public class InstanceSettings implements IInstanceSettings {
 
     /** SiteWhere product id */
@@ -69,10 +66,10 @@ public class InstanceSettings implements IInstanceSettings {
     public static class KubernetesSettings implements IKubernetesSettings {
 
 	/** Kuberenetes name */
-	private String name;
+	private String name = "";
 
 	/** Kubernetes namespace */
-	private String namespace;
+	private String namespace = "sitewhere";
 
 	/** Kubernetes pod settings */
 	private IKubernetesPodSettings pod = new KubernetesPodSettings();
@@ -80,7 +77,7 @@ public class InstanceSettings implements IInstanceSettings {
 	public class KubernetesPodSettings implements IKubernetesPodSettings {
 
 	    /** Kubernetes pod ip */
-	    private String ip;
+	    private String ip = "localhost";
 
 	    public String getIp() {
 		return ip;

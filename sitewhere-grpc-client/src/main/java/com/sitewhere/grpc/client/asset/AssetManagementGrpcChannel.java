@@ -20,8 +20,8 @@ import com.sitewhere.grpc.service.AssetManagementGrpc;
 import com.sitewhere.grpc.service.AssetManagementGrpc.AssetManagementBlockingStub;
 import com.sitewhere.grpc.service.AssetManagementGrpc.AssetManagementStub;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 import com.sitewhere.spi.microservice.grpc.IGrpcServiceIdentifier;
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 
 /**
  * Channel that allows for communication with a remote asset management GRPC

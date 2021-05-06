@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.sitewhere.spi.microservice.instance;
+package com.sitewhere.spi.microservice;
 
 /**
  * Common settings used in a SiteWhere instance.

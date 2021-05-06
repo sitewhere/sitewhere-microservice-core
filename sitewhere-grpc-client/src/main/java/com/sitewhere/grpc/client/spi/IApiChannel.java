@@ -17,8 +17,8 @@ package com.sitewhere.grpc.client.spi;
 
 import com.sitewhere.grpc.client.GrpcChannel;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 import com.sitewhere.spi.microservice.grpc.IGrpcServiceIdentifier;
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.lifecycle.ITenantEngineLifecycleComponent;
 
 /**

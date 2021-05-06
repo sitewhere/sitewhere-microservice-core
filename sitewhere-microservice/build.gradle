@@ -1,64 +1,53 @@
 description = 'SiteWhere Common Microservice Library'
 
+apply plugin: 'java-library'
 dependencies {
-    // Spring Boot starter dependencies.
-    compile 'org.springframework.boot:spring-boot-starter'
-    compile 'org.springframework.boot:spring-boot-starter-security'
-
 	// SiteWhere model/API.
-	compile group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: "${rootProject.ext['sitewhere.k8s.api.version']}"
-    compile group: 'com.sitewhere', name: 'sitewhere-grpc-kafka', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
-    
-    // JSON web token support.
-    compile group: 'io.jsonwebtoken', name: 'jjwt', version:'0.7.0'
-	
-	// Keycloak
-	compile group: 'org.keycloak', name: 'keycloak-admin-client', version: '11.0.3'
-    
+	api group: 'com.sitewhere', name: 'sitewhere-k8s-model', version: "${rootProject.ext['sitewhere.k8s.api.version']}"
+    api group: 'com.sitewhere', name: 'sitewhere-grpc-kafka', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
+    api group: 'com.sitewhere', name: 'sitewhere-grpc-common', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
+        
     // SLF4J Extension for i18n.
-    compile group: 'org.slf4j', name: 'slf4j-ext', version: '1.7.25'
-    compile group: 'ch.qos.cal10n', name: 'cal10n-api', version: '0.7.7'    
-	
-	// GRPC common components.
-	compile group: 'com.sitewhere', name: 'sitewhere-grpc-common', version: "${rootProject.ext['sitewhere.grpc.api.version']}"
-	
-	// Google Guice for configuration management.
-	compile group: 'com.google.inject', name: 'guice', version: '4.2.2'
-	
-	// Lettuce Redis client.
-	compile group: 'io.lettuce', name: 'lettuce-core', version: '6.0.2.RELEASE'
-	
-	// Graal runtime support.
-	compile group: 'org.graalvm.nativeimage', name: 'svm'
-	
-    compile group: 'org.apache.commons', name: 'commons-lang3'
-    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
-    compile group: 'org.apache.commons', name: 'commons-text', version: '1.8'
-    compile group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
-    compile group: 'commons-io', name: 'commons-io'
-    compile group: 'commons-codec', name: 'commons-codec'
-    compile group: 'org.apache.httpcomponents', name: 'httpcore'
-	
-	// Date/time conversions.
-    compile group: 'joda-time', name: 'joda-time', version:'2.9.1'
-	
-	// Jackson JSON processing.
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations'          
+    api group: 'org.slf4j', name: 'slf4j-ext', version: '1.7.30'
+    api group: 'ch.qos.cal10n', name: 'cal10n-api', version: '0.8.1'    
+    
+    // Google Guice for configuration management.
+    api group: 'com.google.inject', name: 'guice', version: '5.0.1'
+        
+    // Geolocation classes made available to scripts.
+    api group: 'com.vividsolutions', name: 'jts', version:'1.13'
+    
+    // Lettuce Redis client.
+    api group: 'io.lettuce', name: 'lettuce-core'
+    
+    // Jackson JSON processing.
+    api group: 'com.fasterxml.jackson.core', name: 'jackson-core'
+    api group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
+    api group: 'com.fasterxml.jackson.core', name: 'jackson-annotations'       
+    
+    // Shared utilities.
+    api group: 'org.apache.commons', name: 'commons-lang3'
+    api group: 'org.apache.commons', name: 'commons-text', version: '1.8'
+    api group: 'joda-time', name: 'joda-time', version:'2.9.1'
+    
+    // Kafka streams.
+    api group: 'org.apache.kafka', name: 'kafka-streams'
+    
+    // Keycloak
+    api group: 'org.keycloak', name: 'keycloak-admin-client', version: '11.0.3'
+       
     // Metrics support
-    compile group: 'io.prometheus', name: 'simpleclient', version:'0.6.0'
-    compile group: 'io.prometheus', name: 'simpleclient_httpserver', version:'0.6.0'
+    api group: 'io.prometheus', name: 'simpleclient', version:'0.10.0'
+    api group: 'io.prometheus', name: 'simpleclient_httpserver', version:'0.10.0'
     
     // Retry logic.
-    compile "com.evanlennick:retry4j:0.15.0"
+    api "com.evanlennick:retry4j:0.15.0"
     
-    // Geolocation classes made available to scripts.
-	compile group: 'com.vividsolutions', name: 'jts', version:'1.13'
-}
-
-license {
-	exclude "**/util/Base58*"
+    // JSON web token support.
+    implementation group: 'io.jsonwebtoken', name: 'jjwt', version:'0.7.0'
+	
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+    implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'
 }
 
 processResources {

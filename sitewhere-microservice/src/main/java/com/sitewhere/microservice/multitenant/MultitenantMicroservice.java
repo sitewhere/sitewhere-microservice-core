@@ -21,6 +21,7 @@ import com.sitewhere.microservice.configuration.TenantEngineConfigurationMonitor
 import com.sitewhere.microservice.lifecycle.CompositeLifecycleStep;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 import com.sitewhere.spi.microservice.IMicroserviceConfiguration;
 import com.sitewhere.spi.microservice.configuration.IScriptSpecUpdates;
 import com.sitewhere.spi.microservice.configuration.IScriptVersionSpecUpdates;
@@ -55,6 +56,10 @@ public abstract class MultitenantMicroservice<F extends IFunctionIdentifier, C e
 
     /** Tenant engine manager */
     private ITenantEngineManager<T> tenantEngineManager = new TenantEngineManager<>();
+
+    public MultitenantMicroservice(IInstanceSettings instanceSettings) {
+	super(instanceSettings);
+    }
 
     /*
      * (non-Javadoc)

@@ -1,0 +1,390 @@
+[
+  {
+    "name" : "java.lang.Class",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "java.lang.System",
+    "methods" : [{ "name" : "currentTimeMillis", "parameterTypes" : []}]
+  },
+  {
+    "name" : "java.lang.Math",
+    "methods" : [{ "name" : "toRadians", "parameterTypes" : ["double"]}]
+  },
+  {
+    "name" : "java.lang.Integer",
+    "methods" : [{ "name" : "parseInt", "parameterTypes" : ["java.lang.String"]}]
+  }, 
+  {
+    "name" : "java.lang.Long",
+    "methods" : [{ "name" : "parseLong", "parameterTypes" : ["java.lang.String"]}]
+  }, 
+  {
+    "name" : "java.lang.Boolean",
+    "methods" : [{ "name" : "parseBoolean", "parameterTypes" : ["java.lang.String"]}]
+  }, 
+  {
+    "name" : "java.lang.Byte",
+    "methods" : [{ "name" : "parseByte", "parameterTypes" : ["java.lang.String"]}]
+  }, 
+  {
+    "name" : "java.lang.Short",
+    "methods" : [{ "name" : "parseShort", "parameterTypes" : ["java.lang.String"]}]
+  }, 
+  {
+    "name" : "java.lang.Float",
+    "methods" : [{ "name" : "parseFloat", "parameterTypes" : ["java.lang.String"]}]
+  }, 
+  {
+    "name" : "java.lang.Double",
+    "methods" : [{ "name" : "parseDouble", "parameterTypes" : ["java.lang.String"]}]
+  },
+  {
+    "name" : "java.util.ArrayList",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "java.util.Date",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },
+  {
+    "name" : "java.util.UUID",
+    "allDeclaredConstructors" : true,
+    "allPublicConstructors" : true,
+    "allDeclaredMethods" : true,
+    "allPublicMethods" : true
+  },  
+  {
+    "name": "java.util.logging.Level",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.InstanceSettings",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.InstanceSettings$KubernetesSettings",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.InstanceSettings$KubernetesSettings$KubernetesPodSettings",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.InstanceSettings$KeycloakSettings",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.InstanceSettings$KeycloakSettings$KeycloakServiceSettings",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.InstanceSettings$KeycloakSettings$KeycloakApiSettings",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.InstanceSettings$KeycloakSettings$KeycloakMasterSettings",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.InstanceSettings$KeycloakSettings$KeycloakOidcSettings",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.InstanceSettings$KeycloakSettings$KeycloakSystemSettings",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.InstanceSettings$RedisSettings",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.InstanceSettings$RedisSettings$RedisServiceSettings",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.api.event.GeoUtils",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.infrastructure.InfrastructureConfiguration",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.infrastructure.RedisConfiguration",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.infrastructure.KafkaConfiguration",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.infrastructure.MetricsConfiguration",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.infrastructure.GrpcConfiguration",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.persistence.PersistenceConfigurations",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.persistence.DatastoreConfiguration",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.persistence.RdbConfiguration",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.persistence.TimeSeriesConfiguration",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.debugging.Debugging",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.configuration.model.instance.debugging.EventPipeline",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.datastore.DatastoreDefinition",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.tenant.TenantManagementRequestBuilder",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.tenant.TenantWrapper",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.api.asset.AssetManagementRequestBuilder",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.api.device.DeviceManagementRequestBuilder",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.api.event.DeviceEventRequestBuilder",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.api.event.DeviceEventRequestBuilder$AssignmentScope",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.api.schedule.ScheduleManagementRequestBuilder",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.sitewhere.microservice.api.user.UserManagementRequestBuilder",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.vividsolutions.jts.algorithm.MinimumBoundingCircle",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.vividsolutions.jts.geom.Coordinate",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.vividsolutions.jts.geom.Geometry",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.vividsolutions.jts.geom.Point",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.vividsolutions.jts.geom.Polygon",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.vividsolutions.jts.geom.GeometryFactory",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "com.vividsolutions.jts.geom.util.AffineTransformation",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.apache.kafka.clients.consumer.RangeAssignor",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.apache.kafka.clients.producer.internals.DefaultPartitioner",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.apache.kafka.common.serialization.ByteArraySerializer",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.apache.kafka.common.serialization.StringDeserializer",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.apache.kafka.common.serialization.StringSerializer",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.apache.kafka.common.serialization.UUIDDeserializer",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.apache.kafka.common.serialization.UUIDSerializer",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.apache.kafka.streams.errors.LogAndContinueExceptionHandler",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.slf4j.Logger",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.slf4j.impl.StaticLoggerBinder",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.slf4j.cal10n.LocLogger",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  },
+  {
+    "name": "org.slf4j.ext.LoggerWrapper",
+    "allDeclaredFields": true,
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  }
+]

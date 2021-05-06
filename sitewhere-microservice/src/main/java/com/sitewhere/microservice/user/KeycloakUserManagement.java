@@ -30,7 +30,6 @@ import javax.ws.rs.core.Response;
 
 import org.apache.http.HttpStatus;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.ClientResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.ServerInfoResource;
@@ -53,7 +52,7 @@ import com.sitewhere.rest.model.user.GrantedAuthority;
 import com.sitewhere.rest.model.user.Role;
 import com.sitewhere.rest.model.user.User;
 import com.sitewhere.spi.SiteWhereException;
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 import com.sitewhere.spi.microservice.lifecycle.LifecycleComponentType;
 import com.sitewhere.spi.microservice.user.IUserManagement;
@@ -68,8 +67,6 @@ import com.sitewhere.spi.user.request.IGrantedAuthorityCreateRequest;
 import com.sitewhere.spi.user.request.IRoleCreateRequest;
 import com.sitewhere.spi.user.request.IUserCreateRequest;
 
-import io.sitewhere.k8s.api.ISiteWhereKubernetesClient;
-
 /**
  * Implementation of {@link IUserManagement} that interacts with an underlying
  * Keycloak instance.
@@ -79,26 +76,11 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
     /** Client id for OpenID Connect support */
     private static final String CLIENT_ID_OPENID_CONNECT = "sitewhere-openid";
 
-    /** Keycloak client */
-    private Keycloak keycloak;
-
     /** OpenID Connect client secret */
     private String clientSecret;
 
     public KeycloakUserManagement() {
 	super(LifecycleComponentType.DataStore);
-    }
-
-    /**
-     * Get server URL for processing requests.
-     * 
-     * @return
-     */
-    protected String getServerUrl() {
-	IInstanceSettings settings = getMicroservice().getInstanceSettings();
-	String serviceName = settings.getKeycloak().getService().getName() + "."
-		+ ISiteWhereKubernetesClient.NS_SITEWHERE_SYSTEM;
-	return String.format("http://%s:%s/auth", serviceName, settings.getKeycloak().getApi().getPort());
     }
 
     /*
@@ -108,21 +90,15 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
      */
     @Override
     public void start(ILifecycleProgressMonitor monitor) throws SiteWhereException {
-	IInstanceSettings settings = getMicroservice().getInstanceSettings();
-
-	// Create Keycloak API client and test it.
-	String url = getServerUrl();
-	getLogger().info(String.format("Connecting to Keycloak API at '%s'.", url));
-	this.keycloak = KeycloakBuilder.builder().serverUrl(url).realm(settings.getKeycloak().getMaster().getRealm())
-		.username(settings.getKeycloak().getMaster().getUsername())
-		.password(settings.getKeycloak().getMaster().getPassword()).clientId("admin-cli").build();
 
 	// Wait for Keycloak connection to become available.
 	boolean connected = false;
+	getLogger()
+		.info(String.format("Connecting to Keycloak API at '%s'.", getMicroservice().getKeycloakServerUrl()));
 	while (!connected) {
 	    ServerInfoResource server = null;
 	    try {
-		server = getKeycloak().serverInfo();
+		server = getMicroservice().getKeycloakClient().serverInfo();
 		if (server != null) {
 		    SystemInfoRepresentation system = server.getInfo().getSystemInfo();
 		    getLogger().info(String.format("Keycloak API validated as version '%s'.", system.getVersion()));
@@ -170,7 +146,7 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
 		newRealm.setRealm(realmName);
 		newRealm.setDisplayName("SiteWhere");
 		newRealm.setEnabled(true);
-		getKeycloak().realms().create(newRealm);
+		getMicroservice().getKeycloakClient().realms().create(newRealm);
 		getLogger().info(String.format("Successfully created realm for instance (%s).", realmName));
 	    } catch (ClientErrorException e1) {
 		Response response = e1.getResponse();
@@ -232,7 +208,7 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
      */
     protected RealmResource getRealmResource() throws SiteWhereException {
 	String realmName = getMicroservice().getInstanceSettings().getKeycloak().getRealm();
-	return getKeycloak().realm(realmName);
+	return getMicroservice().getKeycloakClient().realm(realmName);
     }
 
     /**
@@ -382,8 +358,8 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
     @Override
     public String getAccessToken(String username, String password) throws SiteWhereException {
 	IInstanceSettings settings = getMicroservice().getInstanceSettings();
-	Keycloak instance = Keycloak.getInstance(getServerUrl(), settings.getKeycloak().getRealm(), username, password,
-		CLIENT_ID_OPENID_CONNECT, getClientSecret());
+	Keycloak instance = Keycloak.getInstance(getMicroservice().getKeycloakServerUrl(),
+		settings.getKeycloak().getRealm(), username, password, CLIENT_ID_OPENID_CONNECT, getClientSecret());
 	TokenManager tokenManager = instance.tokenManager();
 	AccessTokenResponse accessToken = tokenManager.getAccessToken();
 	String json = new String(MarshalUtils.marshalJson(accessToken));
@@ -721,10 +697,6 @@ public class KeycloakUserManagement extends LifecycleComponent implements IUserM
 	if (match != null) {
 	    getRealmResource().groups().group(match.getId()).remove();
 	}
-    }
-
-    protected Keycloak getKeycloak() {
-	return keycloak;
     }
 
     protected String getClientSecret() {

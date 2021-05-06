@@ -20,8 +20,8 @@ import com.sitewhere.grpc.service.ScheduleManagementGrpc;
 import com.sitewhere.grpc.service.ScheduleManagementGrpc.ScheduleManagementBlockingStub;
 import com.sitewhere.grpc.service.ScheduleManagementGrpc.ScheduleManagementStub;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 import com.sitewhere.spi.microservice.grpc.IGrpcServiceIdentifier;
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 
 /**
  * Channel that allows for communication with a remote schedule management GRPC

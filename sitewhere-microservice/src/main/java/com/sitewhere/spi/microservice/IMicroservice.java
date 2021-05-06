@@ -18,9 +18,10 @@ package com.sitewhere.spi.microservice;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
+import org.keycloak.admin.client.Keycloak;
+
 import com.sitewhere.microservice.configuration.model.instance.InstanceConfiguration;
 import com.sitewhere.spi.SiteWhereException;
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.instance.IInstanceSpecUpdateOperation;
 import com.sitewhere.spi.microservice.instance.IInstanceStatusUpdateOperation;
 import com.sitewhere.spi.microservice.kafka.IKafkaTopicNaming;
@@ -205,6 +206,20 @@ public interface IMicroservice<F extends IFunctionIdentifier, C extends IMicrose
      * @throws SiteWhereException
      */
     void createKubernetesResourceControllers(SharedInformerFactory informers) throws SiteWhereException;
+
+    /**
+     * Get Keycloak server URL.
+     * 
+     * @return
+     */
+    String getKeycloakServerUrl();
+
+    /**
+     * Get Keycloak client.
+     * 
+     * @return
+     */
+    Keycloak getKeycloakClient();
 
     /**
      * Get client for interacting with Redis cluster for caching.

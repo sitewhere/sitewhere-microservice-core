@@ -21,8 +21,8 @@ import java.util.concurrent.Executors;
 import com.sitewhere.grpc.client.spi.multitenant.IMultitenantGrpcChannel;
 import com.sitewhere.spi.SiteWhereException;
 import com.sitewhere.spi.microservice.IFunctionIdentifier;
+import com.sitewhere.spi.microservice.IInstanceSettings;
 import com.sitewhere.spi.microservice.grpc.IGrpcServiceIdentifier;
-import com.sitewhere.spi.microservice.instance.IInstanceSettings;
 import com.sitewhere.spi.microservice.lifecycle.ILifecycleProgressMonitor;
 
 import io.grpc.ManagedChannelBuilder;
